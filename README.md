@@ -21,13 +21,13 @@ Solução do desafio descrito em [`ENUNCIADO.md`](ENUNCIADO.md): uma Skill do Cl
 ├── PLANO.md                        # plano de resolução por etapas
 │
 ├── code-smells-project/            # Projeto 1 — Python/Flask (API de e-commerce)
-│   └── .claude/skills/refactor-arch/   # a skill (a criar na Etapa 2)
+│   └── .claude/skills/refactor-arch/   # a skill (fonte única)
 ├── ecommerce-api-legacy/           # Projeto 2 — Node.js/Express (LMS com checkout)
 │   └── .claude/skills/refactor-arch/   # cópia da skill
 ├── task-manager-api/               # Projeto 3 — Python/Flask (Task Manager)
 │   └── .claude/skills/refactor-arch/   # cópia da skill
 │
-├── reports/                        # saída da Fase 2 da skill (a gerar)
+├── reports/                        # relatórios de auditoria (saída da Fase 2)
 │   ├── audit-project-1.md
 │   ├── audit-project-2.md
 │   └── audit-project-3.md
@@ -37,7 +37,7 @@ Solução do desafio descrito em [`ENUNCIADO.md`](ENUNCIADO.md): uma Skill do Cl
 │   └── specs/                      # requisições de cada projeto
 └── evidencias/
     ├── baseline/                   # respostas do código original
-    └── depois/                     # respostas do código refatorado (a gerar)
+    └── depois/                     # respostas do código refatorado
 ```
 
 ---
@@ -352,271 +352,73 @@ Os relatórios foram validados contra o código original: Summary e Total batem 
 
 ### Estrutura antes e depois
 
-Entre parênteses, linhas de cada arquivo. Código-fonte apenas (sem dependências, bancos e `reports/`).
+Código-fonte apenas (`.py` e `.js`; sem dependências, bancos e `reports/`). A raiz do projeto aparece como `./`. O "antes" vem do commit inicial do repositório.
+
+| Projeto | Diretórios (antes → depois) | Arquivos de código (antes → depois) | Linhas (antes → depois) |
+| --- | :-: | :-: | :-: |
+| Projeto 1 — code-smells-project | 1 → 9 | 4 → 36 | 780 → 1087 |
+| Projeto 2 — ecommerce-api-legacy | 1 → 10 | 3 → 29 | 180 → 654 |
+| Projeto 3 — task-manager-api | 5 → 8 | 15 → 29 | 1158 → 1317 |
 
 #### Projeto 1 — code-smells-project
 
-**Antes** (36 arquivos de código, 1087 linhas)
+**Antes**
 ```
-app.py (34)
-config/
-  __init__.py (0)
-  constants.py (29)
-  settings.py (29)
-controllers/
-  __init__.py (0)
-  admin_controller.py (26)
-  pedido_controller.py (29)
-  produto_controller.py (58)
-  relatorio_controller.py (7)
-  sistema_controller.py (47)
-  usuario_controller.py (38)
-db/
-  __init__.py (0)
-  connection.py (52)
-  schema.py (105)
-middlewares/
-  __init__.py (0)
-  admin_auth.py (19)
-  errors.py (31)
-models/
-  __init__.py (0)
-  admin_model.py (26)
-  pedido_model.py (101)
-  produto_model.py (78)
-  usuario_model.py (51)
-routes/
-  __init__.py (6)
-  admin_routes.py (9)
-  pedido_routes.py (10)
-  produto_routes.py (12)
-  relatorio_routes.py (7)
-  sistema_routes.py (8)
-  usuario_routes.py (10)
-services/
-  __init__.py (0)
-  auth_service.py (39)
-  notificacao_service.py (19)
-  pedido_service.py (48)
-  relatorio_service.py (28)
-validators/
-  __init__.py (0)
-  payloads.py (131)
+./                  4 arquivo(s),  780 linhas
 ```
-**Depois** (36 arquivos de código, 1087 linhas)
+**Depois**
 ```
-app.py (34)
-config/
-  __init__.py (0)
-  constants.py (29)
-  settings.py (29)
-controllers/
-  __init__.py (0)
-  admin_controller.py (26)
-  pedido_controller.py (29)
-  produto_controller.py (58)
-  relatorio_controller.py (7)
-  sistema_controller.py (47)
-  usuario_controller.py (38)
-db/
-  __init__.py (0)
-  connection.py (52)
-  schema.py (105)
-middlewares/
-  __init__.py (0)
-  admin_auth.py (19)
-  errors.py (31)
-models/
-  __init__.py (0)
-  admin_model.py (26)
-  pedido_model.py (101)
-  produto_model.py (78)
-  usuario_model.py (51)
-routes/
-  __init__.py (6)
-  admin_routes.py (9)
-  pedido_routes.py (10)
-  produto_routes.py (12)
-  relatorio_routes.py (7)
-  sistema_routes.py (8)
-  usuario_routes.py (10)
-services/
-  __init__.py (0)
-  auth_service.py (39)
-  notificacao_service.py (19)
-  pedido_service.py (48)
-  relatorio_service.py (28)
-validators/
-  __init__.py (0)
-  payloads.py (131)
+./                  1 arquivo(s),   34 linhas
+config/             3 arquivo(s),   58 linhas
+controllers/        7 arquivo(s),  205 linhas
+db/                 3 arquivo(s),  157 linhas
+middlewares/        3 arquivo(s),   50 linhas
+models/             5 arquivo(s),  256 linhas
+routes/             7 arquivo(s),   62 linhas
+services/           5 arquivo(s),  134 linhas
+validators/         2 arquivo(s),  131 linhas
 ```
 
 #### Projeto 2 — ecommerce-api-legacy
 
-**Antes** (29 arquivos de código, 654 linhas)
+**Antes**
 ```
-src/
-  app.js (72)
-  config/
-    constants.js (24)
-    index.js (12)
-  controllers/
-    checkoutController.js (12)
-    reportController.js (11)
-    userController.js (12)
-  db/
-    connection.js (43)
-    schema.js (27)
-  middlewares/
-    adminAuth.js (16)
-    appError.js (9)
-    asyncHandler.js (4)
-    errorHandler.js (22)
-  models/
-    auditLogModel.js (15)
-    courseModel.js (17)
-    enrollmentModel.js (33)
-    paymentModel.js (15)
-    userModel.js (24)
-  routes/
-    adminRoutes.js (8)
-    checkoutRoutes.js (9)
-    index.js (11)
-    userRoutes.js (9)
-  services/
-    checkoutService.js (73)
-    passwordHasher.js (37)
-    paymentGateway.js (18)
-    reportService.js (38)
-    userService.js (16)
-  utils/
-    logger.js (21)
-  validators/
-    checkoutValidator.js (35)
-    idValidator.js (11)
+src/                3 arquivo(s),  180 linhas
 ```
-**Depois** (29 arquivos de código, 654 linhas)
+**Depois**
 ```
-src/
-  app.js (72)
-  config/
-    constants.js (24)
-    index.js (12)
-  controllers/
-    checkoutController.js (12)
-    reportController.js (11)
-    userController.js (12)
-  db/
-    connection.js (43)
-    schema.js (27)
-  middlewares/
-    adminAuth.js (16)
-    appError.js (9)
-    asyncHandler.js (4)
-    errorHandler.js (22)
-  models/
-    auditLogModel.js (15)
-    courseModel.js (17)
-    enrollmentModel.js (33)
-    paymentModel.js (15)
-    userModel.js (24)
-  routes/
-    adminRoutes.js (8)
-    checkoutRoutes.js (9)
-    index.js (11)
-    userRoutes.js (9)
-  services/
-    checkoutService.js (73)
-    passwordHasher.js (37)
-    paymentGateway.js (18)
-    reportService.js (38)
-    userService.js (16)
-  utils/
-    logger.js (21)
-  validators/
-    checkoutValidator.js (35)
-    idValidator.js (11)
+src/                1 arquivo(s),   72 linhas
+src/config/         2 arquivo(s),   36 linhas
+src/controllers/    3 arquivo(s),   35 linhas
+src/db/             2 arquivo(s),   70 linhas
+src/middlewares/    4 arquivo(s),   51 linhas
+src/models/         5 arquivo(s),  104 linhas
+src/routes/         4 arquivo(s),   37 linhas
+src/services/       5 arquivo(s),  182 linhas
+src/utils/          1 arquivo(s),   21 linhas
+src/validators/     2 arquivo(s),   46 linhas
 ```
 
 #### Projeto 3 — task-manager-api
 
-**Antes** (29 arquivos de código, 1317 linhas)
+**Antes**
 ```
-app.py (46)
-config/
-  __init__.py (0)
-  settings.py (44)
-controllers/
-  __init__.py (0)
-  category_controller.py (45)
-  common.py (18)
-  report_controller.py (18)
-  task_controller.py (64)
-  user_controller.py (88)
-middlewares/
-  __init__.py (0)
-  errors.py (30)
-models/
-  __init__.py (3)
-  category.py (36)
-  database.py (10)
-  task.py (140)
-  user.py (74)
-routes/
-  __init__.py (1)
-  category_routes.py (27)
-  main_routes.py (15)
-  report_routes.py (15)
-  task_routes.py (42)
-  user_routes.py (42)
-seed.py (73)
-services/
-  __init__.py (1)
-  auth_service.py (39)
-  notification_service.py (48)
-  report_service.py (108)
-validators/
-  __init__.py (0)
-  inputs.py (290)
+./                  3 arquivo(s),  136 linhas
+models/             4 arquivo(s),  122 linhas
+routes/             4 arquivo(s),  734 linhas
+services/           2 arquivo(s),   49 linhas
+utils/              2 arquivo(s),  117 linhas
 ```
-**Depois** (29 arquivos de código, 1317 linhas)
+**Depois**
 ```
-app.py (46)
-config/
-  __init__.py (0)
-  settings.py (44)
-controllers/
-  __init__.py (0)
-  category_controller.py (45)
-  common.py (18)
-  report_controller.py (18)
-  task_controller.py (64)
-  user_controller.py (88)
-middlewares/
-  __init__.py (0)
-  errors.py (30)
-models/
-  __init__.py (3)
-  category.py (36)
-  database.py (10)
-  task.py (140)
-  user.py (74)
-routes/
-  __init__.py (1)
-  category_routes.py (27)
-  main_routes.py (15)
-  report_routes.py (15)
-  task_routes.py (42)
-  user_routes.py (42)
-seed.py (73)
-services/
-  __init__.py (1)
-  auth_service.py (39)
-  notification_service.py (48)
-  report_service.py (108)
-validators/
-  __init__.py (0)
-  inputs.py (290)
+./                  2 arquivo(s),  119 linhas
+config/             2 arquivo(s),   44 linhas
+controllers/        6 arquivo(s),  233 linhas
+middlewares/        2 arquivo(s),   30 linhas
+models/             5 arquivo(s),  263 linhas
+routes/             6 arquivo(s),  142 linhas
+services/           4 arquivo(s),  196 linhas
+validators/         2 arquivo(s),  290 linhas
 ```
 
 ### Checklist de validação
@@ -732,7 +534,7 @@ python3.11 -m venv .venv
 
 ### Executar a skill
 
-_A skill será criada na Etapa 2._ Uso previsto:
+A skill está em `code-smells-project/.claude/skills/refactor-arch/` e copiada para os outros dois projetos. Execução:
 
 ```bash
 # Projeto 1 (onde a skill é desenvolvida)
@@ -777,4 +579,12 @@ Outras opções: `--port` troca a porta e `--setup` troca os comandos de prepara
 
 Código de saída: `0` quando todas as rotas devolvem o status esperado, `2` quando alguma devolve outro status e `1` quando o app não sobe ou não responde.
 
-_O comando de boot do código refatorado de cada projeto será definido nas Etapas 4 a 6._
+### Rodar os apps refatorados
+
+O comando de boot é o mesmo do original (`python app.py` nos projetos Python, `npm start` no Node). Diferenças:
+
+- A porta, o modo debug e os segredos vêm de variáveis de ambiente (veja o `.env.example` de cada projeto). Padrões: porta original e `DEBUG=false`.
+- As rotas administrativas (P1: `/admin/*`; P2: `/api/admin/financial-report` e `DELETE /api/users/:id`) ficam desligadas até definir `ADMIN_TOKEN`; depois, envie o header `X-Admin-Token`.
+- P3: para bancos criados antes da refatoração, os hashes MD5 são migrados no primeiro login; para um banco novo, rode `python seed.py`.
+
+Exemplo: `ADMIN_TOKEN=meu-token PORT=5050 .venv/bin/python app.py`.
