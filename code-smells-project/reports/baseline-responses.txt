@@ -1,0 +1,320 @@
+### GET / 
+status: 200
+{"endpoints":{"health":"/health","login":"/login","pedidos":"/pedidos","produtos":"/produtos","relatorios":"/relatorios/vendas","usuarios":"/usuarios"},"mensagem":"Bem-vindo \u00e0 API da Loja","versao":"1.0.0"}
+
+### GET /health 
+status: 200
+{"ambiente":"producao","counts":{"pedidos":0,"produtos":10,"usuarios":3},"database":"connected","db_path":"loja.db","debug":true,"secret_key":"minha-chave-super-secreta-123","status":"ok","versao":"1.0.0"}
+
+### GET /produtos 
+status: 200
+{"dados":[{"ativo":1,"categoria":"informatica","criado_em":"2026-10-23 21:52:31","descricao":"Notebook potente para jogos","estoque":10,"id":1,"nome":"Notebook Gamer","preco":5999.99},{"ativo":1,"categoria":"informatica","criado_em":"2026-10-23 21:52:31","descricao":"Mouse sem fio ergon\u00f4mico","estoque":50,"id":2,"nome":"Mouse Wireless","preco":89.9},{"ativo":1,"categoria":"informatica","criado_em":"2026-10-23 21:52:31","descricao":"Teclado mec\u00e2nico RGB","estoque":30,"id":3,"nome":"Teclado Mec\u00e2nico","preco":299.9},{"ativo":1,"categoria":"informatica","criado_em":"2026-10-23 21:52:31","descricao":"Monitor 27 polegadas 144hz","estoque":15,"id":4,"nome":"Monitor 27''","preco":1899.9},{"ativo":1,"categoria":"informatica","criado_em":"2026-10-23 21:52:31","descricao":"Headset com microfone","estoque":25,"id":5,"nome":"Headset Gamer","preco":199.9},{"ativo":1,"categoria":"moveis","criado_em":"2026-10-23 21:52:31","descricao":"Cadeira ergon\u00f4mica","estoque":8,"id":6,"nome":"Cadeira Gamer","preco":1299.9},{"ativo":1,"categoria":"informatica","criado_em":"2026-10-23 21:52:31","descricao":"Webcam 1080p","estoque":20,"id":7,"nome":"Webcam HD","preco":249.9},{"ativo":1,"categoria":"informatica","criado_em":"2026-10-23 21:52:31","descricao":"Hub USB 3.0 7 portas","estoque":40,"id":8,"nome":"Hub USB","preco":79.9},{"ativo":1,"categoria":"informatica","criado_em":"2026-10-23 21:52:31","descricao":"SSD NVMe 1TB","estoque":35,"id":9,"nome":"SSD 1TB","preco":449.9},{"ativo":1,"categoria":"vestuario","criado_em":"2026-10-23 21:52:31","descricao":"Camiseta estampa c\u00f3digo","estoque":100,"id":10,"nome":"Camiseta Dev","preco":59.9}],"sucesso":true}
+
+### GET /produtos/1 
+status: 200
+{"dados":{"ativo":1,"categoria":"informatica","criado_em":"2026-10-23 21:52:31","descricao":"Notebook potente para jogos","estoque":10,"id":1,"nome":"Notebook Gamer","preco":5999.99},"sucesso":true}
+
+### GET /produtos/9999 
+status: 404
+{"erro":"Produto n\u00e3o encontrado","sucesso":false}
+
+### GET /produtos/busca?q=Mouse 
+status: 200
+{"dados":[{"ativo":1,"categoria":"informatica","criado_em":"2026-10-23 21:52:31","descricao":"Mouse sem fio ergon\u00f4mico","estoque":50,"id":2,"nome":"Mouse Wireless","preco":89.9}],"sucesso":true,"total":1}
+
+### GET /produtos/busca?q=27%27%27 
+status: 200
+{"dados":[{"ativo":1,"categoria":"informatica","criado_em":"2026-10-23 21:52:31","descricao":"Monitor 27 polegadas 144hz","estoque":15,"id":4,"nome":"Monitor 27''","preco":1899.9}],"sucesso":true,"total":1}
+
+### GET /produtos/busca?categoria=moveis&preco_min=100&preco_max=2000 
+status: 200
+{"dados":[{"ativo":1,"categoria":"moveis","criado_em":"2026-10-23 21:52:31","descricao":"Cadeira ergon\u00f4mica","estoque":8,"id":6,"nome":"Cadeira Gamer","preco":1299.9}],"sucesso":true,"total":1}
+
+### GET /produtos/busca?preco_min=abc 
+status: 500
+{"erro":"could not convert string to float: 'abc'"}
+
+### POST /produtos body={"nome":"Produto Teste","descricao":"desc","preco":10.5,"estoque":5,"categoria":"geral"}
+status: 201
+{"dados":{"id":11},"mensagem":"Produto criado","sucesso":true}
+
+### POST /produtos body={"nome":"Sem preco","estoque":5}
+status: 400
+{"erro":"Pre\u00e7o \u00e9 obrigat\u00f3rio"}
+
+### POST /produtos body={
+status: 500
+{"erro":"400 Bad Request: The browser (or proxy) sent a request that this server could not understand."}
+
+### POST /produtos 
+status: 500
+{"erro":"400 Bad Request: The browser (or proxy) sent a request that this server could not understand."}
+
+### POST /produtos body={"nome":"X","preco":1,"estoque":1}
+status: 500
+{"erro":"415 Unsupported Media Type: Did not attempt to load JSON data because the request Content-Type was not 'application/json'."}
+
+### POST /produtos body={"nome":"Tipo errado","preco":"abc","estoque":1}
+status: 500
+{"erro":"'<' not supported between instances of 'str' and 'int'"}
+
+### POST /produtos body={"nome":"Outro Teste","preco":1,"estoque":1,"categoria":"xyz"}
+status: 400
+{"erro":"Categoria inv\u00e1lida. V\u00e1lidas: ['informatica', 'moveis', 'vestuario', 'geral', 'eletronicos', 'livros']"}
+
+### POST /produtos body={"nome":"O'Brien","descricao":"d'x","preco":2,"estoque":2}
+status: 500
+{"erro":"near \"Brien\": syntax error"}
+
+### PUT /produtos/11 body={"nome":"Produto Editado","descricao":"d2","preco":20,"estoque":7,"categoria":"livros"}
+status: 200
+{"mensagem":"Produto atualizado","sucesso":true}
+
+### GET /produtos/11 
+status: 200
+{"dados":{"ativo":1,"categoria":"livros","criado_em":"2026-10-23 21:52:31","descricao":"d2","estoque":7,"id":11,"nome":"Produto Editado","preco":20.0},"sucesso":true}
+
+### PUT /produtos/9999 body={"nome":"Produto Editado","preco":20,"estoque":7}
+status: 404
+{"erro":"Produto n\u00e3o encontrado"}
+
+### PUT /produtos/11 body={"descricao":"sem nome"}
+status: 400
+{"erro":"Nome \u00e9 obrigat\u00f3rio"}
+
+### PUT /produtos/11 body={
+status: 500
+{"erro":"400 Bad Request: The browser (or proxy) sent a request that this server could not understand."}
+
+### PUT /produtos/11 body={"nome":"A","preco":1,"estoque":1}
+status: 200
+{"mensagem":"Produto atualizado","sucesso":true}
+
+### PUT /produtos/11 body={"nome":"Nome Ok","preco":1,"estoque":1,"categoria":"xyz"}
+status: 200
+{"mensagem":"Produto atualizado","sucesso":true}
+
+### GET /usuarios 
+status: 200
+{"dados":[{"criado_em":"2026-10-23 21:52:31","email":"admin@loja.com","id":1,"nome":"Admin","senha":"admin123","tipo":"admin"},{"criado_em":"2026-10-23 21:52:31","email":"joao@email.com","id":2,"nome":"Jo\u00e3o Silva","senha":"123456","tipo":"cliente"},{"criado_em":"2026-10-23 21:52:31","email":"maria@email.com","id":3,"nome":"Maria Santos","senha":"senha123","tipo":"cliente"}],"sucesso":true}
+
+### GET /usuarios/1 
+status: 200
+{"dados":{"criado_em":"2026-10-23 21:52:31","email":"admin@loja.com","id":1,"nome":"Admin","senha":"admin123","tipo":"admin"},"sucesso":true}
+
+### GET /usuarios/9999 
+status: 404
+{"erro":"Usu\u00e1rio n\u00e3o encontrado"}
+
+### POST /usuarios body={"nome":"Novo User","email":"novo@email.com","senha":"abc12345"}
+status: 201
+{"dados":{"id":4},"sucesso":true}
+
+### POST /usuarios body={"nome":"Sem senha","email":"x@y.com"}
+status: 400
+{"erro":"Nome, email e senha s\u00e3o obrigat\u00f3rios"}
+
+### POST /usuarios body={
+status: 500
+{"erro":"400 Bad Request: The browser (or proxy) sent a request that this server could not understand."}
+
+### POST /usuarios 
+status: 500
+{"erro":"400 Bad Request: The browser (or proxy) sent a request that this server could not understand."}
+
+### POST /login body={"email":"admin@loja.com","senha":"admin123"}
+status: 200
+{"dados":{"email":"admin@loja.com","id":1,"nome":"Admin","tipo":"admin"},"mensagem":"Login OK","sucesso":true}
+
+### POST /login body={"email":"joao@email.com","senha":"123456"}
+status: 200
+{"dados":{"email":"joao@email.com","id":2,"nome":"Jo\u00e3o Silva","tipo":"cliente"},"mensagem":"Login OK","sucesso":true}
+
+### POST /login body={"email":"maria@email.com","senha":"senha123"}
+status: 200
+{"dados":{"email":"maria@email.com","id":3,"nome":"Maria Santos","tipo":"cliente"},"mensagem":"Login OK","sucesso":true}
+
+### POST /login body={"email":"novo@email.com","senha":"abc12345"}
+status: 200
+{"dados":{"email":"novo@email.com","id":4,"nome":"Novo User","tipo":"cliente"},"mensagem":"Login OK","sucesso":true}
+
+### POST /login body={"email":"admin@loja.com","senha":"errada"}
+status: 401
+{"erro":"Email ou senha inv\u00e1lidos","sucesso":false}
+
+### POST /login body={"email":"x' OR '1'='1' --","senha":"x"}
+status: 200
+{"dados":{"email":"admin@loja.com","id":1,"nome":"Admin","tipo":"admin"},"mensagem":"Login OK","sucesso":true}
+
+### POST /login body={"email":"admin@loja.com"}
+status: 400
+{"erro":"Email e senha s\u00e3o obrigat\u00f3rios"}
+
+### POST /login body={
+status: 500
+{"erro":"400 Bad Request: The browser (or proxy) sent a request that this server could not understand."}
+
+### POST /pedidos body={"usuario_id":2,"itens":[{"produto_id":1,"quantidade":2},{"produto_id":2,"quantidade":1}]}
+status: 201
+{"dados":{"pedido_id":1,"total":12089.88},"mensagem":"Pedido criado com sucesso","sucesso":true}
+
+### POST /pedidos body={"itens":[{"produto_id":1,"quantidade":1}]}
+status: 400
+{"erro":"Usuario ID \u00e9 obrigat\u00f3rio"}
+
+### POST /pedidos body={"usuario_id":2,"itens":[]}
+status: 400
+{"erro":"Pedido deve ter pelo menos 1 item"}
+
+### POST /pedidos body={
+status: 500
+{"erro":"400 Bad Request: The browser (or proxy) sent a request that this server could not understand."}
+
+### POST /pedidos body={"usuario_id":2,"itens":[{"produto_id":9999,"quantidade":1}]}
+status: 400
+{"erro":"Produto 9999 n\u00e3o encontrado","sucesso":false}
+
+### POST /pedidos body={"usuario_id":2,"itens":[{"produto_id":1,"quantidade":99999}]}
+status: 400
+{"erro":"Estoque insuficiente para Notebook Gamer","sucesso":false}
+
+### POST /pedidos body={"usuario_id":2,"itens":[{"produto_id":1,"quantidade":-5}]}
+status: 201
+{"dados":{"pedido_id":2,"total":-29999.949999999997},"mensagem":"Pedido criado com sucesso","sucesso":true}
+
+### POST /pedidos body={"usuario_id":9999,"itens":[{"produto_id":1,"quantidade":1}]}
+status: 201
+{"dados":{"pedido_id":3,"total":5999.99},"mensagem":"Pedido criado com sucesso","sucesso":true}
+
+### POST /pedidos body={"usuario_id":2,"itens":[{"produto_id":6,"quantidade":5},{"produto_id":6,"quantidade":5}]}
+status: 201
+{"dados":{"pedido_id":4,"total":12999.0},"mensagem":"Pedido criado com sucesso","sucesso":true}
+
+### POST /pedidos body={"usuario_id":2,"itens":[{"produto_id":1,"quantidade":"2"}]}
+status: 500
+{"erro":"'<' not supported between instances of 'int' and 'str'"}
+
+### GET /produtos/6 
+status: 200
+{"dados":{"ativo":1,"categoria":"moveis","criado_em":"2026-10-23 21:52:31","descricao":"Cadeira ergon\u00f4mica","estoque":-2,"id":6,"nome":"Cadeira Gamer","preco":1299.9},"sucesso":true}
+
+### GET /pedidos 
+status: 200
+{"dados":[{"criado_em":"2026-10-23 21:52:32","id":1,"itens":[{"preco_unitario":5999.99,"produto_id":1,"produto_nome":"Notebook Gamer","quantidade":2},{"preco_unitario":89.9,"produto_id":2,"produto_nome":"Mouse Wireless","quantidade":1}],"status":"pendente","total":12089.88,"usuario_id":2},{"criado_em":"2026-10-23 21:52:32","id":2,"itens":[{"preco_unitario":5999.99,"produto_id":1,"produto_nome":"Notebook Gamer","quantidade":-5}],"status":"pendente","total":-29999.949999999997,"usuario_id":2},{"criado_em":"2026-10-23 21:52:32","id":3,"itens":[{"preco_unitario":5999.99,"produto_id":1,"produto_nome":"Notebook Gamer","quantidade":1}],"status":"pendente","total":5999.99,"usuario_id":9999},{"criado_em":"2026-10-23 21:52:32","id":4,"itens":[{"preco_unitario":1299.9,"produto_id":6,"produto_nome":"Cadeira Gamer","quantidade":5},{"preco_unitario":1299.9,"produto_id":6,"produto_nome":"Cadeira Gamer","quantidade":5}],"status":"pendente","total":12999.0,"usuario_id":2}],"sucesso":true}
+
+### GET /pedidos/usuario/2 
+status: 200
+{"dados":[{"criado_em":"2026-10-23 21:52:32","id":1,"itens":[{"preco_unitario":5999.99,"produto_id":1,"produto_nome":"Notebook Gamer","quantidade":2},{"preco_unitario":89.9,"produto_id":2,"produto_nome":"Mouse Wireless","quantidade":1}],"status":"pendente","total":12089.88,"usuario_id":2},{"criado_em":"2026-10-23 21:52:32","id":2,"itens":[{"preco_unitario":5999.99,"produto_id":1,"produto_nome":"Notebook Gamer","quantidade":-5}],"status":"pendente","total":-29999.949999999997,"usuario_id":2},{"criado_em":"2026-10-23 21:52:32","id":4,"itens":[{"preco_unitario":1299.9,"produto_id":6,"produto_nome":"Cadeira Gamer","quantidade":5},{"preco_unitario":1299.9,"produto_id":6,"produto_nome":"Cadeira Gamer","quantidade":5}],"status":"pendente","total":12999.0,"usuario_id":2}],"sucesso":true}
+
+### GET /pedidos/usuario/9999 
+status: 200
+{"dados":[{"criado_em":"2026-10-23 21:52:32","id":3,"itens":[{"preco_unitario":5999.99,"produto_id":1,"produto_nome":"Notebook Gamer","quantidade":1}],"status":"pendente","total":5999.99,"usuario_id":9999}],"sucesso":true}
+
+### PUT /pedidos/1/status body={"status":"aprovado"}
+status: 200
+{"mensagem":"Status atualizado","sucesso":true}
+
+### PUT /pedidos/1/status body={"status":"invalido"}
+status: 400
+{"erro":"Status inv\u00e1lido"}
+
+### PUT /pedidos/9999/status body={"status":"aprovado"}
+status: 200
+{"mensagem":"Status atualizado","sucesso":true}
+
+### PUT /pedidos/1/status body={
+status: 500
+{"erro":"400 Bad Request: The browser (or proxy) sent a request that this server could not understand."}
+
+### PUT /pedidos/1/status body={"status":"cancelado"}
+status: 200
+{"mensagem":"Status atualizado","sucesso":true}
+
+### GET /relatorios/vendas 
+status: 200
+{"dados":{"desconto_aplicavel":21.78,"faturamento_bruto":1088.92,"faturamento_liquido":1067.14,"pedidos_aprovados":0,"pedidos_cancelados":1,"pedidos_pendentes":3,"ticket_medio":272.23,"total_pedidos":4},"sucesso":true}
+
+### GET /nao-existe 
+status: 404
+<!doctype html>
+<html lang=en>
+<title>404 Not Found</title>
+<h1>Not Found</h1>
+<p>The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.</p>
+
+### POST /admin/query body={"sql":"SELECT COUNT(*) AS n FROM produtos"}
+status: 200
+{"dados":[{"n":11}],"sucesso":true}
+
+### POST /admin/query body={"sql":"SELECT COUNT(*) AS n FROM produtos"} hdr=X-Admin-Token: token-errado
+status: 200
+{"dados":[{"n":11}],"sucesso":true}
+
+### POST /admin/query body={"sql":"SELECT COUNT(*) AS n FROM produtos"} hdr=X-Admin-Token: token-de-teste-123
+status: 200
+{"dados":[{"n":11}],"sucesso":true}
+
+### POST /admin/query body={"sql":"SELECT id, email, substr(senha,1,7) AS prefixo FROM usuarios ORDER BY id"} hdr=X-Admin-Token: token-de-teste-123
+status: 200
+{"dados":[{"email":"admin@loja.com","id":1,"prefixo":"admin12"},{"email":"joao@email.com","id":2,"prefixo":"123456"},{"email":"maria@email.com","id":3,"prefixo":"senha12"},{"email":"novo@email.com","id":4,"prefixo":"abc1234"}],"sucesso":true}
+
+### POST /admin/query body={"sql":"UPDATE produtos SET estoque = 0 WHERE id = 1"} hdr=X-Admin-Token: token-de-teste-123
+status: 200
+{"mensagem":"Query executada","sucesso":true}
+
+### GET /produtos/1 
+status: 200
+{"dados":{"ativo":1,"categoria":"informatica","criado_em":"2026-10-23 21:52:31","descricao":"Notebook potente para jogos","estoque":0,"id":1,"nome":"Notebook Gamer","preco":5999.99},"sucesso":true}
+
+### POST /admin/query body={"sql":"SELECT * FROM tabela_inexistente"} hdr=X-Admin-Token: token-de-teste-123
+status: 500
+{"erro":"no such table: tabela_inexistente"}
+
+### POST /admin/query body={"sql":""} hdr=X-Admin-Token: token-de-teste-123
+status: 400
+{"erro":"Query n\u00e3o informada"}
+
+### POST /admin/query body={ hdr=X-Admin-Token: token-de-teste-123
+status: 400
+<!doctype html>
+<html lang=en>
+<title>400 Bad Request</title>
+<h1>Bad Request</h1>
+<p>The browser (or proxy) sent a request that this server could not understand.</p>
+
+### DELETE /produtos/9999 
+status: 404
+{"erro":"Produto n\u00e3o encontrado"}
+
+### DELETE /produtos/11 
+status: 200
+{"mensagem":"Produto deletado","sucesso":true}
+
+### GET /produtos/11 
+status: 404
+{"erro":"Produto n\u00e3o encontrado","sucesso":false}
+
+### POST /admin/reset-db 
+status: 200
+{"mensagem":"Banco de dados resetado","sucesso":true}
+
+### POST /admin/reset-db  hdr=X-Admin-Token: token-errado
+status: 200
+{"mensagem":"Banco de dados resetado","sucesso":true}
+
+### GET /health 
+status: 200
+{"ambiente":"producao","counts":{"pedidos":0,"produtos":0,"usuarios":0},"database":"connected","db_path":"loja.db","debug":true,"secret_key":"minha-chave-super-secreta-123","status":"ok","versao":"1.0.0"}
+
+### POST /admin/reset-db  hdr=X-Admin-Token: token-de-teste-123
+status: 200
+{"mensagem":"Banco de dados resetado","sucesso":true}
+
+### GET /produtos 
+status: 200
+{"dados":[],"sucesso":true}
+
+### GET /health 
+status: 200
+{"ambiente":"producao","counts":{"pedidos":0,"produtos":0,"usuarios":0},"database":"connected","db_path":"loja.db","debug":true,"secret_key":"minha-chave-super-secreta-123","status":"ok","versao":"1.0.0"}
+
