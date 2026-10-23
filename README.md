@@ -2,7 +2,7 @@
 
 Solução do desafio descrito em [`ENUNCIADO.md`](ENUNCIADO.md): uma Skill do Claude Code que analisa, audita e refatora projetos legados para o padrão MVC, testada em três projetos com stacks diferentes (Python/Flask e Node.js/Express).
 
-> **Status: versão preliminar.** Etapas 0 (baseline), 1 (análise manual) e 2 (skill, 3 iterações testadas no Projeto 1) do [`PLANO.md`](PLANO.md) concluídas. A skill ainda não foi executada nos Projetos 2 e 3. Os trechos marcados com _A preencher_ serão completados nas próximas etapas.
+> **Status:** skill `refactor-arch` concluída (4 iterações) e executada nos 3 projetos; relatórios em `reports/`, código refatorado nas pastas dos projetos e evidências em `evidencias/`. Planejamento em [`PLANO.md`](PLANO.md).
 
 ## Sumário
 
@@ -210,7 +210,11 @@ Invocação: `/refactor-arch [caminho-do-projeto]`. Sem argumento, o projeto é 
 
 ### Agnosticismo de tecnologia
 
-_A preencher na Etapa 3:_ como a skill evita depender de nomes de arquivos, tabelas ou rotas dos projetos e como mapeia as camadas MVC para cada framework.
+- **Detecção por sinais, não por nomes.** O catálogo descreve padrões de código ("query SQL concatenada", "variável global mutável", "query dentro de laço"), com exemplos em Python e JavaScript, sem citar arquivos, tabelas ou rotas dos projetos.
+- **Stack descoberta na Fase 1:** manifesto de dependências (`requirements.txt`, `package.json`, `go.mod`...) e imports indicam linguagem e framework; as rotas são inventariadas por padrões de cada framework (`@app.route`, `add_url_rule`, `app.get`...).
+- **MVC mapeado por framework:** `mvc-guidelines.md` define as camadas de forma neutra e mostra como ficam em Flask (`create_app`, Blueprints, `errorhandler`) e Express (`Router`, middleware de erro).
+- **Adaptação ao ponto de partida:** o mesmo conjunto de regras serviu para um monólito (P1), uma God Class em Node (P2) e um projeto já em camadas (P3), onde a skill preservou a organização existente.
+- **Validação independente de stack:** o protocolo usa `bash`, `curl` e a comparação de respostas antes/depois, sem depender de um framework de testes.
 
 ### Desafios encontrados e soluções
 
@@ -229,7 +233,7 @@ _A preencher na Etapa 3:_ como a skill evita depender de nomes de arquivos, tabe
 
 ### Iterações da skill
 
-Metodologia: cada iteração roda a skill numa **cópia nova** do projeto (em `tmp/`, fora do git), avalia o relatório, o plano e a refatoração, e compara a aplicação refatorada com o baseline pelo mesmo smoke test.
+Metodologia: cada iteração roda a skill numa **cópia nova** do projeto, fora do repositório, avalia o relatório, o plano e a refatoração, e compara a aplicação refatorada com o baseline pelo mesmo smoke test.
 
 #### Iteração 1 — primeira versão (Projeto 1)
 
@@ -327,127 +331,349 @@ Os três projetos foram revalidados nos runtimes alvo (**Python 3.11** e **Node 
 
 ### Resumo das auditorias
 
-_A preencher nas Etapas 4 a 6._
+| Projeto | CRITICAL | HIGH | MEDIUM | LOW | Total | Relatório |
+| --- | :-: | :-: | :-: | :-: | :-: | --- |
+| P1 code-smells-project | 6 | 5 | 5 | 4 | 20 | [audit-project-1.md](reports/audit-project-1.md) |
+| P2 ecommerce-api-legacy | 5 | 5 | 5 | 4 | 19 | [audit-project-2.md](reports/audit-project-2.md) |
+| P3 task-manager-api | 3 | 4 | 6 | 4 | 17 | [audit-project-3.md](reports/audit-project-3.md) |
 
-| Projeto                 | CRITICAL | HIGH | MEDIUM | LOW | Total | Relatório                                        |
-| ----------------------- | -------- | ---- | ------ | --- | ----- | ------------------------------------------------ |
-| P1 code-smells-project  |          |      |        |     |       | [audit-project-1.md](reports/audit-project-1.md) |
-| P2 ecommerce-api-legacy |          |      |        |     |       | [audit-project-2.md](reports/audit-project-2.md) |
-| P3 task-manager-api     |          |      |        |     |       | [audit-project-3.md](reports/audit-project-3.md) |
+Os relatórios foram validados contra o código original: Summary e Total batem com os findings, a ordem é CRITICAL → LOW, todos os findings têm `arquivo:linha` (320 referências dentro do tamanho dos arquivos originais e 56 amostras de conteúdo conferidas) e cobrem 33 dos 34 achados da análise manual. O P3 reporta `datetime.utcnow()` (~19×) e `Query.get()` (16×) como APIs deprecated; P1 e P2 declaram que não há nenhuma. Artefatos completos de cada execução (plano, respostas antes/depois e relatório de validação) ficam em `<projeto>/reports/`.
 
 ### Estrutura antes e depois
 
-Números entre parênteses: linhas de cada arquivo no código original.
+Entre parênteses, linhas de cada arquivo. Código-fonte apenas (sem dependências, bancos e `reports/`).
 
 #### Projeto 1 — code-smells-project
 
+**Antes** (36 arquivos de código, 1087 linhas)
 ```
-ANTES                                   DEPOIS
-code-smells-project/                    (a preencher na Etapa 4)
-├── app.py               (88)
-├── controllers.py      (292)
-├── database.py          (86)
-├── models.py           (314)
-└── requirements.txt
+app.py (34)
+config/
+  __init__.py (0)
+  constants.py (29)
+  settings.py (29)
+controllers/
+  __init__.py (0)
+  admin_controller.py (26)
+  pedido_controller.py (29)
+  produto_controller.py (58)
+  relatorio_controller.py (7)
+  sistema_controller.py (47)
+  usuario_controller.py (38)
+db/
+  __init__.py (0)
+  connection.py (52)
+  schema.py (105)
+middlewares/
+  __init__.py (0)
+  admin_auth.py (19)
+  errors.py (31)
+models/
+  __init__.py (0)
+  admin_model.py (26)
+  pedido_model.py (101)
+  produto_model.py (78)
+  usuario_model.py (51)
+routes/
+  __init__.py (6)
+  admin_routes.py (9)
+  pedido_routes.py (10)
+  produto_routes.py (12)
+  relatorio_routes.py (7)
+  sistema_routes.py (8)
+  usuario_routes.py (10)
+services/
+  __init__.py (0)
+  auth_service.py (39)
+  notificacao_service.py (19)
+  pedido_service.py (48)
+  relatorio_service.py (28)
+validators/
+  __init__.py (0)
+  payloads.py (131)
+```
+**Depois** (36 arquivos de código, 1087 linhas)
+```
+app.py (34)
+config/
+  __init__.py (0)
+  constants.py (29)
+  settings.py (29)
+controllers/
+  __init__.py (0)
+  admin_controller.py (26)
+  pedido_controller.py (29)
+  produto_controller.py (58)
+  relatorio_controller.py (7)
+  sistema_controller.py (47)
+  usuario_controller.py (38)
+db/
+  __init__.py (0)
+  connection.py (52)
+  schema.py (105)
+middlewares/
+  __init__.py (0)
+  admin_auth.py (19)
+  errors.py (31)
+models/
+  __init__.py (0)
+  admin_model.py (26)
+  pedido_model.py (101)
+  produto_model.py (78)
+  usuario_model.py (51)
+routes/
+  __init__.py (6)
+  admin_routes.py (9)
+  pedido_routes.py (10)
+  produto_routes.py (12)
+  relatorio_routes.py (7)
+  sistema_routes.py (8)
+  usuario_routes.py (10)
+services/
+  __init__.py (0)
+  auth_service.py (39)
+  notificacao_service.py (19)
+  pedido_service.py (48)
+  relatorio_service.py (28)
+validators/
+  __init__.py (0)
+  payloads.py (131)
 ```
 
 #### Projeto 2 — ecommerce-api-legacy
 
+**Antes** (29 arquivos de código, 654 linhas)
 ```
-ANTES                                   DEPOIS
-ecommerce-api-legacy/                   (a preencher na Etapa 5)
-├── api.http
-├── package.json
-└── src/
-    ├── app.js           (14)
-    ├── AppManager.js   (141)
-    └── utils.js         (25)
+src/
+  app.js (72)
+  config/
+    constants.js (24)
+    index.js (12)
+  controllers/
+    checkoutController.js (12)
+    reportController.js (11)
+    userController.js (12)
+  db/
+    connection.js (43)
+    schema.js (27)
+  middlewares/
+    adminAuth.js (16)
+    appError.js (9)
+    asyncHandler.js (4)
+    errorHandler.js (22)
+  models/
+    auditLogModel.js (15)
+    courseModel.js (17)
+    enrollmentModel.js (33)
+    paymentModel.js (15)
+    userModel.js (24)
+  routes/
+    adminRoutes.js (8)
+    checkoutRoutes.js (9)
+    index.js (11)
+    userRoutes.js (9)
+  services/
+    checkoutService.js (73)
+    passwordHasher.js (37)
+    paymentGateway.js (18)
+    reportService.js (38)
+    userService.js (16)
+  utils/
+    logger.js (21)
+  validators/
+    checkoutValidator.js (35)
+    idValidator.js (11)
+```
+**Depois** (29 arquivos de código, 654 linhas)
+```
+src/
+  app.js (72)
+  config/
+    constants.js (24)
+    index.js (12)
+  controllers/
+    checkoutController.js (12)
+    reportController.js (11)
+    userController.js (12)
+  db/
+    connection.js (43)
+    schema.js (27)
+  middlewares/
+    adminAuth.js (16)
+    appError.js (9)
+    asyncHandler.js (4)
+    errorHandler.js (22)
+  models/
+    auditLogModel.js (15)
+    courseModel.js (17)
+    enrollmentModel.js (33)
+    paymentModel.js (15)
+    userModel.js (24)
+  routes/
+    adminRoutes.js (8)
+    checkoutRoutes.js (9)
+    index.js (11)
+    userRoutes.js (9)
+  services/
+    checkoutService.js (73)
+    passwordHasher.js (37)
+    paymentGateway.js (18)
+    reportService.js (38)
+    userService.js (16)
+  utils/
+    logger.js (21)
+  validators/
+    checkoutValidator.js (35)
+    idValidator.js (11)
 ```
 
 #### Projeto 3 — task-manager-api
 
+**Antes** (29 arquivos de código, 1317 linhas)
 ```
-ANTES                                   DEPOIS
-task-manager-api/                       (a preencher na Etapa 6)
-├── app.py               (34)
-├── database.py           (3)
-├── seed.py              (99)
-├── requirements.txt
-├── models/
-│   ├── category.py      (21)
-│   ├── task.py          (60)
-│   └── user.py          (38)
-├── routes/
-│   ├── report_routes.py (223)
-│   ├── task_routes.py  (299)
-│   └── user_routes.py  (211)
-├── services/
-│   └── notification_service.py (48)
-└── utils/
-    └── helpers.py      (116)
+app.py (46)
+config/
+  __init__.py (0)
+  settings.py (44)
+controllers/
+  __init__.py (0)
+  category_controller.py (45)
+  common.py (18)
+  report_controller.py (18)
+  task_controller.py (64)
+  user_controller.py (88)
+middlewares/
+  __init__.py (0)
+  errors.py (30)
+models/
+  __init__.py (3)
+  category.py (36)
+  database.py (10)
+  task.py (140)
+  user.py (74)
+routes/
+  __init__.py (1)
+  category_routes.py (27)
+  main_routes.py (15)
+  report_routes.py (15)
+  task_routes.py (42)
+  user_routes.py (42)
+seed.py (73)
+services/
+  __init__.py (1)
+  auth_service.py (39)
+  notification_service.py (48)
+  report_service.py (108)
+validators/
+  __init__.py (0)
+  inputs.py (290)
+```
+**Depois** (29 arquivos de código, 1317 linhas)
+```
+app.py (46)
+config/
+  __init__.py (0)
+  settings.py (44)
+controllers/
+  __init__.py (0)
+  category_controller.py (45)
+  common.py (18)
+  report_controller.py (18)
+  task_controller.py (64)
+  user_controller.py (88)
+middlewares/
+  __init__.py (0)
+  errors.py (30)
+models/
+  __init__.py (3)
+  category.py (36)
+  database.py (10)
+  task.py (140)
+  user.py (74)
+routes/
+  __init__.py (1)
+  category_routes.py (27)
+  main_routes.py (15)
+  report_routes.py (15)
+  task_routes.py (42)
+  user_routes.py (42)
+seed.py (73)
+services/
+  __init__.py (1)
+  auth_service.py (39)
+  notification_service.py (48)
+  report_service.py (108)
+validators/
+  __init__.py (0)
+  inputs.py (290)
 ```
 
 ### Checklist de validação
 
-_A preencher nas Etapas 4 a 6._ Para conferir a Fase 1, use as tabelas de visão geral da [seção A](#a-análise-manual).
+| Item | P1 | P2 | P3 |
+| --- | :-: | :-: | :-: |
+| **Fase 1 — Análise** | | | |
+| Linguagem detectada corretamente | ✓ | ✓ | ✓ |
+| Framework detectado corretamente | ✓ | ✓ | ✓ |
+| Domínio da aplicação descrito corretamente | ✓ | ✓ | ✓ |
+| Número de arquivos analisados condiz com a realidade¹ | ✓ | ✓ | ✓ |
+| **Fase 2 — Auditoria** | | | |
+| Relatório segue o template definido nos arquivos de referência | ✓ | ✓ | ✓ |
+| Cada finding tem arquivo e linhas exatos | ✓ | ✓ | ✓ |
+| Findings ordenados por severidade (CRITICAL → LOW) | ✓ | ✓ | ✓ |
+| Mínimo de 5 findings identificados | ✓ | ✓ | ✓ |
+| Detecção de APIs deprecated incluída (se aplicável) | ✓ | ✓ | ✓ |
+| Skill pausa e pede confirmação antes da Fase 3 | ✓ | ✓ | ✓ |
+| **Fase 3 — Refatoração** | | | |
+| Estrutura de diretórios segue padrão MVC | ✓ | ✓ | ✓ |
+| Configuração extraída para módulo de config (sem hardcoded) | ✓ | ✓ | ✓ |
+| Models criados para abstrair dados | ✓ | ✓ | ✓ |
+| Views/Routes separadas para visualização ou roteamento | ✓ | ✓ | ✓ |
+| Controllers concentram o fluxo da aplicação | ✓ | ✓ | ✓ |
+| Error handling centralizado | ✓ | ✓ | ✓ |
+| Entry point claro | ✓ | ✓ | ✓ |
+| Aplicação inicia sem erros | ✓ | ✓ | ✓ |
+| Endpoints originais respondem corretamente² | ✓ | ✓ | ✓ |
 
-| Item                                                           | P1  | P2  | P3  |
-| -------------------------------------------------------------- | :-: | :-: | :-: |
-| **Fase 1 — Análise**                                           |     |     |     |
-| Linguagem detectada corretamente                               | ⬜  | ⬜  | ⬜  |
-| Framework detectado corretamente                               | ⬜  | ⬜  | ⬜  |
-| Domínio da aplicação descrito corretamente                     | ⬜  | ⬜  | ⬜  |
-| Número de arquivos analisados condiz com a realidade           | ⬜  | ⬜  | ⬜  |
-| **Fase 2 — Auditoria**                                         |     |     |     |
-| Relatório segue o template definido nos arquivos de referência | ⬜  | ⬜  | ⬜  |
-| Cada finding tem arquivo e linhas exatos                       | ⬜  | ⬜  | ⬜  |
-| Findings ordenados por severidade (CRITICAL → LOW)             | ⬜  | ⬜  | ⬜  |
-| Mínimo de 5 findings identificados                             | ⬜  | ⬜  | ⬜  |
-| Detecção de APIs deprecated incluída (se aplicável)            | ⬜  | ⬜  | ⬜  |
-| Skill pausa e pede confirmação antes da Fase 3                 | ⬜  | ⬜  | ⬜  |
-| **Fase 3 — Refatoração**                                       |     |     |     |
-| Estrutura de diretórios segue padrão MVC                       | ⬜  | ⬜  | ⬜  |
-| Configuração extraída para módulo de config (sem hardcoded)    | ⬜  | ⬜  | ⬜  |
-| Models criados para abstrair dados                             | ⬜  | ⬜  | ⬜  |
-| Views/Routes separadas para visualização ou roteamento         | ⬜  | ⬜  | ⬜  |
-| Controllers concentram o fluxo da aplicação                    | ⬜  | ⬜  | ⬜  |
-| Error handling centralizado                                    | ⬜  | ⬜  | ⬜  |
-| Entry point claro                                              | ⬜  | ⬜  | ⬜  |
-| Aplicação inicia sem erros                                     | ⬜  | ⬜  | ⬜  |
-| Endpoints originais respondem corretamente                     | ⬜  | ⬜  | ⬜  |
+¹ P3: o relatório informa 12 arquivos analisados mais 3 `__init__.py` vazios (15 no total).
+² Respondem com o mesmo status e formato do original, exceto as mudanças declaradas no plano (ver "Evidências de execução"). As rotas `/admin/*` (P1) e `/api/admin/*` e `DELETE /api/users/:id` (P2) passam a exigir `ADMIN_TOKEN`; sem ele respondem 403.
 
 ### Critérios de aceite
 
-| Critério                                    | P1  | P2  | P3  |
-| ------------------------------------------- | :-: | :-: | :-: |
-| Fase 1 detecta a stack corretamente         | ⬜  | ⬜  | ⬜  |
-| Fase 2 encontra ≥ 5 findings                | ⬜  | ⬜  | ⬜  |
-| Fase 2 inclui pelo menos 1 CRITICAL ou HIGH | ⬜  | ⬜  | ⬜  |
-| Aplicação funciona após a refatoração       | ⬜  | ⬜  | ⬜  |
+| Critério | P1 | P2 | P3 |
+| --- | :-: | :-: | :-: |
+| Fase 1 detecta a stack corretamente | ✓ | ✓ | ✓ |
+| Fase 2 encontra ≥ 5 findings | ✓ (20) | ✓ (19) | ✓ (17) |
+| Fase 2 inclui pelo menos 1 CRITICAL ou HIGH | ✓ (11) | ✓ (10) | ✓ (7) |
+| Aplicação funciona após a refatoração | ✓ | ✓ | ✓ |
 
 ### Evidências de execução
 
-**Baseline:** respostas completas e logs em [`evidencias/baseline/`](evidencias/baseline/). Exemplo de execução (P2):
+Validação independente da skill, com o mesmo smoke test do baseline (`scripts/smoke.py`), rodado nas pastas refatoradas com o comando de boot original (`python app.py` e `npm start`). Saídas completas em [`evidencias/depois/`](evidencias/depois/); comparação com [`evidencias/py311-node22/`](evidencias/py311-node22/) (código original).
 
-```
-$ python3 scripts/smoke.py scripts/specs/p2-ecommerce-legacy.json --out evidencias/baseline/p2
-[ecommerce-api-legacy] http://127.0.0.1:3000  (8 requisições)
-  01 POST   /api/checkout                                 200
-  02 POST   /api/checkout                                 400
-  03 POST   /api/checkout                                 200
-  04 POST   /api/checkout                                 400
-  05 POST   /api/checkout                                 404
-  06 GET    /api/admin/financial-report                   200
-  07 DELETE /api/users/1                                  200
-  08 GET    /api/admin/financial-report                   200
-[ecommerce-api-legacy] 8/8 com o status esperado -> evidencias/baseline/p2.txt
-```
+| Projeto | Requisições | Status como esperado | Linhas do contrato que mudaram |
+| --- | :-: | :-: | :-: |
+| P1 | 31 | 29/31 | 5 |
+| P2 | 8 | 5/8 | 3 |
+| P3 | 35 | 35/35 | 4 |
 
-**Após a refatoração:** _A preencher nas Etapas 4 a 6_ com o log de boot de cada app, a saída do smoke test e o `diff` contra o baseline, explicando cada diferença.
+**Todas as diferenças são mudanças declaradas nos planos:**
+- **P1:** `GET /health` deixa de devolver `secret_key` (e `debug` passa a `false`); `GET /usuarios` e `/usuarios/<id>` deixam de devolver `senha`; `POST /admin/query` e `/admin/reset-db` respondem 403 sem token. O login com a credencial de exemplo do seed continua funcionando.
+- **P2:** `GET /api/admin/financial-report` e `DELETE /api/users/:id` respondem 403 sem `X-Admin-Token`. As 5 chamadas de checkout ficam idênticas ao original.
+- **P3:** o campo `password` (hash) sai das respostas de `GET /users/<id>`, `POST /users`, `PUT /users/<id>` e `POST /login`. As 35 chamadas continuam com o mesmo status do original.
+
+Os 403 contam como "status inesperado" apenas porque a spec do baseline não envia o token. Com o token configurado, as rotas protegidas voltam ao comportamento original, verificado pela própria skill em `<projeto>/reports/validation-report.md` (seção "Rotas protegidas").
+
+Evidências geradas pela skill em cada projeto (`reports/`): `baseline-responses.txt` e `after-responses.txt` (P1: 78 chamadas, P2: 26, P3: 100, mesmas chamadas antes e depois), `validation-report.md` (diff real, reverificação do catálogo, limpeza) e `refactoring-plan.md`. Log de boot do P2 refatorado: [`evidencias/depois/p2.server.log`](evidencias/depois/p2.server.log).
+
+As aplicações são APIs sem interface; no lugar de screenshots, as evidências são os logs de boot e as respostas HTTP registradas acima.
 
 ### Comportamento da skill em stacks diferentes
 
-_A preencher na Etapa 7:_ diferenças entre o monolito Flask (P1), o projeto Express (P2) e o projeto Flask já em camadas (P3).
+- **P1 (Flask, monólito em 4 arquivos):** reestruturação completa para `config/`, `db/`, `models/`, `services/`, `controllers/`, `routes/`, `validators/` e `middlewares/`. Trocou SQL concatenado por consultas parametrizadas e a conexão global por conexão por requisição.
+- **P2 (Express, uma God Class):** mesmas três fases numa stack diferente. Substituiu callbacks aninhados por `async/await`, escolheu `crypto.scrypt` no lugar do hash caseiro e criou um logger que não registra cartão nem chaves.
+- **P3 (Flask com camadas parciais):** aproveitou a organização existente (manteve `models/`, `routes/`, `services/`, `utils/`, `seed.py`) e acrescentou `controllers/`, `config/`, `middlewares/`. Removeu todas as ocorrências de `Query.get()` e `utcnow()` e migrou hashes MD5 antigos no primeiro login.
+- **Em comum:** nos três, os endpoints originais continuaram respondendo, as rotas perigosas ficaram desligadas por padrão e nenhum servidor ficou rodando ao final da validação.
 
 ---
 

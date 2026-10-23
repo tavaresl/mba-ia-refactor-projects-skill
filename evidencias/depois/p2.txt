@@ -1,0 +1,51 @@
+### 01. Checkout aprovado (usuário novo)
+POST /api/checkout
+request: {"c_id": 2, "card": "4111222233334444", "eml": "gui@fullcycle.com.br", "pwd": "senhaforte", "usr": "Guilherme"}
+status: 200
+{
+  "enrollment_id": 2,
+  "msg": "Sucesso"
+}
+
+### 02. Checkout com pagamento recusado
+POST /api/checkout
+request: {"c_id": 1, "card": "5111222233334444", "eml": "joao@teste.com", "pwd": "123", "usr": "João"}
+status: 400
+Pagamento recusado
+
+### 03. Checkout aprovado (usuário já existente)
+POST /api/checkout
+request: {"c_id": 2, "card": "4000111122223333", "eml": "leonan@fullcycle.com.br", "pwd": "123", "usr": "Leonan"}
+status: 200
+{
+  "enrollment_id": 3,
+  "msg": "Sucesso"
+}
+
+### 04. Checkout sem campos obrigatórios
+POST /api/checkout
+request: {"usr": "Incompleto"}
+status: 400
+Bad Request
+
+### 05. Checkout de curso inexistente
+POST /api/checkout
+request: {"c_id": 999, "card": "4111222233334444", "eml": "ana@teste.com", "pwd": "123", "usr": "Ana"}
+status: 404
+Curso não encontrado
+
+### 06. Relatório financeiro
+GET /api/admin/financial-report
+status: 403   !! esperado 200
+Acesso negado
+
+### 07. Deletar usuário
+DELETE /api/users/1
+status: 403   !! esperado 200
+Acesso negado
+
+### 08. Relatório financeiro após deletar usuário
+GET /api/admin/financial-report
+status: 403   !! esperado 200
+Acesso negado
+

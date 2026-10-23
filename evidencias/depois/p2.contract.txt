@@ -1,0 +1,8 @@
+01 POST /api/checkout -> 200 {enrollment_id: number, msg: str}
+02 POST /api/checkout -> 400 text
+03 POST /api/checkout -> 200 {enrollment_id: number, msg: str}
+04 POST /api/checkout -> 400 text
+05 POST /api/checkout -> 404 text
+06 GET /api/admin/financial-report -> 403 text
+07 DELETE /api/users/1 -> 403 text
+08 GET /api/admin/financial-report -> 403 text

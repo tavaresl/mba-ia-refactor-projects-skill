@@ -1,0 +1,35 @@
+01 GET / -> 200 {message: str, version: str}
+02 GET /health -> 200 {status: str, timestamp: str}
+03 GET /tasks -> 200 [{category_id: number, category_name: str, created_at: str, description: str, due_date: str|null, id: number, overdue: bool, priority: number, status: str, tags: [str], title: str, updated_at: str, user_id: number, user_name: str}]
+04 GET /tasks/1 -> 200 {category_id: number, created_at: str, description: str, due_date: str, id: number, overdue: bool, priority: number, status: str, tags: [], title: str, updated_at: str, user_id: number}
+05 GET /tasks/9999 -> 404 {error: str}
+06 GET /tasks/search?q=API -> 200 [{category_id: number, created_at: str, description: str, due_date: str|null, id: number, priority: number, status: str, tags: [], title: str, updated_at: str, user_id: number}]
+07 GET /tasks/search?status=pending&priority=1 -> 200 [{category_id: number, created_at: str, description: str, due_date: str, id: number, priority: number, status: str, tags: [], title: str, updated_at: str, user_id: number}]
+08 GET /tasks/stats -> 200 {cancelled: number, completion_rate: number, done: number, in_progress: number, overdue: number, pending: number, total: number}
+09 POST /tasks -> 201 {category_id: number, created_at: str, description: str, due_date: str, id: number, priority: number, status: str, tags: [str], title: str, updated_at: str, user_id: number}
+10 POST /tasks -> 400 {error: str}
+11 POST /tasks -> 404 {error: str}
+12 PUT /tasks/{task_id} -> 200 {category_id: number, created_at: str, description: str, due_date: str, id: number, priority: number, status: str, tags: [str], title: str, updated_at: str, user_id: number}
+13 PUT /tasks/{task_id} -> 400 {error: str}
+14 PUT /tasks/9999 -> 404 {error: str}
+15 GET /users -> 200 [{active: bool, created_at: str, email: str, id: number, name: str, role: str, task_count: number}]
+16 GET /users/1 -> 200 {active: bool, created_at: str, email: str, id: number, name: str, role: str, tasks: [{category_id: number, created_at: str, description: str, due_date: str|null, id: number, priority: number, status: str, tags: [str], title: str, updated_at: str, user_id: number}]}
+17 GET /users/9999 -> 404 {error: str}
+18 POST /users -> 201 {active: bool, created_at: str, email: str, id: number, name: str, role: str}
+19 POST /users -> 409 {error: str}
+20 POST /users -> 400 {error: str}
+21 PUT /users/{user_id} -> 200 {active: bool, created_at: str, email: str, id: number, name: str, role: str}
+22 GET /users/1/tasks -> 200 [{created_at: str, description: str, due_date: str|null, id: number, overdue: bool, priority: number, status: str, title: str}]
+23 POST /login -> 200 {message: str, token: str, user: {active: bool, created_at: str, email: str, id: number, name: str, role: str}}
+24 POST /login -> 401 {error: str}
+25 GET /reports/summary -> 200 {generated_at: str, overdue: {count: number, tasks: [{days_overdue: number, due_date: str, id: number, title: str}]}, overview: {total_categories: number, total_tasks: number, total_users: number}, recent_activity: {tasks_completed_last_7_days: number, tasks_created_last_7_days: number}, tasks_by_priority: {critical: number, high: number, low: number, medium: number, minimal: number}, tasks_by_status: {cancelled: number, done: number, in_progress: number, pending: number}, user_productivity: [{completed_tasks: number, completion_rate: number, total_tasks: number, user_id: number, user_name: str}]}
+26 GET /reports/user/1 -> 200 {statistics: {cancelled: number, completion_rate: number, done: number, high_priority: number, in_progress: number, overdue: number, pending: number, total_tasks: number}, user: {email: str, id: number, name: str}}
+27 GET /reports/user/9999 -> 404 {error: str}
+28 GET /categories -> 200 [{color: str, created_at: str, description: str, id: number, name: str, task_count: number}]
+29 POST /categories -> 201 {color: str, created_at: str, description: str, id: number, name: str}
+30 POST /categories -> 400 {error: str}
+31 PUT /categories/{category_id} -> 200 {color: str, created_at: str, description: str, id: number, name: str}
+32 DELETE /categories/{category_id} -> 200 {message: str}
+33 DELETE /tasks/{task_id} -> 200 {message: str}
+34 DELETE /tasks/9999 -> 404 {error: str}
+35 DELETE /users/{user_id} -> 200 {message: str}
