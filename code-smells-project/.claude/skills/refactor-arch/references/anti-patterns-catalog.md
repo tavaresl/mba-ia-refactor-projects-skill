@@ -126,7 +126,10 @@ reais de segurança sem justificativa.
 - **Por que**: dados inválidos entram no sistema; regras de negócio são
   burladas; comportamento inseguro.
 - **Refatoração**: RF-14 (camada de validação) + RF-04 (regra no serviço, com
-  transação).
+  transação). A correção **rejeita a entrada inválida** (4xx); ela não apaga
+  nem altera registros já gravados. Problemas de integridade que só se
+  resolveriam apagando dados (ex.: registros órfãos) são reportados e vão para
+  "Not addressed" no plano.
 
 ### AP-QUAL-03 — Duplicação de código
 - **Sinais**: mesmo bloco de mapeamento/validação/serialização copiado em vários

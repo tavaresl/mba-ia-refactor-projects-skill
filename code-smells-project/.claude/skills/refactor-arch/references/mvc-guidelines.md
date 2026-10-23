@@ -129,8 +129,38 @@ A refatoração **reorganiza**, não **reescreve o comportamento**:
   mantendo como padrão o valor original.
 - Mesmos valores padrão de configuração que aparecem nas respostas (ex.: um
   campo `ambiente` que valia `"producao"` continua `"producao"` por padrão).
+- Mesmas mensagens de sucesso e de erro, palavra por palavra — inclusive
+  mensagens estranhas do original (ex.: um texto de confirmação que admite um
+  bug). Corrigir o texto é recomendação para o relatório, não para o código.
 
-Mudanças de comportamento só são aceitáveis quando corrigem um problema de
-segurança (ex.: parar de devolver a senha na resposta), **devem estar listadas
-no plano** antes da execução e **devem ser confirmadas** pela comparação com o
-baseline (`validation-protocol.md`). Qualquer outra diferença é regressão.
+### Preservação de dados
+
+- **Seeds e dados de demonstração** mantêm os valores documentados, inclusive
+  credenciais de exemplo (ex.: o login do admin de teste continua funcionando
+  com a mesma senha). Pode mudar só a forma de armazenar (ex.: com hash).
+- **Credenciais existentes continuam válidas** quando o algoritmo de hash muda:
+  migre os hashes antigos (RF-08). Nunca exija recriar o banco ou rodar o seed
+  de novo para o login voltar a funcionar.
+- **Registros persistidos não são apagados nem alterados como efeito
+  colateral** de uma correção (ex.: excluir pagamentos, matrículas ou pedidos
+  junto com um usuário apaga histórico financeiro). Registros órfãos são um
+  finding de integridade; a correção que exigiria apagar dados vai para
+  "Not addressed", com a recomendação (ex.: exclusão lógica).
+- **Segredos nunca vão para log ou resposta**, inclusive os gerados na hora
+  (ex.: uma senha aleatória de admin). Se for preciso gerar um segredo, exija-o
+  por variável de ambiente ou mantenha o valor documentado do seed.
+
+### Mudanças de comportamento aceitas
+
+Só duas categorias, sempre **listadas no plano** antes da execução e
+**confirmadas** pela comparação com o baseline (`validation-protocol.md`):
+
+1. **Segurança**: parar de expor dados sensíveis, fechar injeção, proteger
+   endpoints perigosos (política acima).
+2. **Rejeição de entrada claramente inválida** que hoje é aceita ou vira erro
+   500 (quantidade negativa, tipo errado, corpo ausente ou malformado),
+   respondendo 4xx com o formato de erro original da rota.
+
+Qualquer outra mudança — nova regra de negócio, texto diferente, efeito
+colateral novo, ordem diferente de resultados — é regressão, ou fica em
+"Not addressed" com a recomendação.

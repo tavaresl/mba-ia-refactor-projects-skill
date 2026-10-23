@@ -235,8 +235,32 @@ check_password_hash(self.password, pwd)
 const crypto = require("crypto");
 const hash = crypto.scryptSync(pwd, salt, 64).toString("hex");  // com sal
 ```
-> Se houver seed/dados existentes com o hash antigo, atualize o seed para gerar
-> o novo formato (e re-rode o seed na validação).
+**Migração dos hashes existentes (obrigatória).** Trocar o algoritmo não pode
+invalidar credenciais já gravadas. Reconheça o formato antigo, aceite-o uma
+vez e regrave no formato novo ("rehash on login"); para senhas em texto puro,
+converta no boot.
+
+```python
+# antes: só o algoritmo novo — usuários existentes deixam de conseguir logar
+def check_password(self, pwd):
+    return check_password_hash(self.password, pwd)
+
+# depois: aceita o hash legado e migra no primeiro login bem-sucedido
+LEGACY_MD5 = re.compile(r"^[0-9a-f]{32}$")
+
+def check_password(self, pwd):
+    if LEGACY_MD5.match(self.password or ""):
+        if not hmac.compare_digest(self.password, hashlib.md5(pwd.encode()).hexdigest()):
+            return False
+        self.password = generate_password_hash(pwd)   # regrava no formato novo
+        db.session.commit()
+        return True
+    return check_password_hash(self.password, pwd)
+```
+
+O seed passa a gravar o formato novo, **com as mesmas senhas documentadas**.
+Valide com um login usando uma credencial do seed **e** com um registro gravado
+no formato antigo.
 
 ---
 

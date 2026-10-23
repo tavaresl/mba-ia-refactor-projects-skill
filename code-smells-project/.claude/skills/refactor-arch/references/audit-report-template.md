@@ -113,8 +113,15 @@ Contract to preserve:
 - Rotas: <lista da Fase 1>
 - Boot: <comando original>
 
-Intentional behavior changes (segurança):
-- <mudança> — <motivo>
+Intentional behavior changes (só "segurança" ou "entrada inválida"):
+- [segurança] <mudança> — <motivo> — prova: <chamada>
+- [entrada inválida] <mudança> — <motivo> — prova: <chamada>
+
+Data preservation:
+- Seeds: <valores documentados mantidos, inclusive credenciais de exemplo>
+- Credenciais existentes: <como continuam válidas (ex.: migração de hash)>
+- Registros persistidos: <nenhum apagado/alterado como efeito colateral>
+- Segredos: <nenhum em log ou resposta>
 
 Validation:
 - App sobe sem erros com o comando de boot original

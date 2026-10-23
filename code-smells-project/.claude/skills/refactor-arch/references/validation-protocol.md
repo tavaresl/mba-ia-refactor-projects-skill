@@ -6,26 +6,74 @@ qualquer alteração (baseline) e depois da refatoração (comparação).
 
 ## Regras gerais
 
-1. **Execute com `bash` explícito.** Escreva os passos num script em
-   `<PROJECT_ROOT>/reports/.tmp/validate.sh` e rode com `bash <script>`. Não
-   dependa do shell interativo do usuário (no `zsh`, variáveis sem aspas não
-   são separadas em palavras e globs sem resultado abortam o comando).
-2. **Arquivos temporários só em `reports/.tmp/`.** Nunca em `/tmp` ou fora da
-   PROJECT_ROOT. Apague `reports/.tmp/` no fim.
-3. **Porta livre, confirmada antes do boot.** Não confie na porta padrão do
+1. **Execute com `bash` explícito — em todas as fases.** Escreva os passos num
+   script em `<PROJECT_ROOT>/reports/.tmp/` (ex.: `scan.sh` nas buscas da
+   auditoria, `validate.sh` na Fase 3) e rode com `bash <script>`. Não dependa
+   do shell interativo do usuário (no `zsh`, variáveis sem aspas não são
+   separadas em palavras e globs sem resultado abortam o comando).
+2. **Arquivos temporários só em `reports/.tmp/`.** Nunca em `/tmp`, no
+   scratchpad da ferramenta ou fora da PROJECT_ROOT. Apague `reports/.tmp/` no
+   fim.
+3. **Sem comandos de controle de versão** (`git` etc.), nem para consultar o
+   código original: ele está na cópia de `reports/.tmp/original-src/` (abaixo).
+4. **Porta livre, confirmada antes do boot.** Não confie na porta padrão do
    projeto: outro processo pode estar nela (no macOS, o AirPlay ocupa a 5000 e
    responde 403). Escolha uma porta livre e passe por variável de ambiente
    (`PORT`). Se a porta estava livre antes do boot e o processo iniciado está
    vivo, quem responde é a aplicação.
-4. **PID guardado e servidor sempre encerrado**, inclusive se algo falhar no
+5. **PID guardado e servidor sempre encerrado**, inclusive se algo falhar no
    meio (use `trap ... EXIT`). Ao final, confirme que a porta ficou livre.
-5. **Mesmo estado inicial nas duas execuções.** Antes do baseline, copie os
+6. **Mesmo estado inicial nas duas execuções.** Antes do baseline, copie os
    arquivos de dados do projeto (ex.: `*.db`, `*.sqlite`) para
    `reports/.tmp/data-backup/`. Restaure-os antes de cada execução e no fim.
    Se um arquivo de dados não existia, garanta que ele não exista antes de cada
    execução. Rode a preparação do projeto (seed, migrations) identificada na
    Fase 1 antes de cada execução.
-6. **Rotas destrutivas por último** (DELETE, reset, limpeza).
+7. **Rotas destrutivas por último** (DELETE, reset, limpeza).
+
+## Cópia dos fontes originais (antes de qualquer alteração)
+
+Logo após a confirmação da Fase 3, antes de capturar o baseline:
+
+```bash
+mkdir -p reports/.tmp/original-src
+# copie o escopo da Fase 1 + manifestos + scripts de preparação (seed, migrations)
+rsync -a --exclude '.claude' --exclude 'reports' --exclude '.venv' --exclude 'venv' \
+  --exclude 'node_modules' --exclude '__pycache__' --exclude '*.db' --exclude 'instance' \
+  ./ reports/.tmp/original-src/
+```
+
+Se o baseline precisar ser refeito depois que o código já mudou, rode o app a
+partir dessa cópia (com as dependências da PROJECT_ROOT, ex.: o mesmo `.venv`
+ou `node_modules` via caminho relativo). **Nunca** reconstrua o código original
+de memória.
+
+## Cobertura mínima das chamadas
+
+O baseline e a comparação usam as mesmas chamadas. No mínimo:
+
+- **cada rota** do inventário da Fase 1, no caso de sucesso;
+- **cada rota com parâmetro de caminho**: um ID inexistente;
+- **cada POST/PUT/PATCH**: um corpo válido, um corpo sem campo obrigatório e
+  um JSON malformado (ex.: `-d '{'`);
+- **cada mudança intencional do plano**: pelo menos uma chamada que a prove;
+- **cada rota protegida pela política de endpoints perigosos**: sem token e com
+  token;
+- **dados de seed**: um login (ou leitura) com as credenciais/valores
+  documentados, para provar que continuam valendo;
+- rotas destrutivas por último.
+
+## IDs dinâmicos
+
+Não fixe IDs de recursos criados durante o teste: capture-os da resposta e
+reutilize nas chamadas seguintes, para que o mesmo script funcione no app
+original e no refatorado.
+
+```bash
+# depois de um POST que devolve o recurso criado
+NEW_ID=$(grep -oE '"id" *: *[0-9]+' "$TMP/body" | head -1 | grep -oE '[0-9]+')
+call PUT "/recursos/$NEW_ID" '{"campo": "novo"}'
+```
 
 ## Porta do app original
 
@@ -104,7 +152,9 @@ call POST /exemplo '{"campo": "valor"}'
 3. Para **cada** diferença: se estiver na lista de mudanças intencionais do
    plano, registre-a como esperada; se não estiver, é **regressão** — corrija o
    código e rode de novo. Isso inclui campos novos ou removidos nas respostas
-   de erro (ex.: um `"sucesso": false` que não existia).
+   de erro (ex.: um `"sucesso": false` que não existia), **textos de mensagem
+   diferentes** e mudanças em dados persistidos (ex.: um relatório que passou a
+   somar menos porque registros foram apagados).
 4. Rotas protegidas pela política de endpoints perigosos
    (`mvc-guidelines.md`): chame **sem** token (espera-se 403) e **com** token
    (espera-se o comportamento original permitido pela política).

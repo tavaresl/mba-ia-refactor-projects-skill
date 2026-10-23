@@ -37,7 +37,8 @@ skill (análise, relatório, plano, evidências) são salvos em
 
 - **Não leia, liste, busque nem escreva arquivos fora da PROJECT_ROOT.** Isso
   inclui diretórios-pai, projetos irmãos, scripts e evidências de fora do
-  projeto e diretórios temporários do sistema (ex.: `/tmp`). Arquivos
+  projeto, diretórios temporários do sistema (ex.: `/tmp`) e o scratchpad ou
+  diretório temporário que a própria ferramenta oferecer. Arquivos
   temporários ficam em `<PROJECT_ROOT>/reports/.tmp/` e são apagados no fim.
 - **Exceções:** (1) os arquivos da própria skill, em `${CLAUDE_SKILL_DIR}`,
   somente para leitura; (2) o arquivo de plano que a própria ferramenta
@@ -45,6 +46,20 @@ skill (análise, relatório, plano, evidências) são salvos em
 - Ferramentas instaladas no sistema (`python`, `node`, `npm`, `curl`, `bash`
   etc.) podem ser **executadas**. Dependências do projeto devem ser instaladas
   **dentro** da PROJECT_ROOT (ex.: `.venv/`, `node_modules/`).
+- **Não execute nenhum comando de controle de versão** (`git` ou equivalente):
+  nem de leitura (`status`, `log`, `ls-files`, `diff`), nem de escrita (`add`,
+  `rm`, `rm --cached`, `reset`, `checkout`, `commit`, `stash`). O repositório
+  pode conter outros projetos e mudanças do usuário. Para apagar ou mover
+  arquivos, use `rm` e `mv`. Versionar o resultado é decisão do usuário.
+
+### Comandos de shell (todas as fases)
+
+Em **todas** as fases (inclusive nas buscas da auditoria), sempre que um
+comando tiver variáveis, laços ou mais de uma etapa, escreva-o num script em
+`<PROJECT_ROOT>/reports/.tmp/` e execute com `bash <script>`. Não dependa do
+shell interativo do usuário (no `zsh`, variáveis sem aspas não são separadas em
+palavras e globs sem resultado abortam o comando). Detalhes em
+`validation-protocol.md`.
 
 ## Conhecimento de referência
 
@@ -72,15 +87,36 @@ improvise critérios que os contradigam.
    que o fluxo (ou o usuário) pedir — inclusive nas Fases 1 e 2. Eles não
    contam como alteração do projeto.
 3. **Preservar o contrato externo.** Mesmos paths, métodos, campos de
-   request/response e mesmo comando de boot. Toda diferença de comportamento
-   precisa estar declarada no plano como mudança intencional de segurança; o
-   resto é regressão e deve ser corrigido.
+   request/response, **mesmas mensagens** (de sucesso e de erro) e mesmo
+   comando de boot. Toda diferença de comportamento precisa estar declarada no
+   plano como mudança intencional (ver princípio 7); o resto é regressão e deve
+   ser corrigido.
 4. **Evidência sempre.** Todo finding aponta `arquivo:linha(s)`. Toda afirmação
    da validação vem acompanhada do comando executado e da saída real.
 5. **Todas as severidades importam.** CRITICAL, HIGH, MEDIUM e LOW recebem a
    mesma atenção na varredura. A severidade define a **ordem** do relatório e
    do plano, não quais problemas merecem ser procurados.
 6. **Não inventar achados.** Reporte só o que está de fato no código.
+7. **Mudanças de comportamento aceitas** (sempre declaradas no plano e
+   provadas na validação):
+   - **segurança**: parar de expor dados sensíveis, fechar injeção, exigir
+     token em endpoints perigosos (`mvc-guidelines.md`);
+   - **rejeição de entrada claramente inválida** que hoje é aceita ou vira erro
+     500 (ex.: quantidade negativa, tipo errado, corpo ausente), respondendo
+     4xx com a mensagem no formato original da rota.
+
+   Qualquer outra mudança (novas regras de negócio, textos diferentes, efeitos
+   colaterais novos) fica em "Not addressed" no plano, com a recomendação.
+8. **Dados, credenciais e histórico preservados.**
+   - Dados de seed/demonstração mantêm os valores documentados (inclusive
+     credenciais de exemplo); só a forma de armazenar pode mudar (ex.: com hash).
+   - Credenciais existentes continuam funcionando: ao trocar o algoritmo de
+     hash, migre os hashes antigos (RF-08), nunca exija recriar o banco.
+   - Nenhuma correção pode apagar ou alterar registros persistidos como efeito
+     colateral (ex.: excluir pagamentos ou pedidos junto com um usuário). Se a
+     correção exigiria isso, ela vai para "Not addressed".
+   - Nenhum segredo vai para log ou resposta — nem um segredo gerado na hora
+     (ex.: senha aleatória de admin).
 
 ## Exemplos de calibração de severidade
 
@@ -249,8 +285,11 @@ endereçando **todos** os findings e contendo obrigatoriamente:
   `refactoring-playbook.md`. Se algum finding ficar de fora, diga qual e por quê.
 - **Contrato a preservar**: a lista de rotas da Fase 1, o formato das respostas
   (inclusive dos erros) e o comando de boot.
-- **Mudanças de comportamento intencionais** (só as de segurança), uma a uma.
+- **Mudanças de comportamento intencionais**, uma a uma, cada uma marcada como
+  "segurança" ou "entrada inválida" (princípio 7), com a chamada que a prova.
   Qualquer diferença não listada aqui será tratada como regressão na Fase 3.
+- **Preservação de dados** (princípio 8): o que acontece com seeds,
+  credenciais existentes e registros persistidos.
 - **Como validar** ao final, segundo `validation-protocol.md`.
 
 **Passo 3 — apresente e salve o plano.**
@@ -339,9 +378,13 @@ todas as severidades, sem regressões. Use `mvc-guidelines.md`,
 
 1. **Releia** `reports/audit-report.md` e `reports/refactoring-plan.md`
    (obrigatório ao retomar depois de uma pausa).
-2. **Capture o baseline antes de mudar qualquer arquivo-fonte:** suba o app
-   original e grave a resposta de cada rota do inventário em
-   `reports/baseline-responses.txt`, seguindo `validation-protocol.md`.
+2. **Antes de mudar qualquer arquivo-fonte:**
+   - copie os arquivos-fonte originais (escopo da Fase 1, mais manifestos e
+     scripts de preparação) para `reports/.tmp/original-src/`, para poder
+     rodar o app original de novo se o baseline precisar ser refeito;
+   - suba o app original e grave a resposta de cada rota do inventário em
+     `reports/baseline-responses.txt`, com a cobertura mínima de
+     `validation-protocol.md`.
 3. **Execute o plano na ordem definida** (CRITICAL → LOW), criando a estrutura
    MVC (config, models, views/routes, controllers, middlewares, entry point)
    conforme a referência e a stack detectada.
