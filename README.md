@@ -2,7 +2,7 @@
 
 Solução do desafio descrito em [`ENUNCIADO.md`](ENUNCIADO.md): uma Skill do Claude Code que analisa, audita e refatora projetos legados para o padrão MVC, testada em três projetos com stacks diferentes (Python/Flask e Node.js/Express).
 
-> **Status: versão preliminar.** Etapas 0 (baseline), 1 (análise manual) e 2 (skill, 2 iterações testadas no Projeto 1) do [`PLANO.md`](PLANO.md) concluídas. A skill ainda não foi executada nos Projetos 2 e 3. Os trechos marcados com _A preencher_ serão completados nas próximas etapas.
+> **Status: versão preliminar.** Etapas 0 (baseline), 1 (análise manual) e 2 (skill, 3 iterações testadas no Projeto 1) do [`PLANO.md`](PLANO.md) concluídas. A skill ainda não foi executada nos Projetos 2 e 3. Os trechos marcados com _A preencher_ serão completados nas próximas etapas.
 
 ## Sumário
 
@@ -154,22 +154,31 @@ Requisito mínimo por projeto: 5 problemas, com pelo menos 1 CRITICAL ou HIGH, 2
 └── references/
     ├── project-analysis.md        # heurísticas de detecção de stack, escopo e arquitetura
     ├── anti-patterns-catalog.md   # 20 anti-patterns com sinais de detecção e severidade
-    ├── audit-report-template.md   # formato dos blocos das Fases 1 e 3, do relatório e do plano
-    ├── mvc-guidelines.md          # regras das camadas MVC e mapeamento por framework
-    └── refactoring-playbook.md    # 14 padrões de transformação com código antes/depois
+    ├── audit-report-template.md   # formato dos blocos das Fases 1 e 3, do relatório, do plano e das evidências
+    ├── mvc-guidelines.md          # camadas MVC, mapeamento por framework e políticas (endpoints perigosos, erros)
+    ├── refactoring-playbook.md    # 15 padrões de transformação com código antes/depois
+    └── validation-protocol.md     # baseline, porta livre, boot, chamadas, comparação e limpeza
 ```
 
 Invocação: `/refactor-arch [caminho-do-projeto]`. Sem argumento, o projeto é o diretório atual.
 
 ### Decisões de design
 
-- **`SKILL.md` é o prompt; as referências são o conhecimento.** O `SKILL.md` só diz *o que fazer em cada fase e quais regras não podem ser quebradas*. Critérios de detecção, formatos e exemplos de código ficam nas 5 referências, lidas na fase em que são necessárias (via `${CLAUDE_SKILL_DIR}`, para funcionarem em qualquer projeto).
+- **`SKILL.md` é o prompt; as referências são o conhecimento.** O `SKILL.md` só diz *o que fazer em cada fase e quais regras não podem ser quebradas*. Critérios de detecção, formatos e exemplos de código ficam nas 6 referências, lidas na fase em que são necessárias (via `${CLAUDE_SKILL_DIR}`, para funcionarem em qualquer projeto).
 - **Três fases em ordem.** Fase 1 (análise, com resumo impresso), Fase 2 (auditoria + plano) e Fase 3 (refatoração + validação).
-- **Gate de confirmação.** Ao fim da Fase 2 a skill para e pergunta `[s/n]`. Nenhum arquivo-fonte é alterado antes do "sim". Relatório, plano e evidências **podem e devem** ser gravados em `<projeto>/reports/` a qualquer momento, e se a resposta for "não" eles continuam salvos.
-- **Dois checkpoints de modelo/effort.** Antes da Fase 1, a skill propõe subir o modelo/effort se estiverem abaixo do adequado para auditar. No gate da Fase 2, propõe descer se forem excessivos para executar um plano já definido, que é uma tarefa mais mecânica. Quem troca é sempre o usuário.
+- **Perguntas ao usuário via clarificação.** As decisões do fluxo são perguntas com opções fixas (no Claude Code, `AskUserQuestion`). Cada pergunta tem um comportamento padrão para respostas não claras, e uma resposta livre com instrução clara vale mais que o padrão.
+- **Plan mode opcional.** Antes do plano, se a sessão não estiver em plan mode, a skill pergunta: `A. Alterar para plan mode e gerar o plano` (entra em plan mode obrigatoriamente) ou `B. Seguir no modo atual e gerar o plano` (padrão). Aprovar o plano ao sair do plan mode **não** conta como confirmação da Fase 3.
+- **Gate de confirmação.** Ao fim da Fase 2, nenhum arquivo-fonte foi alterado e a skill pergunta como prosseguir. Relatório, plano e evidências **podem e devem** ser gravados em `<projeto>/reports/` a qualquer momento e continuam salvos se a Fase 3 não for iniciada.
+- **Dois checkpoints de modelo/effort.** Antes da Fase 1, com regra objetiva baseada em `${CLAUDE_EFFORT}`: effort `low` ou modelo muito simples (Haiku) param a skill e ela propõe subir. No gate da Fase 2, a pergunta varia:
+  - modelo de tarefas rotineiras (Sonnet) com effort `low`/`medium`: `A. Prosseguir para a fase 3` ou `B. Não prosseguir, e direi ao agente o que fazer`;
+  - qualquer outro caso (Haiku, Opus, Fable, effort `high`/`xhigh`/`max` ou configuração desconhecida): a pergunta traz uma sugestão de ajuste e as opções `A. Vou alterar o modelo/effort antes de prosseguirmos` (pausa até o usuário pedir para retomar), `B. Prossiga com modelo e effort atuais` (padrão) e `C. Não prosseguir, e direi ao agente o que fazer`.
+
+  Quem troca o modelo/effort é sempre o usuário.
 - **Plano separado do relatório.** A Fase 2 gera `audit-report.md` e `refactoring-plan.md`. O plano traz estrutura alvo, passos ordenados por severidade ligados a cada finding e padrão do playbook, o que *não* será tratado, o contrato a preservar e as mudanças de comportamento intencionais.
 - **Limite de acesso.** A skill não lê nem escreve fora do projeto analisado (a exceção é ler as próprias referências), e a validação usa só o que existe no projeto e as ferramentas do sistema.
-- **Contrato externo preservado.** Mesmas rotas, campos e comando de boot. Só mudanças de segurança são aceitas e todas precisam ser declaradas.
+- **Contrato externo preservado e verificado.** Mesmas rotas, campos (inclusive nas respostas de erro) e comando de boot. Antes de alterar o código, a Fase 3 grava as respostas do app original em `reports/baseline-responses.txt`; depois da refatoração, grava `after-responses.txt` e compara. Toda diferença precisa estar declarada no plano; o resto é regressão e é corrigido.
+- **Validação com protocolo fixo** (`validation-protocol.md`): script em `bash` explícito, porta livre conferida antes do boot, PID guardado e servidor sempre encerrado, dados restaurados entre execuções e arquivos temporários só em `reports/.tmp/`.
+- **Política para endpoints perigosos.** Rotas de execução arbitrária ou destrutivas continuam existindo, mas ficam desligadas por padrão: só funcionam com um token vindo do ambiente (`ADMIN_TOKEN`), e a consulta arbitrária vira somente-leitura.
 - **Todas as severidades recebem atenção.** A severidade define a *ordem* do relatório e do plano, não o que é procurado. Calibragem por few-shots curtos (3 exemplos genéricos por severidade) no próprio `SKILL.md`.
 
 ### Catálogo de anti-patterns
@@ -210,12 +219,13 @@ _A preencher na Etapa 3:_ como a skill evita depender de nomes de arquivos, tabe
 | No macOS, o Receptor AirPlay ocupa a porta 5000                                         | P1 e P3 não sobem com `python app.py`, que fixa a porta 5000 (`Errno 48: Address already in use`)     | O baseline usou o mesmo app iniciado com `flask --app app run --port 5001` (P1) e `--port 5002` (P3), sem alterar o código. No código refatorado, a porta vem de config/variável de ambiente (`PORT`). |
 | Respostas com datas geradas na hora e listas cuja ordem pode mudar entre implementações | Um `diff` direto entre antes e depois daria falsos positivos                                          | O `smoke.py` troca datas por `<timestamp>` e, quando a spec pede, ordena listas antes de gravar (usado no relatório financeiro do P2).                                                                 |
 | Servidores que criam processos filhos (`npm start` → `node`)                            | Encerrar só o processo principal pode deixar a porta ocupada                                          | O `smoke.py` sobe o app numa sessão própria e encerra o grupo de processos inteiro.                                                                                                                    |
-
-| O agente já tinha lido o projeto antes de invocar a skill e pulou ou resumiu a Fase 1 | O resumo da análise não aparecia no chat, só no arquivo salvo | A Fase 1 passou a ser obrigatória em toda invocação e só termina quando o bloco é impresso. **Ainda não resolvido** (veja Iterações). |
-| O agente lia e usava arquivos de fora do projeto (o smoke test e as evidências deste repositório) | Quebra a independência da validação e o agnosticismo | Seção "Limite de acesso" no `SKILL.md` e argumento com o caminho do projeto. Na 2ª execução não houve leitura de código de fora; restou escrita de arquivo temporário em `/tmp`. |
+| O agente já tinha lido o projeto antes de invocar a skill e pulou ou resumiu a Fase 1 | O resumo da análise não aparecia no chat, só no arquivo salvo | A Fase 1 passou a ser obrigatória em toda invocação, com o bloco impresso antes de abrir o catálogo e repetido no gate. **Ainda não resolvido após 3 iterações**: o agente agrupa as leituras das Fases 1 e 2 e só escreve no chat no fim. Próximo passo: encerrar a Fase 1 com uma pergunta via clarificação, que obriga a abrir um turno novo. |
+| O agente lia e usava arquivos de fora do projeto (o smoke test e as evidências deste repositório) | Quebra a independência da validação e o agnosticismo | Seção "Limite de acesso" no `SKILL.md` e argumento com o caminho do projeto. Na 2ª execução restou uma escrita em `/tmp`; na 3ª, nada em `/tmp`, mas houve uma consulta ao `git` na raiz do repositório. |
 | A regra "nenhuma escrita antes do sim" contradizia a ordem de salvar o relatório na Fase 2 | Ambiguidade sobre o que podia ser gravado | Separação explícita: arquivo-fonte só depois do "sim"; análises, relatórios, planos e evidências sempre que pedidos. |
-| O agente validou contra a porta 5000 e tratou o 403 do AirPlay como resposta da aplicação | Validação inicial falsa; retrabalho | Registrado para a iteração 3: escolher e conferir uma porta livre via `PORT`. |
-| Validação deixou um servidor rodando ao terminar | Porta ocupada por processo órfão | Registrado para a iteração 3: guardar o PID e encerrar sempre no fim. |
+| O agente validou contra a porta 5000 e tratou o 403 do AirPlay como resposta da aplicação | Validação inicial falsa; retrabalho | Resolvido na iteração 3 pelo protocolo de validação: porta livre conferida antes do boot e passada via `PORT`. |
+| Validação deixou um servidor rodando ao terminar | Porta ocupada por processo órfão | Resolvido na iteração 3: PID guardado e `trap` no script; nenhum servidor órfão na 3ª execução. |
+| O código original já tinha sido apagado quando o baseline precisou ser recapturado | O agente reescreveu o original de memória em `reports/.tmp/original` (conferido contra o baseline real) | Frágil. Próximo passo: copiar os arquivos-fonte originais para `reports/.tmp/` antes de qualquer alteração e capturar os IDs das respostas no script, em vez de fixá-los. |
+| A correção de credenciais alcançou a senha do admin do seed | Login com a credencial documentada passou a dar 401; sem a variável, a senha gerada vai para o log | Declarado no plano, mas não detectado pela validação da skill. Próximo passo: manter os valores documentados dos seeds (parte do contrato) ou documentar como restaurá-los, nunca registrando segredos em log. |
 
 ### Iterações da skill
 
@@ -245,15 +255,47 @@ Mudanças: Fase 1 obrigatória e impressa; remoção da instrução de entrar em
 
 **Leitura geral:** a qualidade do relatório e da estrutura MVC gerada é estável entre execuções. O que varia é o que o `SKILL.md` deixa em aberto: política para endpoints perigosos, invariantes de negócio e formato exato da validação. Esses pontos dependem de sorte enquanto não estiverem escritos como regra.
 
-#### Iteração 3 — planejada
+#### Iteração 3 — perguntas via clarificação e validação com baseline (Projeto 1)
 
-1. Imprimir o bloco da Fase 1 **antes** de abrir o catálogo e repetir o bloco na mensagem do gate.
-2. Gravar em `reports/`, antes de qualquer alteração, a resposta de cada rota do app original, e comparar depois da refatoração. Toda diferença precisa ser declarada.
-3. Higiene da validação: porta livre confirmada, PID guardado e servidor sempre encerrado, arquivos temporários só em `reports/`, comandos executados com `bash` explícito.
-4. Checkpoint com regra objetiva usando `${CLAUDE_EFFORT}`: auditoria exige effort `medium` ou mais.
-5. Política para endpoints perigosos: token vindo do ambiente, desligado por padrão, consulta somente-leitura (ou remoção), sempre documentado.
-6. Invariantes de negócio no catálogo: quantidade ≤ 0, itens repetidos antes da checagem de estoque, valores negativos, tipos numéricos.
-7. Relatório de validação factual, copiando a saída do `grep` em vez de resumir; não devolver `str(err)`; usar SQL fixo em vez de concatenar constantes.
+Mudanças:
+1. **Perguntas via clarificação:** plan mode opcional antes do plano e gate da Fase 3 com 2 ou 3 opções, conforme o modelo e o effort.
+2. **Checkpoint inicial objetivo,** com `${CLAUDE_EFFORT}`.
+3. **Bloco da Fase 1** exigido no chat antes de abrir o catálogo e repetido no gate.
+4. **Validação:** baseline antes de alterar o código e comparação depois; novo `validation-protocol.md` com script-modelo em `bash`.
+5. **Política para endpoints perigosos** (RF-15).
+6. **Invariantes de negócio no catálogo.**
+7. **Ajustes no código gerado:** relatório de validação com saídas reais, nada de `str(err)`, SQL fixo em vez de concatenar constantes, `validators/` e exceções dentro da estrutura.
+
+| Aspecto | Resultado |
+| --- | --- |
+| Perguntas e gates | Funcionaram como especificado. A pergunta do plan mode usou as opções exatas; com "A", entrou em plan mode. Ao aprovar o plano, a ferramenta liberou a implementação, mas a skill só salvou o plano e foi para o gate. Com Opus e effort `high`, o gate trouxe a sugestão e as 3 opções; com "A", pausou, e ao ouvir "retome" (já com Sonnet e effort `medium`) releu relatório e plano e seguiu para a Fase 3. |
+| Checkpoint inicial | `${CLAUDE_EFFORT}` foi substituído por `high` e a skill seguiu, como esperado. |
+| Relatório | 21 findings (7 CRITICAL, 5 HIGH, 5 MEDIUM, 4 LOW), cobrindo os 12 da análise manual. Contagem correta (4 arquivos, 780 linhas) e invariantes de negócio detectados (quantidade negativa, itens repetidos, pedido de usuário inexistente, status de pedido inexistente). |
+| Validação da skill | 64 chamadas antes e 64 depois, com o `diff` real no relatório e cada diferença ligada a um item do plano. Rotas protegidas testadas com e sem token. Nenhum servidor órfão, dados restaurados, `reports/.tmp` apagado, nada em `/tmp`. |
+| Refatoração | Nenhum sinal do catálogo restante. Formato dos erros idêntico ao original. Na raiz ficou só o `app.py`. Smoke test: 29/31 (com `SEED_ADMIN_PASSWORD=admin123`), e testes de segurança 12/12, incluindo os dois que falharam na 2ª execução (item repetido no pedido e `/admin/query` somente-leitura). |
+| Problemas | O bloco da Fase 1 **continuou fora do chat**: o catálogo foi aberto antes dele, e o gate não repetiu o bloco. Uma consulta ao `git` na raiz do repositório saiu da PROJECT_ROOT. O código original foi reconstruído de memória para recapturar o baseline. A senha do admin do seed deixou de ser a documentada e, sem a variável, é escrita no log. Algumas mudanças declaradas não são de segurança (pedido inexistente → 404, e-mail duplicado → 400), ao contrário do que diz o `SKILL.md`. |
+
+**Comparação das três execuções (Projeto 1):**
+
+| | Iteração 1 | Iteração 2 | Iteração 3 |
+| --- | --- | --- | --- |
+| Findings | 19 | 20 | 21 |
+| Smoke test oficial | 29/31 | 29/31 | 29/31 (28/31 sem `SEED_ADMIN_PASSWORD`) |
+| Testes de segurança | 12/12 | 10/12 | 12/12 |
+| Sinais do catálogo restantes no código | 2 | 4 | 0 |
+| Formato dos erros preservado | sim | não | sim |
+| Servidor órfão / escrita em `/tmp` | — | sim / sim | não / não |
+| Bloco da Fase 1 impresso no chat | não | não | não |
+
+**Situação frente ao enunciado (Projeto 1):** todos os itens do checklist de validação e os 4 critérios de aceite são atendidos, exceto **"a Fase 1 imprime o resumo"**: o bloco é gerado e gravado no topo do `audit-report.md`, mas não aparece no chat. Os Projetos 2 e 3 ainda não foram executados.
+
+#### Próximos passos sugeridos
+
+1. Encerrar a Fase 1 com uma pergunta via clarificação, o mesmo mecanismo que funcionou nos gates, para garantir o bloco no chat.
+2. Copiar os arquivos-fonte originais para `reports/.tmp/` antes da refatoração e capturar IDs dinamicamente no script de validação.
+3. Seeds mantêm os valores documentados, e nenhum segredo vai para o log.
+4. Decidir se correções de invariantes de negócio são mudanças aceitas (declaradas) ou ficam só no relatório.
+5. Rodar a skill nos Projetos 2 e 3.
 
 ---
 
