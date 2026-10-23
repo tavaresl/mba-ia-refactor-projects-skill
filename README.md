@@ -293,13 +293,24 @@ Mudanças:
 
 **Situação frente ao enunciado (Projeto 1):** todos os itens do checklist de validação e os 4 critérios de aceite são atendidos, exceto **"a Fase 1 imprime o resumo"**: o bloco é gerado e gravado no topo do `audit-report.md`, mas não aparece no chat. Os Projetos 2 e 3 ainda não foram executados.
 
-#### Próximos passos sugeridos
+#### Iteração 4 — contrato, dados e higiene (Projetos 1, 2 e 3)
 
-1. Encerrar a Fase 1 com uma pergunta via clarificação, o mesmo mecanismo que funcionou nos gates, para garantir o bloco no chat.
-2. Copiar os arquivos-fonte originais para `reports/.tmp/` antes da refatoração e capturar IDs dinamicamente no script de validação.
-3. Seeds mantêm os valores documentados, e nenhum segredo vai para o log.
-4. Decidir se correções de invariantes de negócio são mudanças aceitas (declaradas) ou ficam só no relatório.
-5. Rodar a skill nos Projetos 2 e 3.
+Motivada pela execução da iteração 3 nos Projetos 2 e 3 (cópias fora do repositório), que mostrou: comandos `git` (`git rm --cached`, `git reset`) executados pelo agente, escrita fora do projeto no momento da auditoria, mudanças que não eram de segurança (mensagem alterada e histórico financeiro apagado no P2; hashes MD5 sem migração no P3; senha do admin do seed alterada e escrita em log no P1) e cobertura de validação fraca no P2.
+
+| Problema observado | Regra adicionada |
+| --- | --- |
+| Comandos `git` pelo agente | Proibido qualquer comando de controle de versão; apagar e mover com `rm`/`mv` |
+| Script no scratchpad da ferramenta, `zsh` quebrando buscas | `bash` explícito e arquivos temporários em `reports/.tmp/` em **todas** as fases |
+| Código original reconstruído de memória | Cópia dos fontes em `reports/.tmp/original-src/` antes de alterar; reconstruir de memória é proibido |
+| IDs fixos e pouca cobertura na validação | IDs capturados da resposta; cobertura mínima por rota (sucesso, ID inexistente, corpo incompleto, JSON malformado, rotas protegidas com e sem token, login com credencial do seed) |
+| Seed alterado, segredo em log | Seeds mantêm os valores documentados; nenhum segredo vai para log ou resposta |
+| Troca de hash invalidando credenciais | Migração dos hashes existentes ("rehash on login", RF-08) |
+| Correção apagando dados | Nenhuma correção apaga ou altera registros persistidos; vai para "Not addressed" |
+| Mensagens e regras alteradas | Mensagens preservadas; só duas categorias de mudança aceitas: **segurança** e **rejeição de entrada claramente inválida** |
+
+**Resultado:** a skill foi executada nos 3 projetos, nas pastas reais. Os relatórios foram validados contra o código original (20, 19 e 17 findings, Summary e Total coerentes, ordem correta, 320 referências de linha e 56 amostras de conteúdo conferidas, cobertura de 33 dos 34 achados da análise manual) e copiados para `reports/`. O smoke test independente nas pastas refatoradas (seção C) mostrou apenas as diferenças declaradas nos planos: P1 29/31, P2 5/8 e P3 35/35, onde os 403 vêm da ausência do token na spec do baseline. O login com a credencial de exemplo do seed continua funcionando no P1, e o `validation-report.md` do P3 traz a seção de migração de hash MD5.
+
+**Pendência conhecida:** o bloco `PHASE 1: PROJECT ANALYSIS` é gerado e gravado no topo de cada `audit-report.md`, mas não é impresso no chat. A decisão foi não tratar mais esse ponto.
 
 ---
 
