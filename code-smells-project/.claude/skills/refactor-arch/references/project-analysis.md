@@ -87,7 +87,14 @@ Esta lista é o **contrato** que a Fase 3 precisa preservar. Guarde-a.
   `main.go`...).
 - **Comando de boot**: como se sobe hoje (`python app.py`, `npm start`,
   `flask run`). A Fase 3 **não pode** mudar isso.
-- **Porta**: fixa no código ou vinda de config/variável de ambiente.
+- **Porta**: fixa no código ou vinda de config/variável de ambiente. Se for
+  fixa, anote também como trocá-la sem editar o código (ex.: Flask:
+  `flask --app <módulo> run --port <porta>`), porque a validação da Fase 3
+  precisa de uma porta livre.
+- **Preparação (setup)**: passos necessários antes do boot para a aplicação
+  ter dados — scripts de seed, migrations, criação de banco. Procure por
+  arquivos como `seed.*`, `migrations/`, instruções no README do projeto e
+  scripts no manifesto (`package.json` → `scripts`).
 
 ## 6. Classificação da arquitetura
 
@@ -105,8 +112,9 @@ camadas").
 
 Preencha o bloco `PHASE 1: PROJECT ANALYSIS` do template com: linguagem,
 framework (+versão), dependências, domínio, arquitetura, nº de arquivos
-analisados, tabelas do banco e entry point/comando de boot. Em seguida, liste
-o inventário de rotas.
+analisados, tabelas do banco, entry point/comando de boot/porta e preparação.
+Em seguida, liste o inventário de rotas.
 
-**Imprima** esse bloco na resposta ao usuário antes de iniciar a Fase 2 — a
-Fase 1 não está concluída enquanto ele não for impresso.
+**Envie** esse bloco no chat, como mensagem de texto, antes de abrir o
+catálogo de anti-patterns — a Fase 1 não está concluída enquanto ele não for
+enviado. Gravar o bloco em arquivo não conta.

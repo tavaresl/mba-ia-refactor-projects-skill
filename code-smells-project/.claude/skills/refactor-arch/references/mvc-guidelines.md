@@ -81,6 +81,42 @@ rota.
 - Acesso a dados em um módulo/repositório; usar `async/await` com uma camada
   de Promise sobre o driver (evitar callbacks aninhados).
 
+## Módulos de apoio
+
+Validação de entrada e exceções da aplicação ficam **dentro** da estrutura,
+nunca soltos na raiz:
+
+- validação: `validators/` (ou junto das rotas, ex.: `routes/validators.py`);
+- exceções da aplicação e tradução para HTTP: `middlewares/` (ex.:
+  `middlewares/errors.py`) ou um pacote `exceptions/`.
+
+A raiz fica só com o entry point e os arquivos de projeto (manifesto,
+`.env.example`, README).
+
+## Política de endpoints perigosos (obrigatória)
+
+Vale para rotas que executam SQL/comando arbitrário, apagam ou reiniciam dados,
+ou expõem operações administrativas sem autenticação:
+
+1. **A rota continua existindo** (contrato), mas fica **desligada por padrão**.
+2. Só funciona quando um token for configurado no ambiente (ex.:
+   `ADMIN_TOKEN`) e enviado num header (ex.: `X-Admin-Token`), comparado em
+   tempo constante. Sem token configurado, ou com token errado: **403**.
+3. Consulta arbitrária (ex.: "executar SQL"): conexão **somente-leitura**;
+   escrita é recusada com 400. Nunca devolva a mensagem do banco na resposta.
+4. Operações destrutivas (reset, limpeza): permitidas só com o token, com SQL
+   fixo e log do evento.
+5. **Remoção** da rota só se o usuário pedir explicitamente.
+6. Sempre: listar no plano como mudança intencional, documentar a variável no
+   `.env.example` e validar **sem** token (403) e **com** token.
+
+## Respostas de erro
+
+- O handler central reproduz o formato de erro **original** de cada rota (mesmos
+  campos, mesmas mensagens). Não acrescente nem remova campos.
+- Nunca inclua a mensagem da exceção, stack trace ou detalhe do banco na
+  resposta — nem para administradores. O detalhe vai para o log.
+
 ## Preservação do contrato (regra de ouro da Fase 3)
 
 A refatoração **reorganiza**, não **reescreve o comportamento**:
@@ -89,8 +125,12 @@ A refatoração **reorganiza**, não **reescreve o comportamento**:
 - Mesmos campos de request e de response (inclusive nomes "feios" do contrato
   externo, como `usr`/`eml`, que podem ser renomeados **internamente** mas
   continuam aceitos na entrada/saída).
-- Mesmo comando de boot.
+- Mesmo comando de boot. A porta passa a vir de config/ambiente (`PORT`),
+  mantendo como padrão o valor original.
+- Mesmos valores padrão de configuração que aparecem nas respostas (ex.: um
+  campo `ambiente` que valia `"producao"` continua `"producao"` por padrão).
 
 Mudanças de comportamento só são aceitáveis quando corrigem um problema de
-segurança (ex.: parar de devolver a senha na resposta) e **devem ser
-documentadas** explicitamente no fim da Fase 3.
+segurança (ex.: parar de devolver a senha na resposta), **devem estar listadas
+no plano** antes da execução e **devem ser confirmadas** pela comparação com o
+baseline (`validation-protocol.md`). Qualquer outra diferença é regressão.

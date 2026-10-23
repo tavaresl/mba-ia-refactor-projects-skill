@@ -55,6 +55,20 @@ db.get("SELECT * FROM users WHERE id = ?", [id], cb);    // depois
 ```
 Nunca concatene input em SQL. Use sempre placeholders do driver/ORM.
 
+**Mesmo com valores fixos, não concatene.** Nomes de tabela ou trechos
+constantes também devem virar instruções SQL completas e fixas, para o código
+não disparar o próprio sinal do catálogo e não abrir brecha se a lista mudar:
+
+```python
+# antes
+for tabela in ("itens_pedido", "pedidos"):
+    db.execute("DELETE FROM " + tabela)
+# depois
+RESET_STATEMENTS = ("DELETE FROM itens_pedido", "DELETE FROM pedidos")
+for stmt in RESET_STATEMENTS:
+    db.execute(stmt)
+```
+
 ---
 
 ## RF-03 — Quebrar a God Class em camadas (resolve AP-ARCH-01)
@@ -182,6 +196,24 @@ app.use((err, req, res, next) => {
 });
 ```
 Handlers deixam de capturar `Exception`/`except:` e passam a deixar o erro subir.
+
+**Nunca devolva a mensagem da exceção na resposta** — nem em rotas de admin.
+Registre o detalhe no log e responda com uma mensagem fixa:
+
+```python
+# antes
+except sqlite3.Error as err:
+    raise ApiError(str(err), 500)
+# depois
+except sqlite3.Error:
+    logger.exception("Falha ao executar consulta administrativa")
+    raise ApiError("Consulta inválida ou não permitida", 400)
+```
+
+**Preserve o formato das respostas de erro.** Se a API original devolvia
+`{"erro": "..."}` num caso e `{"erro": "...", "sucesso": false}` em outro, o
+handler central deve reproduzir cada formato — não acrescente nem remova
+campos.
 
 ---
 
@@ -314,6 +346,64 @@ class UsuarioSchema(Schema):
 dados = UsuarioSchema().load(request.get_json())   # erro -> handler central
 ```
 **Express**: valide o corpo (ex.: schema) antes do controller; rejeite
-campos obrigatórios ausentes em vez de aplicar default silencioso. Para
-endpoints perigosos (ex.: execução de SQL arbitrário), **remova** ou exija
-autenticação/autorização explícita.
+campos obrigatórios ausentes em vez de aplicar default silencioso.
+
+**Invariantes de negócio**: valide no serviço, antes de gravar, as regras que
+o payload sozinho não garante:
+
+```python
+# antes: checa cada item contra o estoque atual; itens repetidos furam o limite
+for item in itens:
+    if produto(item.id).estoque < item.quantidade: erro()
+# depois: quantidades positivas e soma por produto antes de checar
+for item in itens:
+    if not isinstance(item.quantidade, int) or item.quantidade <= 0: erro(400)
+pedido = Counter()
+for item in itens:
+    pedido[item.produto_id] += item.quantidade
+for produto_id, qtd in pedido.items():
+    if produto(produto_id).estoque < qtd: erro(400)
+```
+
+---
+
+## RF-15 — Endpoints perigosos: desligados por padrão, token do ambiente, somente-leitura (resolve AP-SEC-05)
+
+Aplica a política de `mvc-guidelines.md`. A rota continua existindo (contrato),
+mas só funciona quando um token de admin é configurado no ambiente.
+
+**Antes**
+```python
+@app.route("/admin/query", methods=["POST"])
+def executar_query():
+    cursor.execute(request.get_json()["sql"])   # qualquer SQL, sem auth, com commit
+    db.commit()
+```
+**Depois (Flask)**
+```python
+# middlewares/admin_auth.py
+def admin_required(view):
+    @wraps(view)
+    def wrapper(*args, **kwargs):
+        esperado = current_app.config.get("ADMIN_TOKEN", "")
+        recebido = request.headers.get("X-Admin-Token", "")
+        if not esperado or not hmac.compare_digest(esperado, recebido):
+            raise ApiError("Acesso negado", 403)          # desligado sem token configurado
+        return view(*args, **kwargs)
+    return wrapper
+
+# models/admin_model.py — conexão somente-leitura para consultas arbitrárias
+conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+```
+**Depois (Express)**
+```js
+function adminRequired(req, res, next) {
+  const expected = process.env.ADMIN_TOKEN || "";
+  const received = req.get("X-Admin-Token") || "";
+  const ok = expected && received.length === expected.length &&
+             crypto.timingSafeEqual(Buffer.from(received), Buffer.from(expected));
+  return ok ? next() : res.status(403).json({ error: "Acesso negado" });
+}
+```
+Remova o endpoint só se o usuário pedir. Em qualquer caso, liste a mudança no
+plano como intencional e documente `ADMIN_TOKEN` no `.env.example`.

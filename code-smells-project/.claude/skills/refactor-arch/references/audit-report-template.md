@@ -7,6 +7,8 @@ Use **exatamente** estes formatos. Todos os arquivos ficam em
 |---|---|---|
 | `reports/audit-report.md` | Bloco da Fase 1 + relatório de auditoria | Fase 2 |
 | `reports/refactoring-plan.md` | Plano de refatoração | Fase 2 |
+| `reports/baseline-responses.txt` | Respostas do app original, antes de qualquer alteração | Fase 3 (início) |
+| `reports/after-responses.txt` | Respostas do app refatorado, mesmas chamadas | Fase 3 |
 | `reports/validation-report.md` | Evidências da validação + bloco da Fase 3 | Fase 3 |
 
 Esses arquivos são artefatos da skill: gerá-los **não** conta como alteração do
@@ -14,8 +16,9 @@ projeto e é permitido antes da confirmação do usuário.
 
 ## Bloco da Fase 1 (resumo da análise)
 
-Impresso na resposta ao fim da Fase 1 (obrigatório) e repetido no topo de
-`audit-report.md`.
+Enviado no chat como mensagem de texto ao fim da Fase 1 (obrigatório — gravar
+em arquivo não conta), repetido no topo de `audit-report.md` e de novo no chat
+antes da pergunta do gate da Fase 2.
 
 ```
 ================================
@@ -28,7 +31,8 @@ Domain:        <o que a aplicação faz>
 Architecture:  <classificação em uma frase>
 Source files:  <N> files analyzed
 DB tables:     <tabela1, tabela2, ...>
-Entry point:   <arquivo> (boot: <comando>)
+Entry point:   <arquivo> (boot: <comando>, porta <porta>)
+Setup:         <preparação antes do boot: seed, migrations — ou "none">
 ================================
 ```
 
@@ -118,11 +122,45 @@ Validation:
 - Nenhum sinal do catálogo remanescente
 ```
 
+## Relatório de validação (Fase 3)
+
+`reports/validation-report.md` segue esta estrutura, sempre com saídas reais
+(copiadas), nunca resumidas:
+
+```
+# Validation Report
+
+## Ambiente
+- Porta usada: <porta> (livre antes do boot: sim)
+- Boot: <comando> — <resultado, com trecho do log>
+- Estado de dados: <backup/restauração feitos>
+
+## Baseline × depois
+<saída real do diff mascarado>
+
+| Diferença | Esperada? | Mudança intencional do plano |
+|---|---|---|
+| <rota: campo/status> | sim/não | <item do plano ou "REGRESSÃO — corrigida em ..."> |
+
+## Rotas protegidas
+| Rota | Sem token | Com token |
+|---|---|---|
+
+## Reverificação do catálogo
+$ <comando grep>
+<saída real>
+- <linha remanescente>: <justificativa>
+
+## Limpeza
+- Servidores encerrados: <PIDs> — porta <porta> livre: sim
+- Dados restaurados: sim
+- reports/.tmp removido: sim
+```
+
 ## Bloco da Fase 3 (resumo da refatoração)
 
-Impresso na resposta ao fim da Fase 3 e repetido no fim de
-`reports/validation-report.md`, depois das evidências (comandos executados e
-status de cada endpoint).
+Enviado no chat ao fim da Fase 3 e repetido no fim de
+`reports/validation-report.md`, depois das evidências.
 
 ```
 ================================

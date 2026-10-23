@@ -49,7 +49,9 @@ reais de segurança sem justificativa.
 - **Sinais**: endpoint que executa SQL/comando recebido no corpo; rota
   `/admin/...` destrutiva sem auth; `eval`/`exec` com input.
 - **Por que**: backdoor direto ao banco/servidor.
-- **Refatoração**: RF-14/RF-07 (remover ou proteger; validar e autorizar).
+- **Refatoração**: RF-15 (política de endpoints perigosos em
+  `mvc-guidelines.md`: desligado por padrão, token vindo do ambiente,
+  consulta somente-leitura).
 
 ### AP-ARCH-01 — God Class / God Module
 - **Sinais**: um arquivo/classe que concentra conexão de banco, schema, rotas,
@@ -100,16 +102,31 @@ reais de segurança sem justificativa.
 
 ### AP-QUAL-01 — Tratamento de erro genérico / ausência de handler central
 - **Sinais**: `except Exception` ou `except:` repetidos, retornando `str(e)` ao
-  cliente; cada handler trata erro à mão; `err` ignorado em callbacks.
+  cliente; cada handler trata erro à mão; `err` ignorado em callbacks;
+  mensagem de exceção devolvida na resposta (inclusive em rotas de admin).
 - **Por que**: esconde causa real, vaza mensagem interna, comportamento
   inconsistente.
 - **Refatoração**: RF-07 (handler/middleware central).
 
-### AP-QUAL-02 — Validação de entrada ausente ou fraca
-- **Sinais**: payload usado sem validar tipo/obrigatoriedade; default silencioso
-  para campo ausente (ex.: senha vira valor fixo); formato não checado.
-- **Por que**: dados inválidos entram no sistema; comportamento inseguro.
-- **Refatoração**: RF-14 (camada de validação).
+### AP-QUAL-02 — Validação de entrada ausente ou fraca / invariantes de negócio
+- **Sinais de validação**: payload usado sem validar tipo/obrigatoriedade;
+  default silencioso para campo ausente (ex.: senha vira valor fixo); formato
+  não checado; corpo ausente ou JSON inválido virando erro 500; regras
+  diferentes entre criar e atualizar o mesmo recurso.
+- **Sinais de invariantes de negócio** (procure ativamente, com exemplos
+  concretos do fluxo):
+  - quantidades, preços ou valores aceitos como `<= 0` ou negativos;
+  - estoque/saldo/limite checado **item a item** sem somar itens repetidos do
+    mesmo recurso no mesmo pedido;
+  - operação que pode deixar estoque, saldo ou total negativo;
+  - campo numérico aceito como string (e usado em conta ou em SQL);
+  - atualização/exclusão de recurso inexistente respondendo sucesso;
+  - registro criado antes de uma etapa que pode falhar (ex.: usuário criado
+    mesmo com pagamento recusado), sem transação.
+- **Por que**: dados inválidos entram no sistema; regras de negócio são
+  burladas; comportamento inseguro.
+- **Refatoração**: RF-14 (camada de validação) + RF-04 (regra no serviço, com
+  transação).
 
 ### AP-QUAL-03 — Duplicação de código
 - **Sinais**: mesmo bloco de mapeamento/validação/serialização copiado em vários

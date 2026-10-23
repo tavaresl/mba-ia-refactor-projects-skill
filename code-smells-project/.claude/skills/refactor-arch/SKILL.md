@@ -1,12 +1,12 @@
 ---
 name: refactor-arch
 description: >-
-  Audita e refatora uma codebase para o padrão MVC, de forma agnóstica de
-  tecnologia. Executa em 3 fases — análise da stack, auditoria de anti-patterns
-  (com relatório e plano de refatoração) e refatoração guiada pelo plano —
-  pausando para confirmação do usuário antes de alterar qualquer arquivo-fonte.
-  Use quando o pedido for analisar, auditar, encontrar code smells/anti-patterns
-  ou refatorar um projeto para MVC. Invoque com /refactor-arch [caminho].
+    Audita e refatora uma codebase para o padrão MVC, de forma agnóstica de
+    tecnologia. Executa em 3 fases — análise da stack, auditoria de anti-patterns
+    (com relatório e plano de refatoração) e refatoração guiada pelo plano —
+    pausando para confirmação do usuário antes de alterar qualquer arquivo-fonte.
+    Use quando o pedido for analisar, auditar, encontrar code smells/anti-patterns
+    ou refatorar um projeto para MVC. Invoque com /refactor-arch [caminho].
 argument-hint: "[caminho-do-projeto]"
 ---
 
@@ -36,33 +36,34 @@ skill (análise, relatório, plano, evidências) são salvos em
 ### Limite de acesso (obrigatório)
 
 - **Não leia, liste, busque nem escreva arquivos fora da PROJECT_ROOT.** Isso
-  inclui diretórios-pai, outros projetos irmãos, scripts e evidências de fora
-  do projeto, e diretórios temporários do sistema.
-- **Única exceção:** os arquivos da própria skill, em `${CLAUDE_SKILL_DIR}`,
-  somente para leitura das referências.
-- Ferramentas instaladas no sistema (`python`, `node`, `npm`, `curl` etc.)
-  podem ser **executadas**. Dependências do projeto devem ser instaladas
+  inclui diretórios-pai, projetos irmãos, scripts e evidências de fora do
+  projeto e diretórios temporários do sistema (ex.: `/tmp`). Arquivos
+  temporários ficam em `<PROJECT_ROOT>/reports/.tmp/` e são apagados no fim.
+- **Exceções:** (1) os arquivos da própria skill, em `${CLAUDE_SKILL_DIR}`,
+  somente para leitura; (2) o arquivo de plano que a própria ferramenta
+  designar enquanto o plan mode estiver ativo.
+- Ferramentas instaladas no sistema (`python`, `node`, `npm`, `curl`, `bash`
+  etc.) podem ser **executadas**. Dependências do projeto devem ser instaladas
   **dentro** da PROJECT_ROOT (ex.: `.venv/`, `node_modules/`).
-- A validação da Fase 3 deve ser feita apenas com o que existe na PROJECT_ROOT
-  e com as ferramentas do sistema — nunca com testes ou scripts de fora dela.
 
 ## Conhecimento de referência
 
 Leia os arquivos abaixo conforme a fase. Eles são a fonte de verdade — não
 improvise critérios que os contradigam.
 
-| Arquivo | Quando usar |
-|---|---|
-| `${CLAUDE_SKILL_DIR}/references/project-analysis.md` | Fase 1 — detectar stack, banco, arquitetura e inventariar arquivos/rotas |
-| `${CLAUDE_SKILL_DIR}/references/anti-patterns-catalog.md` | Fase 2 — catálogo de anti-patterns, sinais de detecção e severidade |
-| `${CLAUDE_SKILL_DIR}/references/audit-report-template.md` | Fases 1 e 2 — formato exato dos blocos, do relatório e do plano |
-| `${CLAUDE_SKILL_DIR}/references/mvc-guidelines.md` | Fase 2 (plano) e Fase 3 — camadas MVC alvo e responsabilidades |
-| `${CLAUDE_SKILL_DIR}/references/refactoring-playbook.md` | Fase 2 (plano) e Fase 3 — transformações concretas antes/depois |
+| Arquivo                                                   | Quando usar                                                                        |
+| --------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `${CLAUDE_SKILL_DIR}/references/project-analysis.md`      | Fase 1 — detectar stack, banco, arquitetura e inventariar arquivos/rotas           |
+| `${CLAUDE_SKILL_DIR}/references/anti-patterns-catalog.md` | Fase 2 — catálogo de anti-patterns, sinais de detecção e severidade                |
+| `${CLAUDE_SKILL_DIR}/references/audit-report-template.md` | Fases 1, 2 e 3 — formato exato dos blocos, do relatório, do plano e das evidências |
+| `${CLAUDE_SKILL_DIR}/references/mvc-guidelines.md`        | Fase 2 (plano) e Fase 3 — camadas MVC alvo, responsabilidades e políticas          |
+| `${CLAUDE_SKILL_DIR}/references/refactoring-playbook.md`  | Fase 2 (plano) e Fase 3 — transformações concretas antes/depois                    |
+| `${CLAUDE_SKILL_DIR}/references/validation-protocol.md`   | Fase 3 — baseline, boot, chamadas, comparação e limpeza                            |
 
 ## Princípios inegociáveis
 
-1. **Nenhum arquivo-fonte alterado antes do "sim".** Até a confirmação
-   explícita do usuário no fim da Fase 2, nenhum arquivo existente do projeto
+1. **Nenhum arquivo-fonte alterado antes da confirmação da Fase 3.** Até o
+   usuário confirmar no gate da Fase 2, nenhum arquivo existente do projeto
    (código, configuração, manifestos de dependência, dados, documentação) pode
    ser criado, alterado, movido ou apagado.
 2. **Artefatos de análise são permitidos e obrigatórios.** Resultados de
@@ -71,10 +72,11 @@ improvise critérios que os contradigam.
    que o fluxo (ou o usuário) pedir — inclusive nas Fases 1 e 2. Eles não
    contam como alteração do projeto.
 3. **Preservar o contrato externo.** Mesmos paths, métodos, campos de
-   request/response e mesmo comando de boot. A refatoração muda a estrutura
-   interna, não o comportamento observável.
-4. **Evidência sempre.** Todo finding aponta `arquivo:linha(s)`. Nada de
-   "código ruim" genérico.
+   request/response e mesmo comando de boot. Toda diferença de comportamento
+   precisa estar declarada no plano como mudança intencional de segurança; o
+   resto é regressão e deve ser corrigido.
+4. **Evidência sempre.** Todo finding aponta `arquivo:linha(s)`. Toda afirmação
+   da validação vem acompanhada do comando executado e da saída real.
 5. **Todas as severidades importam.** CRITICAL, HIGH, MEDIUM e LOW recebem a
    mesma atenção na varredura. A severidade define a **ordem** do relatório e
    do plano, não quais problemas merecem ser procurados.
@@ -86,13 +88,16 @@ Exemplos genéricos e curtos, só para calibrar a classificação. Os sinais
 completos estão no catálogo.
 
 **CRITICAL**
+
 ```text
 cursor.execute("SELECT * FROM users WHERE name = '" + name + "'")   → SQL injection
 API_KEY = "sk_live_9f8a..."  (no código-fonte)                       → segredo hardcoded
 return {"id": u.id, "email": u.email, "password": u.password}        → dado sensível exposto
+um arquivo/classe com conexão, schema, rotas e regra de negócio      → God Class / God Module
 ```
 
 **HIGH**
+
 ```text
 rota HTTP que calcula desconto, baixa estoque e grava no banco        → regra de negócio na camada errada
 cache = {}  (módulo global, alterado por várias requisições)          → estado global mutável
@@ -100,35 +105,57 @@ class Service: def __init__(self): self.db = Database("prod.db")     → acoplam
 ```
 
 **MEDIUM**
+
 ```text
 for order in orders: items = db.query("... WHERE order_id = ?", order.id)   → N+1
 except Exception as e: return {"error": str(e)}, 500  (em todo handler)     → tratamento de erro genérico
+quantity aceita <= 0 ou itens repetidos furam a checagem de estoque         → validação / invariante de negócio
 datetime.utcnow()                                                            → API deprecated
 ```
 
 **LOW**
+
 ```text
 if status == 3:  (sem constante nomeada)                              → magic number
 def f(d, x2, tmp):                                                     → nomes ruins
 print("user created")  (no lugar de um logger)                         → print como log
 ```
 
+## Perguntas ao usuário (clarificação)
+
+Sempre que este documento mandar **perguntar ao usuário**, faça uma pergunta de
+clarificação com a ferramenta de perguntas da ferramenta em uso (no Claude
+Code, `AskUserQuestion`), usando **exatamente** as opções indicadas. Se não
+houver ferramenta de perguntas, escreva a pergunta e as opções em texto e
+**encerre o turno** aguardando a resposta.
+
+Ao interpretar a resposta:
+
+- Uma opção escolhida vale exatamente como descrito.
+- Uma resposta livre que contenha uma instrução clara (ex.: "corrija só os
+  CRITICAL") vale mais que o comportamento padrão: siga a instrução.
+- Uma resposta que não deixe clara a intenção segue o **comportamento padrão**
+  indicado em cada pergunta.
+
 ---
 
 ## Ajuste de modelo/effort — checkpoint inicial (antes da Fase 1)
 
-A auditoria (Fases 1–2) é uma tarefa de **análise e raciocínio**: ler código,
-cruzar com o catálogo, classificar severidade e desenhar um plano. Ela se
-beneficia de um modelo capaz e de um nível de effort médio/alto.
+Effort atual da sessão: `${CLAUDE_EFFORT}`. O modelo atual é o que a própria
+sessão informa a você.
 
-Antes de começar, verifique o modelo e o effort atuais da sessão:
+A auditoria (Fases 1–2) é uma tarefa de **análise e raciocínio**. Regra
+objetiva:
 
-- Se estiverem **abaixo** do adequado para uma boa auditoria (por exemplo, um
-  modelo pequeno e/ou effort baixo), **pare e proponha ao usuário** subir para
-  um nível compatível antes de prosseguir. Sugira os comandos `/model` e
-  `/effort` e explique por quê (a qualidade dos findings depende disso).
-- Se já estiverem adequados, diga em uma linha que vai seguir com o modelo/effort
-  atuais e continue.
+- **Effort `low`** ou **modelo muito simples** (ex.: Haiku): **pare** antes da
+  Fase 1, explique que a qualidade dos findings depende de mais raciocínio,
+  proponha `/effort medium` (recomendado `/effort high`) e/ou `/model` com um
+  modelo mais capaz, e encerre o turno aguardando o usuário.
+- **Effort `medium`, `high`, `xhigh` ou `max`** com um modelo que não seja
+  muito simples: diga em uma linha que vai seguir com a configuração atual e
+  continue.
+- Se o effort não puder ser determinado (o valor acima aparecer vazio ou como
+  o texto literal do placeholder), diga isso em uma linha e siga.
 
 Não troque nada por conta própria — apenas recomende; quem muda é o usuário.
 
@@ -144,7 +171,10 @@ Objetivo: entender a stack e mapear a arquitetura atual. Siga
 - A Fase 1 é executada **em toda invocação da skill**, mesmo que você já tenha
   lido o projeto antes nesta conversa. Refaça a análise a partir dos arquivos.
 - A Fase 1 só termina quando o bloco `PHASE 1: PROJECT ANALYSIS` tiver sido
-  **impresso na resposta ao usuário**. A Fase 2 **não pode começar** antes disso.
+  **enviado ao usuário como mensagem de texto no chat**. Gravar o bloco em
+  arquivo **não** conta como impressão.
+- **Não abra `anti-patterns-catalog.md` nem comece a Fase 2 antes de enviar o
+  bloco no chat.**
 - Nenhum arquivo-fonte é alterado nesta fase.
 
 **Passos:**
@@ -159,11 +189,12 @@ Objetivo: entender a stack e mapear a arquitetura atual. Siga
 3. **Detecte o banco** e liste as tabelas/modelos.
 4. **Inventarie as rotas/endpoints** (método + path). Guarde essa lista: ela é
    a base para validar a Fase 3.
-5. **Identifique o entry point, o comando de boot e a porta.**
+5. **Identifique o entry point, o comando de boot, a porta e a preparação**
+   necessária antes do boot (seed, migrations), se houver.
 6. **Infira o domínio** (o que a aplicação faz) e **classifique a arquitetura**
    (monólito sem camadas, camadas parciais, MVC etc.).
-7. **Imprima o bloco `PHASE 1: PROJECT ANALYSIS`** exatamente no formato de
-   `audit-report-template.md`, seguido do inventário de rotas. A contagem de
+7. **Envie no chat o bloco `PHASE 1: PROJECT ANALYSIS`** exatamente no formato
+   de `audit-report-template.md`, seguido do inventário de rotas. A contagem de
    arquivos **deve** bater com a lista do passo 1.
 
 ---
@@ -180,90 +211,156 @@ alterar nenhum arquivo-fonte. Use `anti-patterns-catalog.md`,
    Para cada ocorrência, registre: anti-pattern, severidade, `arquivo:linha(s)`,
    descrição, impacto e recomendação.
 2. **Varra todas as severidades** com o mesmo cuidado: segurança (segredos,
-   injeção, senhas, exposição de dados), arquitetura (God Class, estado global,
-   lógica na camada errada, acoplamento), performance e padronização (N+1,
-   tratamento de erro, validação, duplicação) e legibilidade (magic numbers,
-   nomes, logs, código morto).
+   injeção, senhas, exposição de dados, endpoints perigosos), arquitetura (God
+   Class, estado global, lógica na camada errada, acoplamento), performance e
+   padronização (N+1, tratamento de erro, validação e **invariantes de
+   negócio**, duplicação) e legibilidade (magic numbers, nomes, logs, código
+   morto).
 3. Inclua a detecção de **APIs deprecated** quando aplicável, com o equivalente
    moderno (ver catálogo). Se não houver nenhuma, diga isso explicitamente.
 4. **Ordene os findings por severidade** (CRITICAL → HIGH → MEDIUM → LOW).
 5. **Imprima o relatório** no formato exato do template (bloco
    `ARCHITECTURE AUDIT REPORT`) e **salve-o** em
    `<PROJECT_ROOT>/reports/audit-report.md`, com o bloco da Fase 1 no topo.
-   Crie a pasta `reports/` se não existir.
+   Crie a pasta `reports/` se não existir. Salve **antes** do passo 2.2, porque
+   o plan mode pode impedir escritas.
 
 ### 2.2 Plano de refatoração
 
-Ainda **sem alterar nenhum arquivo-fonte**, monte um **plano de refatoração**
-que enderece **todos** os findings, obrigatoriamente contendo:
+**Passo 1 — pergunta sobre o plan mode.** Se a sessão **já estiver** em plan
+mode (a ferramenta informa isso), pule para o passo 2. Caso contrário,
+**pergunte ao usuário**:
+
+- Pergunta: "Como você quer gerar o plano de refatoração?"
+- Opções (exatamente):
+    - `A. Alterar para plan mode e gerar o plano`
+    - `B. Seguir no modo atual e gerar o plano`
+- **A** → você **DEVE** entrar em plan mode (no Claude Code, a ferramenta
+  `EnterPlanMode`) antes de montar o plano. Se a ferramenta não existir ou
+  falhar, avise o usuário em uma linha e siga no modo atual.
+- **B** ou resposta não clara (comportamento padrão) → siga no modo atual.
+
+**Passo 2 — monte o plano**, ainda **sem alterar nenhum arquivo-fonte**,
+endereçando **todos** os findings e contendo obrigatoriamente:
 
 - **Estrutura MVC alvo** (árvore de diretórios) segundo `mvc-guidelines.md`.
 - **Passos ordenados por severidade** (CRITICAL → LOW), cada passo ligado
   ao(s) finding(s) que resolve e ao padrão correspondente em
   `refactoring-playbook.md`. Se algum finding ficar de fora, diga qual e por quê.
-- **Contrato a preservar**: a lista de rotas da Fase 1 e o comando de boot, que
-  não podem mudar.
-- **Mudanças de comportamento intencionais** (só as de segurança), listadas
-  antes da execução.
-- **Como validar** ao final (boot da aplicação + chamada aos endpoints).
+- **Contrato a preservar**: a lista de rotas da Fase 1, o formato das respostas
+  (inclusive dos erros) e o comando de boot.
+- **Mudanças de comportamento intencionais** (só as de segurança), uma a uma.
+  Qualquer diferença não listada aqui será tratada como regressão na Fase 3.
+- **Como validar** ao final, segundo `validation-protocol.md`.
 
-Imprima o plano e **salve-o** em `<PROJECT_ROOT>/reports/refactoring-plan.md`.
+**Passo 3 — apresente e salve o plano.**
+
+- **Em plan mode:** apresente o plano pela saída do plan mode (no Claude Code,
+  `ExitPlanMode`). Se o usuário pedir ajustes, revise e apresente de novo.
+  Quando o plano for aprovado e o plan mode encerrado, salve-o em
+  `<PROJECT_ROOT>/reports/refactoring-plan.md`.
+  **A aprovação do plano não é a confirmação da Fase 3.** Mesmo que a
+  ferramenta diga que você já pode implementar, **não altere nenhum
+  arquivo-fonte**: vá para o gate 2.3.
+- **No modo atual:** imprima o plano no chat e salve-o em
+  `<PROJECT_ROOT>/reports/refactoring-plan.md`.
 
 ### 2.3 Gate de confirmação + ajuste de modelo/effort (OBRIGATÓRIO)
 
-Depois de imprimir e salvar o relatório **e** o plano, **pare e peça
-confirmação**. Nunca prossiga para a Fase 3 sem um "sim" explícito.
+**Antes da pergunta**, envie no chat:
 
-Ao pedir a confirmação, avalie o modelo/effort atuais **para a tarefa de
-executar o plano** (a refatoração é mais mecânica que a auditoria: aplicar
-transformações já descritas no playbook e no plano):
+1. o bloco `PHASE 1: PROJECT ANALYSIS` de novo;
+2. a linha `Summary` do relatório (contagem por severidade);
+3. os caminhos de `audit-report.md` e `refactoring-plan.md`;
+4. o modelo atual e o effort atual (`${CLAUDE_EFFORT}`).
 
-- Se o modelo/effort usados na auditoria forem **overkill** para executar o
-  plano, **sugira** ao usuário trocar para um modelo mais simples e/ou um effort
-  mais baixo antes de prosseguir (comandos `/model` e `/effort`), explicando que
-  isso reduz custo/tempo sem prejudicar a execução.
-- Se já estiverem adequados, apenas siga.
+**Classifique a configuração atual:**
 
-Encerre a Fase 2 com uma pergunta clara, por exemplo:
+- **Modelo:** de tarefas rotineiras (ex.: Sonnet e equivalentes), muito simples
+  (ex.: Haiku e equivalentes), de tarefas complexas (ex.: Opus, Fable e
+  equivalentes) ou desconhecido.
+- **Effort:** `low`/`medium`, `high`/`xhigh`/`max` (ou equivalentes em outros
+  agentes) ou desconhecido.
 
-```
-Fase 2 concluída.
-Relatório: <PROJECT_ROOT>/reports/audit-report.md
-Plano:     <PROJECT_ROOT>/reports/refactoring-plan.md
+**Variante 1 — sem sugestão.** Use quando o modelo é de tarefas rotineiras
+**ou** o effort é `low` ou `medium`. **Pergunte ao usuário**:
 
-Modelo atual: <modelo> | effort: <effort>.
-Sugestão: a execução do plano é mais mecânica — considere /model <menor> e/ou
-/effort <menor> para economizar (opcional).
+- Pergunta: "Fase 2 concluída. Prosseguir para a refatoração?"
+- Opções (exatamente):
+    - `A. Prosseguir para a fase 3`
+    - `B. Não prosseguir, e direi ao agente o que fazer`
+- **A** → vá para a Fase 3.
+- **B** → não prossiga; aguarde as instruções do usuário sem alterar nenhum
+  arquivo-fonte.
+- Resposta não clara (comportamento padrão) → vá para a Fase 3 com a
+  configuração atual.
 
-Prosseguir com a refatoração (Fase 3)? [s/n]
-```
+**Variante 2 — com sugestão.** Use em **qualquer outro caso**: modelo muito
+simples ou de tarefas complexas, **ou** effort `high`, `xhigh` ou `max`, **ou**
+configuração desconhecida. Quando as regras se sobrepõem (ex.: Sonnet com
+effort `high`, ou Opus com effort `medium`), vale esta variante.
 
-Se a resposta for "não", encerre sem alterar arquivos-fonte; o relatório e o
-plano continuam salvos em `reports/`.
+A pergunta **DEVE** conter a sugestão de ajuste, explicando que executar um
+plano já definido é mais mecânico que auditar:
+
+- modelo de tarefas complexas e/ou effort alto → sugerir um modelo mais simples
+  (ex.: `/model sonnet`) e/ou um effort menor (ex.: `/effort medium`);
+- modelo muito simples → sugerir um modelo de tarefas rotineiras (ex.:
+  `/model sonnet`), mais confiável para executar o plano.
+
+**Pergunte ao usuário**:
+
+- Pergunta: "Fase 2 concluída. <sugestão de ajuste>. Como prosseguir?"
+- Opções (exatamente):
+    - `A. Vou alterar o modelo/effort antes de prosseguirmos`
+    - `B. Prossiga com modelo e effort atuais`
+    - `C. Não prosseguir, e direi ao agente o que fazer`
+- **A** → **interrompa a execução da skill**. Diga ao usuário que, depois de
+  ajustar, basta pedir no chat para retomar (ex.: "retome") — sem invocar
+  `/refactor-arch` de novo, o que recomeçaria da Fase 1. Não faça mais nada
+  até lá. Quando o usuário pedir para retomar — **tendo alterado ou não** o
+  modelo/effort — assuma que ele quer prosseguir com a configuração em vigor e
+  vá para a Fase 3.
+- **B** ou resposta não clara (comportamento padrão) → vá para a Fase 3 com o
+  modelo e o effort atuais.
+- **C** → não prossiga; aguarde as instruções do usuário sem alterar nenhum
+  arquivo-fonte.
+
+Em qualquer caso em que a Fase 3 não seja iniciada, o relatório e o plano
+continuam salvos em `reports/`.
 
 ---
 
 ## Fase 3 — Refatoração (só após confirmação)
 
 Objetivo: aplicar o plano, levando o projeto ao MVC e resolvendo os findings de
-todas as severidades. Use `mvc-guidelines.md` e `refactoring-playbook.md`.
+todas as severidades, sem regressões. Use `mvc-guidelines.md`,
+`refactoring-playbook.md` e `validation-protocol.md`.
 
-1. **Execute o plano na ordem definida** (CRITICAL → LOW).
-2. **Crie a estrutura MVC** (config, models, views/routes, controllers,
-   middlewares, entry point) conforme a referência e a stack detectada.
-3. **Preserve o contrato**: as rotas da Fase 1, os campos de request/response e
-   o comando de boot original devem continuar funcionando.
-4. **Valide** ao final, usando apenas a PROJECT_ROOT e ferramentas do sistema:
-   - A aplicação **inicia sem erros** com o comando de boot original.
-   - **Todos os endpoints** da Fase 1 continuam respondendo.
-   - Nenhum sinal do catálogo permanece, de nenhuma severidade (reverifique);
-     o que ficar de propósito deve ser justificado.
-   - Se algo quebrar, corrija antes de concluir.
-5. **Salve as evidências** da validação (comandos executados, status de cada
-   endpoint, saída do boot) em `<PROJECT_ROOT>/reports/validation-report.md`.
-6. **Imprima o resumo da Fase 3** (bloco `PHASE 3: REFACTORING COMPLETE` do
-   template): nova estrutura de diretórios e checklist de validação.
+1. **Releia** `reports/audit-report.md` e `reports/refactoring-plan.md`
+   (obrigatório ao retomar depois de uma pausa).
+2. **Capture o baseline antes de mudar qualquer arquivo-fonte:** suba o app
+   original e grave a resposta de cada rota do inventário em
+   `reports/baseline-responses.txt`, seguindo `validation-protocol.md`.
+3. **Execute o plano na ordem definida** (CRITICAL → LOW), criando a estrutura
+   MVC (config, models, views/routes, controllers, middlewares, entry point)
+   conforme a referência e a stack detectada.
+4. **Valide** seguindo `validation-protocol.md`, usando apenas a PROJECT_ROOT e
+   ferramentas do sistema:
+    - a aplicação **inicia sem erros** com o comando de boot original;
+    - **todas as rotas** da Fase 1 respondem; grave as respostas em
+      `reports/after-responses.txt`;
+    - **compare** com o baseline: cada diferença precisa estar na lista de
+      mudanças intencionais do plano; as demais são regressões e devem ser
+      corrigidas antes de concluir;
+    - reverifique os sinais do catálogo de **todas** as severidades, registrando
+      os comandos e a saída real; o que ficar de propósito deve ser justificado.
+5. **Limpe**: encerre todo servidor iniciado (confirme que a porta ficou
+   livre), restaure os arquivos de dados ao estado anterior aos testes e apague
+   `reports/.tmp/`.
+6. **Salve as evidências** em `<PROJECT_ROOT>/reports/validation-report.md`
+   (formato do template) e **envie no chat** o bloco
+   `PHASE 3: REFACTORING COMPLETE`.
 
-Ao terminar, relate o que foi feito, o que foi validado e qualquer mudança de
-comportamento (ex.: segredo que saiu do código para variável de ambiente), de
-forma explícita.
+Ao terminar, relate o que foi feito, o que foi validado e cada mudança de
+comportamento, de forma explícita.
