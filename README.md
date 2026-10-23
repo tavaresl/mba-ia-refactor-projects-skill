@@ -2,7 +2,7 @@
 
 Solução do desafio descrito em [`ENUNCIADO.md`](ENUNCIADO.md): uma Skill do Claude Code que analisa, audita e refatora projetos legados para o padrão MVC, testada em três projetos com stacks diferentes (Python/Flask e Node.js/Express).
 
-> **Status: versão preliminar.** A Etapa 0 do [`PLANO.md`](PLANO.md) (baseline dos 3 apps) está concluída. Os trechos marcados com _A preencher_ serão completados nas próximas etapas.
+> **Status: versão preliminar.** Etapas 0 (baseline), 1 (análise manual) e 2 (skill, 2 iterações testadas no Projeto 1) do [`PLANO.md`](PLANO.md) concluídas. A skill ainda não foi executada nos Projetos 2 e 3. Os trechos marcados com _A preencher_ serão completados nas próximas etapas.
 
 ## Sumário
 
@@ -148,30 +148,56 @@ Requisito mínimo por projeto: 5 problemas, com pelo menos 1 CRITICAL ou HIGH, 2
 
 ### Estrutura da skill
 
-_A preencher na Etapa 2._ Estrutura planejada:
-
 ```
 .claude/skills/refactor-arch/
-├── SKILL.md                       # orquestra as 3 fases
+├── SKILL.md                       # orquestra as 3 fases, limites de acesso e gates
 └── references/
-    ├── project-analysis.md        # heurísticas de detecção de stack e arquitetura
-    ├── anti-patterns-catalog.md   # catálogo com sinais de detecção e severidade
-    ├── audit-report-template.md   # formato do relatório da Fase 2
-    ├── mvc-guidelines.md          # regras das camadas MVC
-    └── refactoring-playbook.md    # transformações com código antes/depois
+    ├── project-analysis.md        # heurísticas de detecção de stack, escopo e arquitetura
+    ├── anti-patterns-catalog.md   # 20 anti-patterns com sinais de detecção e severidade
+    ├── audit-report-template.md   # formato dos blocos das Fases 1 e 3, do relatório e do plano
+    ├── mvc-guidelines.md          # regras das camadas MVC e mapeamento por framework
+    └── refactoring-playbook.md    # 14 padrões de transformação com código antes/depois
 ```
+
+Invocação: `/refactor-arch [caminho-do-projeto]`. Sem argumento, o projeto é o diretório atual.
 
 ### Decisões de design
 
-_A preencher nas Etapas 2 e 3:_ como o `SKILL.md` foi estruturado, como as fases usam as referências e como a pausa da Fase 2 foi garantida.
+- **`SKILL.md` é o prompt; as referências são o conhecimento.** O `SKILL.md` só diz *o que fazer em cada fase e quais regras não podem ser quebradas*. Critérios de detecção, formatos e exemplos de código ficam nas 5 referências, lidas na fase em que são necessárias (via `${CLAUDE_SKILL_DIR}`, para funcionarem em qualquer projeto).
+- **Três fases em ordem.** Fase 1 (análise, com resumo impresso), Fase 2 (auditoria + plano) e Fase 3 (refatoração + validação).
+- **Gate de confirmação.** Ao fim da Fase 2 a skill para e pergunta `[s/n]`. Nenhum arquivo-fonte é alterado antes do "sim". Relatório, plano e evidências **podem e devem** ser gravados em `<projeto>/reports/` a qualquer momento, e se a resposta for "não" eles continuam salvos.
+- **Dois checkpoints de modelo/effort.** Antes da Fase 1, a skill propõe subir o modelo/effort se estiverem abaixo do adequado para auditar. No gate da Fase 2, propõe descer se forem excessivos para executar um plano já definido, que é uma tarefa mais mecânica. Quem troca é sempre o usuário.
+- **Plano separado do relatório.** A Fase 2 gera `audit-report.md` e `refactoring-plan.md`. O plano traz estrutura alvo, passos ordenados por severidade ligados a cada finding e padrão do playbook, o que *não* será tratado, o contrato a preservar e as mudanças de comportamento intencionais.
+- **Limite de acesso.** A skill não lê nem escreve fora do projeto analisado (a exceção é ler as próprias referências), e a validação usa só o que existe no projeto e as ferramentas do sistema.
+- **Contrato externo preservado.** Mesmas rotas, campos e comando de boot. Só mudanças de segurança são aceitas e todas precisam ser declaradas.
+- **Todas as severidades recebem atenção.** A severidade define a *ordem* do relatório e do plano, não o que é procurado. Calibragem por few-shots curtos (3 exemplos genéricos por severidade) no próprio `SKILL.md`.
 
 ### Catálogo de anti-patterns
 
-_A preencher na Etapa 3._
+20 anti-patterns (6 CRITICAL, 4 HIGH, 6 MEDIUM, 4 LOW), cada um com sinais de detecção acionáveis e o padrão do playbook que o resolve. Os critérios de inclusão foram: ser citado no enunciado ou aparecer na análise manual dos 3 projetos, e ter um sinal que um agente consiga procurar no código ("query SQL concatenada", não "código ruim").
 
-| ID  | Anti-pattern | Severidade | Por que foi incluído |
-| --- | ------------ | ---------- | -------------------- |
-|     |              |            |                      |
+| ID | Anti-pattern | Severidade | Por que foi incluído |
+| --- | --- | --- | --- |
+| AP-SEC-01 | Credenciais/segredos hardcoded | CRITICAL | Citado no enunciado; presente nos 3 projetos |
+| AP-SEC-02 | SQL Injection por concatenação | CRITICAL | Citado no enunciado; P1 inteiro |
+| AP-SEC-03 | Senha em texto puro ou hash fraco | CRITICAL | MD5 (P3), hash caseiro (P2), texto puro (P1) |
+| AP-SEC-04 | Dado sensível exposto em resposta ou log | CRITICAL | Senha em `to_dict`, cartão em log |
+| AP-SEC-05 | Execução arbitrária / admin sem autenticação | CRITICAL | Rotas `/admin/*` do P1 |
+| AP-ARCH-01 | God Class / God Module | CRITICAL | Citado no enunciado; `AppManager` (P2) |
+| AP-ARCH-02 | Lógica de negócio na camada errada | HIGH | Citado no enunciado; rotas gordas (P3) e models (P1) |
+| AP-ARCH-03 | Estado global mutável / conexão global | HIGH | Citado no enunciado; P1 e P2 |
+| AP-ARCH-04 | Acoplamento sem injeção de dependência | HIGH | Citado no enunciado |
+| AP-SEC-06 | Debug habilitado por padrão | HIGH | `debug=True` em P1 e P3 |
+| AP-PERF-01 | Queries N+1 | MEDIUM | Citado no enunciado; P1, P2 e P3 |
+| AP-QUAL-01 | Tratamento de erro genérico, sem handler central | MEDIUM | `except Exception` e `except:` repetidos |
+| AP-QUAL-02 | Validação de entrada ausente ou fraca | MEDIUM | Citado no enunciado ("validações ausentes nas rotas") |
+| AP-QUAL-03 | Duplicação de código | MEDIUM | Citado no enunciado |
+| AP-DEPR-01 | APIs deprecated (com tabela obsoleto → moderno) | MEDIUM | Exigido pelo enunciado; `utcnow()` e `Query.get()` (P3) |
+| AP-ARCH-05 | Callback hell | MEDIUM | Checkout do P2 |
+| AP-QUAL-04 | `print`/`console.log` como log | LOW | Presente nos 3 projetos |
+| AP-QUAL-05 | Magic numbers e enumerações soltas | LOW | Citado no enunciado |
+| AP-QUAL-06 | Nomes ruins | LOW | Citado no enunciado |
+| AP-QUAL-07 | Imports e código morto | LOW | P3 |
 
 ### Agnosticismo de tecnologia
 
@@ -185,15 +211,49 @@ _A preencher na Etapa 3:_ como a skill evita depender de nomes de arquivos, tabe
 | Respostas com datas geradas na hora e listas cuja ordem pode mudar entre implementações | Um `diff` direto entre antes e depois daria falsos positivos                                          | O `smoke.py` troca datas por `<timestamp>` e, quando a spec pede, ordena listas antes de gravar (usado no relatório financeiro do P2).                                                                 |
 | Servidores que criam processos filhos (`npm start` → `node`)                            | Encerrar só o processo principal pode deixar a porta ocupada                                          | O `smoke.py` sobe o app numa sessão própria e encerra o grupo de processos inteiro.                                                                                                                    |
 
-_Desafios das próximas etapas: a preencher._
+| O agente já tinha lido o projeto antes de invocar a skill e pulou ou resumiu a Fase 1 | O resumo da análise não aparecia no chat, só no arquivo salvo | A Fase 1 passou a ser obrigatória em toda invocação e só termina quando o bloco é impresso. **Ainda não resolvido** (veja Iterações). |
+| O agente lia e usava arquivos de fora do projeto (o smoke test e as evidências deste repositório) | Quebra a independência da validação e o agnosticismo | Seção "Limite de acesso" no `SKILL.md` e argumento com o caminho do projeto. Na 2ª execução não houve leitura de código de fora; restou escrita de arquivo temporário em `/tmp`. |
+| A regra "nenhuma escrita antes do sim" contradizia a ordem de salvar o relatório na Fase 2 | Ambiguidade sobre o que podia ser gravado | Separação explícita: arquivo-fonte só depois do "sim"; análises, relatórios, planos e evidências sempre que pedidos. |
+| O agente validou contra a porta 5000 e tratou o 403 do AirPlay como resposta da aplicação | Validação inicial falsa; retrabalho | Registrado para a iteração 3: escolher e conferir uma porta livre via `PORT`. |
+| Validação deixou um servidor rodando ao terminar | Porta ocupada por processo órfão | Registrado para a iteração 3: guardar o PID e encerrar sempre no fim. |
 
 ### Iterações da skill
 
-_A preencher nas Etapas 4 a 6._
+Metodologia: cada iteração roda a skill numa **cópia nova** do projeto (em `tmp/`, fora do git), avalia o relatório, o plano e a refatoração, e compara a aplicação refatorada com o baseline pelo mesmo smoke test.
 
-| Iteração | Projeto | O que falhou | Ajuste feito nas referências |
-| -------- | ------- | ------------ | ---------------------------- |
-|          |         |              |                              |
+#### Iteração 1 — primeira versão (Projeto 1)
+
+Skill com `SKILL.md`, 5 referências, 20 anti-patterns e 14 padrões de refatoração. Foco em CRITICAL e HIGH.
+
+| Aspecto | Resultado |
+| --- | --- |
+| Relatório | 19 achados (7 CRITICAL, 4 HIGH, 4 MEDIUM, 4 LOW). Todos os 12 da análise manual foram encontrados, mais 7 novos, com `arquivo:linha`, ordem por severidade e padrão do playbook. Contagem correta: 4 arquivos, ~780 linhas. |
+| Plano e gates | Plano completo no chat, com as mudanças de comportamento listadas **antes** de executar. Os dois checkpoints funcionaram: o modelo/effort foi aprovado para auditar e, no gate, a skill sugeriu baixar; a refatoração foi feita com Sonnet 5.5 e effort medium. |
+| Refatoração | Smoke test: 29/31 com o status esperado. As únicas diferenças em todo o `diff` são mudanças de segurança documentadas (`/health` sem a chave e com `debug` falso, `/usuarios` sem a senha, `/admin/*` com 403 sem token). 12/12 testes de segurança passaram, incluindo bypass de login por injeção (agora 401). |
+| Problemas | O bloco da Fase 1 não foi impresso. O plano ficou só no chat. O agente leu o smoke test e as evidências de fora do projeto. O `SKILL.md` se contradizia sobre escrita antes do "sim". O bloco de resumo da Fase 3 não existia no template e foi improvisado. |
+
+#### Iteração 2 — ajustes de processo (Projeto 1)
+
+Mudanças: Fase 1 obrigatória e impressa; remoção da instrução de entrar em plan mode; 3 few-shots genéricos por severidade; separação entre "arquivo-fonte" e "artefatos de análise"; limite de acesso à raiz do projeto; caminho do projeto como argumento (`$ARGUMENTS`), com saída em `<projeto>/reports/`; fim do foco em CRITICAL/HIGH; template do bloco da Fase 3.
+
+| Aspecto | Resultado |
+| --- | --- |
+| Melhorou | O argumento foi aplicado, os 3 artefatos (`audit-report.md`, `refactoring-plan.md`, `validation-report.md`) foram gerados no projeto, o plano passou a ter "Not addressed", e o checkpoint inicial chegou a **parar** com Sonnet e effort baixo. 20 achados (8 CRITICAL, 4 HIGH, 4 MEDIUM, 4 LOW), sem APIs deprecated. Smoke test: 29/31, com o mesmo conjunto de diferenças de segurança. |
+| Não melhorou | O bloco da Fase 1 **continuou sem aparecer no chat** (só foi gravado no arquivo): a regra em texto não bastou. Com Opus e effort baixo, o checkpoint só comentou e seguiu. |
+| Regrediu | Dois `PUT`/`DELETE` de produto inexistente passaram a devolver `"sucesso": false`, e `ambiente` passou de `producao` para `desenvolvimento`: mudanças de contrato não declaradas. `/admin/query` com token **aceitou escrita** (a primeira execução era somente-leitura). Pedir o mesmo produto em dois itens burla a checagem de estoque, que a 1ª execução tinha corrigido e a 2ª nem detectou. |
+| Higiene da validação | Gravou um arquivo temporário em `/tmp`, validou primeiro na porta errada, tropeçou na separação de palavras do `zsh` e deixou um servidor rodando. O relatório de validação contou 2 concatenações de SQL remanescentes quando eram 3. |
+
+**Leitura geral:** a qualidade do relatório e da estrutura MVC gerada é estável entre execuções. O que varia é o que o `SKILL.md` deixa em aberto: política para endpoints perigosos, invariantes de negócio e formato exato da validação. Esses pontos dependem de sorte enquanto não estiverem escritos como regra.
+
+#### Iteração 3 — planejada
+
+1. Imprimir o bloco da Fase 1 **antes** de abrir o catálogo e repetir o bloco na mensagem do gate.
+2. Gravar em `reports/`, antes de qualquer alteração, a resposta de cada rota do app original, e comparar depois da refatoração. Toda diferença precisa ser declarada.
+3. Higiene da validação: porta livre confirmada, PID guardado e servidor sempre encerrado, arquivos temporários só em `reports/`, comandos executados com `bash` explícito.
+4. Checkpoint com regra objetiva usando `${CLAUDE_EFFORT}`: auditoria exige effort `medium` ou mais.
+5. Política para endpoints perigosos: token vindo do ambiente, desligado por padrão, consulta somente-leitura (ou remoção), sempre documentado.
+6. Invariantes de negócio no catálogo: quantidade ≤ 0, itens repetidos antes da checagem de estoque, valores negativos, tipos numéricos.
+7. Relatório de validação factual, copiando a saída do `grep` em vez de resumir; não devolver `str(err)`; usar SQL fixo em vez de concatenar constantes.
 
 ---
 
