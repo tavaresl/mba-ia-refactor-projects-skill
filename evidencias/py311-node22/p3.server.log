@@ -1,0 +1,53 @@
+$ rm -f tasks.db instance/tasks.db
+$ .venv/bin/python seed.py
+Seed concluído com sucesso!
+  3 usuários
+  4 categorias
+  10 tasks
+$ .venv/bin/flask --app app run --port 5002
+ * Serving Flask app 'app'
+ * Debug mode: off
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5002
+[33mPress CTRL+C to quit[0m
+127.0.0.1 - - [23/Oct/2026 15:23:41] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 15:23:41] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 15:23:41] "GET /health HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 15:23:41] "GET /tasks HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 15:23:41] "GET /tasks/1 HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 15:23:41] "[33mGET /tasks/9999 HTTP/1.1[0m" 404 -
+127.0.0.1 - - [23/Oct/2026 15:23:41] "GET /tasks/search?q=API HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 15:23:41] "GET /tasks/search?status=pending&priority=1 HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 15:23:41] "GET /tasks/stats HTTP/1.1" 200 -
+Task criada: 11 - Task do smoke test
+127.0.0.1 - - [23/Oct/2026 15:23:41] "[35m[1mPOST /tasks HTTP/1.1[0m" 201 -
+127.0.0.1 - - [23/Oct/2026 15:23:41] "[31m[1mPOST /tasks HTTP/1.1[0m" 400 -
+127.0.0.1 - - [23/Oct/2026 15:23:41] "[33mPOST /tasks HTTP/1.1[0m" 404 -
+Task atualizada: 11
+127.0.0.1 - - [23/Oct/2026 15:23:41] "PUT /tasks/11 HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 15:23:41] "[31m[1mPUT /tasks/11 HTTP/1.1[0m" 400 -
+127.0.0.1 - - [23/Oct/2026 15:23:41] "[33mPUT /tasks/9999 HTTP/1.1[0m" 404 -
+127.0.0.1 - - [23/Oct/2026 15:23:41] "GET /users HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 15:23:41] "GET /users/1 HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 15:23:41] "[33mGET /users/9999 HTTP/1.1[0m" 404 -
+Usuário criado: 4 - Smoke User
+127.0.0.1 - - [23/Oct/2026 15:23:41] "[35m[1mPOST /users HTTP/1.1[0m" 201 -
+127.0.0.1 - - [23/Oct/2026 15:23:41] "[31m[1mPOST /users HTTP/1.1[0m" 409 -
+127.0.0.1 - - [23/Oct/2026 15:23:41] "[31m[1mPOST /users HTTP/1.1[0m" 400 -
+127.0.0.1 - - [23/Oct/2026 15:23:41] "PUT /users/4 HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 15:23:41] "GET /users/1/tasks HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 15:23:41] "POST /login HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 15:23:41] "[31m[1mPOST /login HTTP/1.1[0m" 401 -
+127.0.0.1 - - [23/Oct/2026 15:23:41] "GET /reports/summary HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 15:23:41] "GET /reports/user/1 HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 15:23:41] "[33mGET /reports/user/9999 HTTP/1.1[0m" 404 -
+127.0.0.1 - - [23/Oct/2026 15:23:41] "GET /categories HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 15:23:41] "[35m[1mPOST /categories HTTP/1.1[0m" 201 -
+127.0.0.1 - - [23/Oct/2026 15:23:41] "[31m[1mPOST /categories HTTP/1.1[0m" 400 -
+127.0.0.1 - - [23/Oct/2026 15:23:41] "PUT /categories/5 HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 15:23:41] "DELETE /categories/5 HTTP/1.1" 200 -
+Task deletada: 11
+127.0.0.1 - - [23/Oct/2026 15:23:41] "DELETE /tasks/11 HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 15:23:41] "[33mDELETE /tasks/9999 HTTP/1.1[0m" 404 -
+Usuário deletado: 4
+127.0.0.1 - - [23/Oct/2026 15:23:41] "DELETE /users/4 HTTP/1.1" 200 -
