@@ -1,0 +1,561 @@
+### 01. Index
+GET /
+status: 200
+{
+  "endpoints": {
+    "health": "/health",
+    "login": "/login",
+    "pedidos": "/pedidos",
+    "produtos": "/produtos",
+    "relatorios": "/relatorios/vendas",
+    "usuarios": "/usuarios"
+  },
+  "mensagem": "Bem-vindo à API da Loja",
+  "versao": "1.0.0"
+}
+
+### 02. Health check
+GET /health
+status: 200
+{
+  "ambiente": "producao",
+  "counts": {
+    "pedidos": 0,
+    "produtos": 10,
+    "usuarios": 3
+  },
+  "database": "connected",
+  "db_path": "loja.db",
+  "debug": true,
+  "secret_key": "minha-chave-super-secreta-123",
+  "status": "ok",
+  "versao": "1.0.0"
+}
+
+### 03. Listar produtos
+GET /produtos
+status: 200
+{
+  "dados": [
+    {
+      "ativo": 1,
+      "categoria": "informatica",
+      "criado_em": "<timestamp>",
+      "descricao": "Notebook potente para jogos",
+      "estoque": 10,
+      "id": 1,
+      "nome": "Notebook Gamer",
+      "preco": 5999.99
+    },
+    {
+      "ativo": 1,
+      "categoria": "informatica",
+      "criado_em": "<timestamp>",
+      "descricao": "Mouse sem fio ergonômico",
+      "estoque": 50,
+      "id": 2,
+      "nome": "Mouse Wireless",
+      "preco": 89.9
+    },
+    {
+      "ativo": 1,
+      "categoria": "informatica",
+      "criado_em": "<timestamp>",
+      "descricao": "Teclado mecânico RGB",
+      "estoque": 30,
+      "id": 3,
+      "nome": "Teclado Mecânico",
+      "preco": 299.9
+    },
+    {
+      "ativo": 1,
+      "categoria": "informatica",
+      "criado_em": "<timestamp>",
+      "descricao": "Monitor 27 polegadas 144hz",
+      "estoque": 15,
+      "id": 4,
+      "nome": "Monitor 27''",
+      "preco": 1899.9
+    },
+    {
+      "ativo": 1,
+      "categoria": "informatica",
+      "criado_em": "<timestamp>",
+      "descricao": "Headset com microfone",
+      "estoque": 25,
+      "id": 5,
+      "nome": "Headset Gamer",
+      "preco": 199.9
+    },
+    {
+      "ativo": 1,
+      "categoria": "moveis",
+      "criado_em": "<timestamp>",
+      "descricao": "Cadeira ergonômica",
+      "estoque": 8,
+      "id": 6,
+      "nome": "Cadeira Gamer",
+      "preco": 1299.9
+    },
+    {
+      "ativo": 1,
+      "categoria": "informatica",
+      "criado_em": "<timestamp>",
+      "descricao": "Webcam 1080p",
+      "estoque": 20,
+      "id": 7,
+      "nome": "Webcam HD",
+      "preco": 249.9
+    },
+    {
+      "ativo": 1,
+      "categoria": "informatica",
+      "criado_em": "<timestamp>",
+      "descricao": "Hub USB 3.0 7 portas",
+      "estoque": 40,
+      "id": 8,
+      "nome": "Hub USB",
+      "preco": 79.9
+    },
+    {
+      "ativo": 1,
+      "categoria": "informatica",
+      "criado_em": "<timestamp>",
+      "descricao": "SSD NVMe 1TB",
+      "estoque": 35,
+      "id": 9,
+      "nome": "SSD 1TB",
+      "preco": 449.9
+    },
+    {
+      "ativo": 1,
+      "categoria": "vestuario",
+      "criado_em": "<timestamp>",
+      "descricao": "Camiseta estampa código",
+      "estoque": 100,
+      "id": 10,
+      "nome": "Camiseta Dev",
+      "preco": 59.9
+    }
+  ],
+  "sucesso": true
+}
+
+### 04. Buscar produtos por termo
+GET /produtos/busca?q=gamer
+status: 200
+{
+  "dados": [
+    {
+      "ativo": 1,
+      "categoria": "informatica",
+      "criado_em": "<timestamp>",
+      "descricao": "Notebook potente para jogos",
+      "estoque": 10,
+      "id": 1,
+      "nome": "Notebook Gamer",
+      "preco": 5999.99
+    },
+    {
+      "ativo": 1,
+      "categoria": "informatica",
+      "criado_em": "<timestamp>",
+      "descricao": "Headset com microfone",
+      "estoque": 25,
+      "id": 5,
+      "nome": "Headset Gamer",
+      "preco": 199.9
+    },
+    {
+      "ativo": 1,
+      "categoria": "moveis",
+      "criado_em": "<timestamp>",
+      "descricao": "Cadeira ergonômica",
+      "estoque": 8,
+      "id": 6,
+      "nome": "Cadeira Gamer",
+      "preco": 1299.9
+    }
+  ],
+  "sucesso": true,
+  "total": 3
+}
+
+### 05. Buscar produtos por categoria e faixa de preço
+GET /produtos/busca?categoria=informatica&preco_min=100&preco_max=500
+status: 200
+{
+  "dados": [
+    {
+      "ativo": 1,
+      "categoria": "informatica",
+      "criado_em": "<timestamp>",
+      "descricao": "Teclado mecânico RGB",
+      "estoque": 30,
+      "id": 3,
+      "nome": "Teclado Mecânico",
+      "preco": 299.9
+    },
+    {
+      "ativo": 1,
+      "categoria": "informatica",
+      "criado_em": "<timestamp>",
+      "descricao": "Headset com microfone",
+      "estoque": 25,
+      "id": 5,
+      "nome": "Headset Gamer",
+      "preco": 199.9
+    },
+    {
+      "ativo": 1,
+      "categoria": "informatica",
+      "criado_em": "<timestamp>",
+      "descricao": "Webcam 1080p",
+      "estoque": 20,
+      "id": 7,
+      "nome": "Webcam HD",
+      "preco": 249.9
+    },
+    {
+      "ativo": 1,
+      "categoria": "informatica",
+      "criado_em": "<timestamp>",
+      "descricao": "SSD NVMe 1TB",
+      "estoque": 35,
+      "id": 9,
+      "nome": "SSD 1TB",
+      "preco": 449.9
+    }
+  ],
+  "sucesso": true,
+  "total": 4
+}
+
+### 06. Buscar produto existente
+GET /produtos/1
+status: 200
+{
+  "dados": {
+    "ativo": 1,
+    "categoria": "informatica",
+    "criado_em": "<timestamp>",
+    "descricao": "Notebook potente para jogos",
+    "estoque": 10,
+    "id": 1,
+    "nome": "Notebook Gamer",
+    "preco": 5999.99
+  },
+  "sucesso": true
+}
+
+### 07. Buscar produto inexistente
+GET /produtos/9999
+status: 404
+{
+  "erro": "Produto não encontrado",
+  "sucesso": false
+}
+
+### 08. Criar produto
+POST /produtos
+request: {"categoria": "geral", "descricao": "Criado pelo smoke test", "estoque": 5, "nome": "Produto Smoke", "preco": 10.5}
+status: 201
+{
+  "dados": {
+    "id": 11
+  },
+  "mensagem": "Produto criado",
+  "sucesso": true
+}
+
+### 09. Criar produto sem nome
+POST /produtos
+request: {"estoque": 1, "preco": 10}
+status: 400
+{
+  "erro": "Nome é obrigatório"
+}
+
+### 10. Criar produto com categoria inválida
+POST /produtos
+request: {"categoria": "invalida", "estoque": 1, "nome": "Produto X", "preco": 10}
+status: 400
+{
+  "erro": "Categoria inválida. Válidas: ['informatica', 'moveis', 'vestuario', 'geral', 'eletronicos', 'livros']"
+}
+
+### 11. Atualizar produto
+PUT /produtos/{produto_id}  ->  /produtos/11
+request: {"categoria": "geral", "descricao": "Editado", "estoque": 3, "nome": "Produto Smoke Editado", "preco": 12}
+status: 200
+{
+  "mensagem": "Produto atualizado",
+  "sucesso": true
+}
+
+### 12. Atualizar produto inexistente
+PUT /produtos/9999
+request: {"estoque": 1, "nome": "Nada", "preco": 1}
+status: 404
+{
+  "erro": "Produto não encontrado"
+}
+
+### 13. Listar usuários
+GET /usuarios
+status: 200
+{
+  "dados": [
+    {
+      "criado_em": "<timestamp>",
+      "email": "admin@loja.com",
+      "id": 1,
+      "nome": "Admin",
+      "senha": "admin123",
+      "tipo": "admin"
+    },
+    {
+      "criado_em": "<timestamp>",
+      "email": "joao@email.com",
+      "id": 2,
+      "nome": "João Silva",
+      "senha": "123456",
+      "tipo": "cliente"
+    },
+    {
+      "criado_em": "<timestamp>",
+      "email": "maria@email.com",
+      "id": 3,
+      "nome": "Maria Santos",
+      "senha": "senha123",
+      "tipo": "cliente"
+    }
+  ],
+  "sucesso": true
+}
+
+### 14. Buscar usuário existente
+GET /usuarios/1
+status: 200
+{
+  "dados": {
+    "criado_em": "<timestamp>",
+    "email": "admin@loja.com",
+    "id": 1,
+    "nome": "Admin",
+    "senha": "admin123",
+    "tipo": "admin"
+  },
+  "sucesso": true
+}
+
+### 15. Buscar usuário inexistente
+GET /usuarios/9999
+status: 404
+{
+  "erro": "Usuário não encontrado"
+}
+
+### 16. Criar usuário
+POST /usuarios
+request: {"email": "smoke@teste.com", "nome": "Smoke User", "senha": "smoke123"}
+status: 201
+{
+  "dados": {
+    "id": 4
+  },
+  "sucesso": true
+}
+
+### 17. Criar usuário sem senha
+POST /usuarios
+request: {"email": "sem@senha.com", "nome": "Sem Senha"}
+status: 400
+{
+  "erro": "Nome, email e senha são obrigatórios"
+}
+
+### 18. Login válido
+POST /login
+request: {"email": "admin@loja.com", "senha": "admin123"}
+status: 200
+{
+  "dados": {
+    "email": "admin@loja.com",
+    "id": 1,
+    "nome": "Admin",
+    "tipo": "admin"
+  },
+  "mensagem": "Login OK",
+  "sucesso": true
+}
+
+### 19. Login com senha errada
+POST /login
+request: {"email": "admin@loja.com", "senha": "errada"}
+status: 401
+{
+  "erro": "Email ou senha inválidos",
+  "sucesso": false
+}
+
+### 20. Criar pedido
+POST /pedidos
+request: {"itens": [{"produto_id": 1, "quantidade": 2}, {"produto_id": 2, "quantidade": 1}], "usuario_id": 2}
+status: 201
+{
+  "dados": {
+    "pedido_id": 1,
+    "total": 12089.88
+  },
+  "mensagem": "Pedido criado com sucesso",
+  "sucesso": true
+}
+
+### 21. Criar pedido sem estoque
+POST /pedidos
+request: {"itens": [{"produto_id": 1, "quantidade": 999}], "usuario_id": 2}
+status: 400
+{
+  "erro": "Estoque insuficiente para Notebook Gamer",
+  "sucesso": false
+}
+
+### 22. Criar pedido sem itens
+POST /pedidos
+request: {"itens": [], "usuario_id": 2}
+status: 400
+{
+  "erro": "Pedido deve ter pelo menos 1 item"
+}
+
+### 23. Listar todos os pedidos
+GET /pedidos
+status: 200
+{
+  "dados": [
+    {
+      "criado_em": "<timestamp>",
+      "id": 1,
+      "itens": [
+        {
+          "preco_unitario": 5999.99,
+          "produto_id": 1,
+          "produto_nome": "Notebook Gamer",
+          "quantidade": 2
+        },
+        {
+          "preco_unitario": 89.9,
+          "produto_id": 2,
+          "produto_nome": "Mouse Wireless",
+          "quantidade": 1
+        }
+      ],
+      "status": "pendente",
+      "total": 12089.88,
+      "usuario_id": 2
+    }
+  ],
+  "sucesso": true
+}
+
+### 24. Listar pedidos do usuário
+GET /pedidos/usuario/2
+status: 200
+{
+  "dados": [
+    {
+      "criado_em": "<timestamp>",
+      "id": 1,
+      "itens": [
+        {
+          "preco_unitario": 5999.99,
+          "produto_id": 1,
+          "produto_nome": "Notebook Gamer",
+          "quantidade": 2
+        },
+        {
+          "preco_unitario": 89.9,
+          "produto_id": 2,
+          "produto_nome": "Mouse Wireless",
+          "quantidade": 1
+        }
+      ],
+      "status": "pendente",
+      "total": 12089.88,
+      "usuario_id": 2
+    }
+  ],
+  "sucesso": true
+}
+
+### 25. Aprovar pedido
+PUT /pedidos/{pedido_id}/status  ->  /pedidos/1/status
+request: {"status": "aprovado"}
+status: 200
+{
+  "mensagem": "Status atualizado",
+  "sucesso": true
+}
+
+### 26. Status de pedido inválido
+PUT /pedidos/{pedido_id}/status  ->  /pedidos/1/status
+request: {"status": "invalido"}
+status: 400
+{
+  "erro": "Status inválido"
+}
+
+### 27. Relatório de vendas
+GET /relatorios/vendas
+status: 200
+{
+  "dados": {
+    "desconto_aplicavel": 1208.99,
+    "faturamento_bruto": 12089.88,
+    "faturamento_liquido": 10880.89,
+    "pedidos_aprovados": 1,
+    "pedidos_cancelados": 0,
+    "pedidos_pendentes": 0,
+    "ticket_medio": 12089.88,
+    "total_pedidos": 1
+  },
+  "sucesso": true
+}
+
+### 28. Deletar produto criado
+DELETE /produtos/{produto_id}  ->  /produtos/11
+status: 200
+{
+  "mensagem": "Produto deletado",
+  "sucesso": true
+}
+
+### 29. Deletar produto inexistente
+DELETE /produtos/9999
+status: 404
+{
+  "erro": "Produto não encontrado"
+}
+
+### 30. Admin: executar query de leitura
+POST /admin/query
+request: {"sql": "SELECT COUNT(*) AS total FROM produtos"}
+status: 200
+{
+  "dados": [
+    {
+      "total": 10
+    }
+  ],
+  "sucesso": true
+}
+
+### 31. Admin: resetar banco (destrutivo, por último)
+POST /admin/reset-db
+status: 200
+{
+  "mensagem": "Banco de dados resetado",
+  "sucesso": true
+}
+

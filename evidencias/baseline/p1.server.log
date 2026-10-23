@@ -1,0 +1,50 @@
+$ rm -f loja.db
+$ .venv/bin/flask --app app run --port 5001
+ * Serving Flask app 'app'
+ * Debug mode: off
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5001
+[33mPress CTRL+C to quit[0m
+127.0.0.1 - - [23/Oct/2026 13:46:31] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 13:46:31] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 13:46:31] "GET /health HTTP/1.1" 200 -
+Listando 10 produtos
+127.0.0.1 - - [23/Oct/2026 13:46:31] "GET /produtos HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 13:46:31] "GET /produtos/busca?q=gamer HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 13:46:31] "GET /produtos/busca?categoria=informatica&preco_min=100&preco_max=500 HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 13:46:31] "GET /produtos/1 HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 13:46:31] "[33mGET /produtos/9999 HTTP/1.1[0m" 404 -
+Produto criado com ID: 11
+127.0.0.1 - - [23/Oct/2026 13:46:31] "[35m[1mPOST /produtos HTTP/1.1[0m" 201 -
+127.0.0.1 - - [23/Oct/2026 13:46:31] "[31m[1mPOST /produtos HTTP/1.1[0m" 400 -
+127.0.0.1 - - [23/Oct/2026 13:46:31] "[31m[1mPOST /produtos HTTP/1.1[0m" 400 -
+127.0.0.1 - - [23/Oct/2026 13:46:31] "PUT /produtos/11 HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 13:46:31] "[33mPUT /produtos/9999 HTTP/1.1[0m" 404 -
+127.0.0.1 - - [23/Oct/2026 13:46:31] "GET /usuarios HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 13:46:31] "GET /usuarios/1 HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 13:46:31] "[33mGET /usuarios/9999 HTTP/1.1[0m" 404 -
+Usuário criado: smoke@teste.com
+127.0.0.1 - - [23/Oct/2026 13:46:31] "[35m[1mPOST /usuarios HTTP/1.1[0m" 201 -
+127.0.0.1 - - [23/Oct/2026 13:46:31] "[31m[1mPOST /usuarios HTTP/1.1[0m" 400 -
+Login bem-sucedido: admin@loja.com
+127.0.0.1 - - [23/Oct/2026 13:46:31] "POST /login HTTP/1.1" 200 -
+Login falhou: admin@loja.com
+127.0.0.1 - - [23/Oct/2026 13:46:31] "[31m[1mPOST /login HTTP/1.1[0m" 401 -
+ENVIANDO EMAIL: Pedido 1 criado para usuario 2
+ENVIANDO SMS: Seu pedido foi recebido!
+ENVIANDO PUSH: Novo pedido recebido pelo sistema
+127.0.0.1 - - [23/Oct/2026 13:46:31] "[35m[1mPOST /pedidos HTTP/1.1[0m" 201 -
+127.0.0.1 - - [23/Oct/2026 13:46:31] "[31m[1mPOST /pedidos HTTP/1.1[0m" 400 -
+127.0.0.1 - - [23/Oct/2026 13:46:31] "[31m[1mPOST /pedidos HTTP/1.1[0m" 400 -
+127.0.0.1 - - [23/Oct/2026 13:46:31] "GET /pedidos HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 13:46:31] "GET /pedidos/usuario/2 HTTP/1.1" 200 -
+NOTIFICAÇÃO: Pedido 1 foi aprovado! Preparar envio.
+127.0.0.1 - - [23/Oct/2026 13:46:31] "PUT /pedidos/1/status HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 13:46:31] "[31m[1mPUT /pedidos/1/status HTTP/1.1[0m" 400 -
+127.0.0.1 - - [23/Oct/2026 13:46:31] "GET /relatorios/vendas HTTP/1.1" 200 -
+Produto 11 deletado
+127.0.0.1 - - [23/Oct/2026 13:46:31] "DELETE /produtos/11 HTTP/1.1" 200 -
+127.0.0.1 - - [23/Oct/2026 13:46:31] "[33mDELETE /produtos/9999 HTTP/1.1[0m" 404 -
+127.0.0.1 - - [23/Oct/2026 13:46:31] "POST /admin/query HTTP/1.1" 200 -
+!!! BANCO DE DADOS RESETADO !!!
+127.0.0.1 - - [23/Oct/2026 13:46:31] "POST /admin/reset-db HTTP/1.1" 200 -

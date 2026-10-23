@@ -1,0 +1,31 @@
+01 GET / -> 200 {endpoints: {health: str, login: str, pedidos: str, produtos: str, relatorios: str, usuarios: str}, mensagem: str, versao: str}
+02 GET /health -> 200 {ambiente: str, counts: {pedidos: number, produtos: number, usuarios: number}, database: str, db_path: str, debug: bool, secret_key: str, status: str, versao: str}
+03 GET /produtos -> 200 {dados: [{ativo: number, categoria: str, criado_em: str, descricao: str, estoque: number, id: number, nome: str, preco: number}], sucesso: bool}
+04 GET /produtos/busca?q=gamer -> 200 {dados: [{ativo: number, categoria: str, criado_em: str, descricao: str, estoque: number, id: number, nome: str, preco: number}], sucesso: bool, total: number}
+05 GET /produtos/busca?categoria=informatica&preco_min=100&preco_max=500 -> 200 {dados: [{ativo: number, categoria: str, criado_em: str, descricao: str, estoque: number, id: number, nome: str, preco: number}], sucesso: bool, total: number}
+06 GET /produtos/1 -> 200 {dados: {ativo: number, categoria: str, criado_em: str, descricao: str, estoque: number, id: number, nome: str, preco: number}, sucesso: bool}
+07 GET /produtos/9999 -> 404 {erro: str, sucesso: bool}
+08 POST /produtos -> 201 {dados: {id: number}, mensagem: str, sucesso: bool}
+09 POST /produtos -> 400 {erro: str}
+10 POST /produtos -> 400 {erro: str}
+11 PUT /produtos/{produto_id} -> 200 {mensagem: str, sucesso: bool}
+12 PUT /produtos/9999 -> 404 {erro: str}
+13 GET /usuarios -> 200 {dados: [{criado_em: str, email: str, id: number, nome: str, senha: str, tipo: str}], sucesso: bool}
+14 GET /usuarios/1 -> 200 {dados: {criado_em: str, email: str, id: number, nome: str, senha: str, tipo: str}, sucesso: bool}
+15 GET /usuarios/9999 -> 404 {erro: str}
+16 POST /usuarios -> 201 {dados: {id: number}, sucesso: bool}
+17 POST /usuarios -> 400 {erro: str}
+18 POST /login -> 200 {dados: {email: str, id: number, nome: str, tipo: str}, mensagem: str, sucesso: bool}
+19 POST /login -> 401 {erro: str, sucesso: bool}
+20 POST /pedidos -> 201 {dados: {pedido_id: number, total: number}, mensagem: str, sucesso: bool}
+21 POST /pedidos -> 400 {erro: str, sucesso: bool}
+22 POST /pedidos -> 400 {erro: str}
+23 GET /pedidos -> 200 {dados: [{criado_em: str, id: number, itens: [{preco_unitario: number, produto_id: number, produto_nome: str, quantidade: number}], status: str, total: number, usuario_id: number}], sucesso: bool}
+24 GET /pedidos/usuario/2 -> 200 {dados: [{criado_em: str, id: number, itens: [{preco_unitario: number, produto_id: number, produto_nome: str, quantidade: number}], status: str, total: number, usuario_id: number}], sucesso: bool}
+25 PUT /pedidos/{pedido_id}/status -> 200 {mensagem: str, sucesso: bool}
+26 PUT /pedidos/{pedido_id}/status -> 400 {erro: str}
+27 GET /relatorios/vendas -> 200 {dados: {desconto_aplicavel: number, faturamento_bruto: number, faturamento_liquido: number, pedidos_aprovados: number, pedidos_cancelados: number, pedidos_pendentes: number, ticket_medio: number, total_pedidos: number}, sucesso: bool}
+28 DELETE /produtos/{produto_id} -> 200 {mensagem: str, sucesso: bool}
+29 DELETE /produtos/9999 -> 404 {erro: str}
+30 POST /admin/query -> 200 {dados: [{total: number}], sucesso: bool}
+31 POST /admin/reset-db -> 200 {mensagem: str, sucesso: bool}

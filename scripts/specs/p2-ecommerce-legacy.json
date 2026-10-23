@@ -1,0 +1,31 @@
+{
+  "name": "ecommerce-api-legacy",
+  "description": "LMS API com checkout (Node.js/Express). Banco SQLite em memória, recriado a cada boot.",
+  "cwd": "ecommerce-api-legacy",
+  "port": 3000,
+  "setup": [],
+  "start": "npm start",
+  "ready_path": "/",
+  "requests": [
+    {"label": "Checkout aprovado (usuário novo)", "method": "POST", "path": "/api/checkout",
+     "body": {"usr": "Guilherme", "eml": "gui@fullcycle.com.br", "pwd": "senhaforte", "c_id": 2, "card": "4111222233334444"},
+     "expect": 200},
+    {"label": "Checkout com pagamento recusado", "method": "POST", "path": "/api/checkout",
+     "body": {"usr": "João", "eml": "joao@teste.com", "pwd": "123", "c_id": 1, "card": "5111222233334444"},
+     "expect": 400},
+    {"label": "Checkout aprovado (usuário já existente)", "method": "POST", "path": "/api/checkout",
+     "body": {"usr": "Leonan", "eml": "leonan@fullcycle.com.br", "pwd": "123", "c_id": 2, "card": "4000111122223333"},
+     "expect": 200},
+    {"label": "Checkout sem campos obrigatórios", "method": "POST", "path": "/api/checkout",
+     "body": {"usr": "Incompleto"}, "expect": 400},
+    {"label": "Checkout de curso inexistente", "method": "POST", "path": "/api/checkout",
+     "body": {"usr": "Ana", "eml": "ana@teste.com", "pwd": "123", "c_id": 999, "card": "4111222233334444"},
+     "expect": 404},
+
+    {"label": "Relatório financeiro", "method": "GET", "path": "/api/admin/financial-report",
+     "expect": 200, "sort_lists": true},
+    {"label": "Deletar usuário", "method": "DELETE", "path": "/api/users/1", "expect": 200},
+    {"label": "Relatório financeiro após deletar usuário", "method": "GET", "path": "/api/admin/financial-report",
+     "expect": 200, "sort_lists": true}
+  ]
+}

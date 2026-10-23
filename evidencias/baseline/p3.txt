@@ -1,0 +1,822 @@
+### 01. Index
+GET /
+status: 200
+{
+  "message": "Task Manager API",
+  "version": "1.0"
+}
+
+### 02. Health check
+GET /health
+status: 200
+{
+  "status": "ok",
+  "timestamp": "<timestamp>"
+}
+
+### 03. Listar tasks
+GET /tasks
+status: 200
+[
+  {
+    "category_id": 1,
+    "category_name": "Backend",
+    "created_at": "<timestamp>",
+    "description": "Adicionar autenticação real com JWT",
+    "due_date": "<timestamp>",
+    "id": 1,
+    "overdue": true,
+    "priority": 1,
+    "status": "pending",
+    "tags": [],
+    "title": "Implementar autenticação JWT",
+    "updated_at": "<timestamp>",
+    "user_id": 1,
+    "user_name": "João Silva"
+  },
+  {
+    "category_id": 2,
+    "category_name": "Frontend",
+    "created_at": "<timestamp>",
+    "description": "Tela de login responsiva",
+    "due_date": "<timestamp>",
+    "id": 2,
+    "overdue": false,
+    "priority": 2,
+    "status": "in_progress",
+    "tags": [],
+    "title": "Criar tela de login",
+    "updated_at": "<timestamp>",
+    "user_id": 2,
+    "user_name": "Maria Santos"
+  },
+  {
+    "category_id": 3,
+    "category_name": "DevOps",
+    "created_at": "<timestamp>",
+    "description": "Pipeline com GitHub Actions",
+    "due_date": null,
+    "id": 3,
+    "overdue": false,
+    "priority": 2,
+    "status": "done",
+    "tags": [
+      "devops",
+      "ci",
+      "github"
+    ],
+    "title": "Configurar CI/CD",
+    "updated_at": "<timestamp>",
+    "user_id": 3,
+    "user_name": "Pedro Oliveira"
+  },
+  {
+    "category_id": 4,
+    "category_name": "Bug",
+    "created_at": "<timestamp>",
+    "description": "Filtro não funciona com caracteres especiais",
+    "due_date": "<timestamp>",
+    "id": 4,
+    "overdue": true,
+    "priority": 1,
+    "status": "pending",
+    "tags": [],
+    "title": "Corrigir bug no filtro de busca",
+    "updated_at": "<timestamp>",
+    "user_id": 1,
+    "user_name": "João Silva"
+  },
+  {
+    "category_id": 1,
+    "category_name": "Backend",
+    "created_at": "<timestamp>",
+    "description": "Endpoints retornam todos os registros",
+    "due_date": "<timestamp>",
+    "id": 5,
+    "overdue": false,
+    "priority": 3,
+    "status": "pending",
+    "tags": [],
+    "title": "Adicionar paginação na API",
+    "updated_at": "<timestamp>",
+    "user_id": 1,
+    "user_name": "João Silva"
+  },
+  {
+    "category_id": 1,
+    "category_name": "Backend",
+    "created_at": "<timestamp>",
+    "description": "Cobertura mínima de 80%",
+    "due_date": null,
+    "id": 6,
+    "overdue": false,
+    "priority": 2,
+    "status": "pending",
+    "tags": [],
+    "title": "Escrever testes unitários",
+    "updated_at": "<timestamp>",
+    "user_id": 2,
+    "user_name": "Maria Santos"
+  },
+  {
+    "category_id": 1,
+    "category_name": "Backend",
+    "created_at": "<timestamp>",
+    "description": "Gerar documentação automática",
+    "due_date": null,
+    "id": 7,
+    "overdue": false,
+    "priority": 4,
+    "status": "cancelled",
+    "tags": [],
+    "title": "Documentar API com Swagger",
+    "updated_at": "<timestamp>",
+    "user_id": 3,
+    "user_name": "Pedro Oliveira"
+  },
+  {
+    "category_id": 1,
+    "category_name": "Backend",
+    "created_at": "<timestamp>",
+    "description": "Melhorar organização dos models",
+    "due_date": null,
+    "id": 8,
+    "overdue": false,
+    "priority": 3,
+    "status": "in_progress",
+    "tags": [
+      "refactor",
+      "tech-debt"
+    ],
+    "title": "Refatorar models",
+    "updated_at": "<timestamp>",
+    "user_id": 2,
+    "user_name": "Maria Santos"
+  },
+  {
+    "category_id": 3,
+    "category_name": "DevOps",
+    "created_at": "<timestamp>",
+    "description": "Prometheus + Grafana",
+    "due_date": "<timestamp>",
+    "id": 9,
+    "overdue": false,
+    "priority": 4,
+    "status": "pending",
+    "tags": [],
+    "title": "Configurar monitoramento",
+    "updated_at": "<timestamp>",
+    "user_id": 3,
+    "user_name": "Pedro Oliveira"
+  },
+  {
+    "category_id": 1,
+    "category_name": "Backend",
+    "created_at": "<timestamp>",
+    "description": "Usar marshmallow ou pydantic",
+    "due_date": null,
+    "id": 10,
+    "overdue": false,
+    "priority": 3,
+    "status": "pending",
+    "tags": [
+      "improvement",
+      "validation"
+    ],
+    "title": "Melhorar validações de input",
+    "updated_at": "<timestamp>",
+    "user_id": 1,
+    "user_name": "João Silva"
+  }
+]
+
+### 04. Buscar task existente
+GET /tasks/1
+status: 200
+{
+  "category_id": 1,
+  "created_at": "<timestamp>",
+  "description": "Adicionar autenticação real com JWT",
+  "due_date": "<timestamp>",
+  "id": 1,
+  "overdue": true,
+  "priority": 1,
+  "status": "pending",
+  "tags": [],
+  "title": "Implementar autenticação JWT",
+  "updated_at": "<timestamp>",
+  "user_id": 1
+}
+
+### 05. Buscar task inexistente
+GET /tasks/9999
+status: 404
+{
+  "error": "Task não encontrada"
+}
+
+### 06. Pesquisar tasks por texto
+GET /tasks/search?q=API
+status: 200
+[
+  {
+    "category_id": 1,
+    "created_at": "<timestamp>",
+    "description": "Endpoints retornam todos os registros",
+    "due_date": "<timestamp>",
+    "id": 5,
+    "priority": 3,
+    "status": "pending",
+    "tags": [],
+    "title": "Adicionar paginação na API",
+    "updated_at": "<timestamp>",
+    "user_id": 1
+  },
+  {
+    "category_id": 1,
+    "created_at": "<timestamp>",
+    "description": "Gerar documentação automática",
+    "due_date": null,
+    "id": 7,
+    "priority": 4,
+    "status": "cancelled",
+    "tags": [],
+    "title": "Documentar API com Swagger",
+    "updated_at": "<timestamp>",
+    "user_id": 3
+  }
+]
+
+### 07. Pesquisar tasks por status e prioridade
+GET /tasks/search?status=pending&priority=1
+status: 200
+[
+  {
+    "category_id": 1,
+    "created_at": "<timestamp>",
+    "description": "Adicionar autenticação real com JWT",
+    "due_date": "<timestamp>",
+    "id": 1,
+    "priority": 1,
+    "status": "pending",
+    "tags": [],
+    "title": "Implementar autenticação JWT",
+    "updated_at": "<timestamp>",
+    "user_id": 1
+  },
+  {
+    "category_id": 4,
+    "created_at": "<timestamp>",
+    "description": "Filtro não funciona com caracteres especiais",
+    "due_date": "<timestamp>",
+    "id": 4,
+    "priority": 1,
+    "status": "pending",
+    "tags": [],
+    "title": "Corrigir bug no filtro de busca",
+    "updated_at": "<timestamp>",
+    "user_id": 1
+  }
+]
+
+### 08. Estatísticas de tasks
+GET /tasks/stats
+status: 200
+{
+  "cancelled": 1,
+  "completion_rate": 10.0,
+  "done": 1,
+  "in_progress": 2,
+  "overdue": 2,
+  "pending": 6,
+  "total": 10
+}
+
+### 09. Criar task
+POST /tasks
+request: {"category_id": 1, "description": "Criada pelo smoke test", "due_date": "2030-01-15", "priority": 2, "tags": ["smoke", "teste"], "title": "Task do smoke test", "user_id": 1}
+status: 201
+{
+  "category_id": 1,
+  "created_at": "<timestamp>",
+  "description": "Criada pelo smoke test",
+  "due_date": "<timestamp>",
+  "id": 11,
+  "priority": 2,
+  "status": "pending",
+  "tags": [
+    "smoke",
+    "teste"
+  ],
+  "title": "Task do smoke test",
+  "updated_at": "<timestamp>",
+  "user_id": 1
+}
+
+### 10. Criar task com título curto
+POST /tasks
+request: {"title": "ab"}
+status: 400
+{
+  "error": "Título muito curto"
+}
+
+### 11. Criar task com usuário inexistente
+POST /tasks
+request: {"title": "Task inválida", "user_id": 9999}
+status: 404
+{
+  "error": "Usuário não encontrado"
+}
+
+### 12. Atualizar task
+PUT /tasks/{task_id}  ->  /tasks/11
+request: {"priority": 1, "status": "in_progress"}
+status: 200
+{
+  "category_id": 1,
+  "created_at": "<timestamp>",
+  "description": "Criada pelo smoke test",
+  "due_date": "<timestamp>",
+  "id": 11,
+  "priority": 1,
+  "status": "in_progress",
+  "tags": [
+    "smoke",
+    "teste"
+  ],
+  "title": "Task do smoke test",
+  "updated_at": "<timestamp>",
+  "user_id": 1
+}
+
+### 13. Atualizar task com status inválido
+PUT /tasks/{task_id}  ->  /tasks/11
+request: {"status": "invalido"}
+status: 400
+{
+  "error": "Status inválido"
+}
+
+### 14. Atualizar task inexistente
+PUT /tasks/9999
+request: {"status": "done"}
+status: 404
+{
+  "error": "Task não encontrada"
+}
+
+### 15. Listar usuários
+GET /users
+status: 200
+[
+  {
+    "active": true,
+    "created_at": "<timestamp>",
+    "email": "joao@email.com",
+    "id": 1,
+    "name": "João Silva",
+    "role": "admin",
+    "task_count": 5
+  },
+  {
+    "active": true,
+    "created_at": "<timestamp>",
+    "email": "maria@email.com",
+    "id": 2,
+    "name": "Maria Santos",
+    "role": "user",
+    "task_count": 3
+  },
+  {
+    "active": true,
+    "created_at": "<timestamp>",
+    "email": "pedro@email.com",
+    "id": 3,
+    "name": "Pedro Oliveira",
+    "role": "manager",
+    "task_count": 3
+  }
+]
+
+### 16. Buscar usuário existente
+GET /users/1
+status: 200
+{
+  "active": true,
+  "created_at": "<timestamp>",
+  "email": "joao@email.com",
+  "id": 1,
+  "name": "João Silva",
+  "password": "81dc9bdb52d04dc20036dbd8313ed055",
+  "role": "admin",
+  "tasks": [
+    {
+      "category_id": 1,
+      "created_at": "<timestamp>",
+      "description": "Adicionar autenticação real com JWT",
+      "due_date": "<timestamp>",
+      "id": 1,
+      "priority": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Implementar autenticação JWT",
+      "updated_at": "<timestamp>",
+      "user_id": 1
+    },
+    {
+      "category_id": 4,
+      "created_at": "<timestamp>",
+      "description": "Filtro não funciona com caracteres especiais",
+      "due_date": "<timestamp>",
+      "id": 4,
+      "priority": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Corrigir bug no filtro de busca",
+      "updated_at": "<timestamp>",
+      "user_id": 1
+    },
+    {
+      "category_id": 1,
+      "created_at": "<timestamp>",
+      "description": "Endpoints retornam todos os registros",
+      "due_date": "<timestamp>",
+      "id": 5,
+      "priority": 3,
+      "status": "pending",
+      "tags": [],
+      "title": "Adicionar paginação na API",
+      "updated_at": "<timestamp>",
+      "user_id": 1
+    },
+    {
+      "category_id": 1,
+      "created_at": "<timestamp>",
+      "description": "Usar marshmallow ou pydantic",
+      "due_date": null,
+      "id": 10,
+      "priority": 3,
+      "status": "pending",
+      "tags": [
+        "improvement",
+        "validation"
+      ],
+      "title": "Melhorar validações de input",
+      "updated_at": "<timestamp>",
+      "user_id": 1
+    },
+    {
+      "category_id": 1,
+      "created_at": "<timestamp>",
+      "description": "Criada pelo smoke test",
+      "due_date": "<timestamp>",
+      "id": 11,
+      "priority": 1,
+      "status": "in_progress",
+      "tags": [
+        "smoke",
+        "teste"
+      ],
+      "title": "Task do smoke test",
+      "updated_at": "<timestamp>",
+      "user_id": 1
+    }
+  ]
+}
+
+### 17. Buscar usuário inexistente
+GET /users/9999
+status: 404
+{
+  "error": "Usuário não encontrado"
+}
+
+### 18. Criar usuário
+POST /users
+request: {"email": "smoke@teste.com", "name": "Smoke User", "password": "smoke123", "role": "user"}
+status: 201
+{
+  "active": true,
+  "created_at": "<timestamp>",
+  "email": "smoke@teste.com",
+  "id": 4,
+  "name": "Smoke User",
+  "password": "a0b993abcb17c210dc4516733326530e",
+  "role": "user"
+}
+
+### 19. Criar usuário com email duplicado
+POST /users
+request: {"email": "smoke@teste.com", "name": "Smoke User 2", "password": "smoke123"}
+status: 409
+{
+  "error": "Email já cadastrado"
+}
+
+### 20. Criar usuário com email inválido
+POST /users
+request: {"email": "invalido", "name": "Email Ruim", "password": "1234"}
+status: 400
+{
+  "error": "Email inválido"
+}
+
+### 21. Atualizar usuário
+PUT /users/{user_id}  ->  /users/4
+request: {"name": "Smoke User Editado"}
+status: 200
+{
+  "active": true,
+  "created_at": "<timestamp>",
+  "email": "smoke@teste.com",
+  "id": 4,
+  "name": "Smoke User Editado",
+  "password": "a0b993abcb17c210dc4516733326530e",
+  "role": "user"
+}
+
+### 22. Listar tasks do usuário
+GET /users/1/tasks
+status: 200
+[
+  {
+    "created_at": "<timestamp>",
+    "description": "Adicionar autenticação real com JWT",
+    "due_date": "<timestamp>",
+    "id": 1,
+    "overdue": true,
+    "priority": 1,
+    "status": "pending",
+    "title": "Implementar autenticação JWT"
+  },
+  {
+    "created_at": "<timestamp>",
+    "description": "Filtro não funciona com caracteres especiais",
+    "due_date": "<timestamp>",
+    "id": 4,
+    "overdue": true,
+    "priority": 1,
+    "status": "pending",
+    "title": "Corrigir bug no filtro de busca"
+  },
+  {
+    "created_at": "<timestamp>",
+    "description": "Endpoints retornam todos os registros",
+    "due_date": "<timestamp>",
+    "id": 5,
+    "overdue": false,
+    "priority": 3,
+    "status": "pending",
+    "title": "Adicionar paginação na API"
+  },
+  {
+    "created_at": "<timestamp>",
+    "description": "Usar marshmallow ou pydantic",
+    "due_date": null,
+    "id": 10,
+    "overdue": false,
+    "priority": 3,
+    "status": "pending",
+    "title": "Melhorar validações de input"
+  },
+  {
+    "created_at": "<timestamp>",
+    "description": "Criada pelo smoke test",
+    "due_date": "<timestamp>",
+    "id": 11,
+    "overdue": false,
+    "priority": 1,
+    "status": "in_progress",
+    "title": "Task do smoke test"
+  }
+]
+
+### 23. Login válido
+POST /login
+request: {"email": "joao@email.com", "password": "1234"}
+status: 200
+{
+  "message": "Login realizado com sucesso",
+  "token": "fake-jwt-token-1",
+  "user": {
+    "active": true,
+    "created_at": "<timestamp>",
+    "email": "joao@email.com",
+    "id": 1,
+    "name": "João Silva",
+    "password": "81dc9bdb52d04dc20036dbd8313ed055",
+    "role": "admin"
+  }
+}
+
+### 24. Login com senha errada
+POST /login
+request: {"email": "joao@email.com", "password": "errada"}
+status: 401
+{
+  "error": "Credenciais inválidas"
+}
+
+### 25. Relatório geral
+GET /reports/summary
+status: 200
+{
+  "generated_at": "<timestamp>",
+  "overdue": {
+    "count": 2,
+    "tasks": [
+      {
+        "days_overdue": 3,
+        "due_date": "<timestamp>",
+        "id": 1,
+        "title": "Implementar autenticação JWT"
+      },
+      {
+        "days_overdue": 1,
+        "due_date": "<timestamp>",
+        "id": 4,
+        "title": "Corrigir bug no filtro de busca"
+      }
+    ]
+  },
+  "overview": {
+    "total_categories": 4,
+    "total_tasks": 11,
+    "total_users": 4
+  },
+  "recent_activity": {
+    "tasks_completed_last_7_days": 1,
+    "tasks_created_last_7_days": 11
+  },
+  "tasks_by_priority": {
+    "critical": 3,
+    "high": 3,
+    "low": 2,
+    "medium": 3,
+    "minimal": 0
+  },
+  "tasks_by_status": {
+    "cancelled": 1,
+    "done": 1,
+    "in_progress": 3,
+    "pending": 6
+  },
+  "user_productivity": [
+    {
+      "completed_tasks": 0,
+      "completion_rate": 0.0,
+      "total_tasks": 5,
+      "user_id": 1,
+      "user_name": "João Silva"
+    },
+    {
+      "completed_tasks": 0,
+      "completion_rate": 0.0,
+      "total_tasks": 3,
+      "user_id": 2,
+      "user_name": "Maria Santos"
+    },
+    {
+      "completed_tasks": 1,
+      "completion_rate": 33.33,
+      "total_tasks": 3,
+      "user_id": 3,
+      "user_name": "Pedro Oliveira"
+    },
+    {
+      "completed_tasks": 0,
+      "completion_rate": 0,
+      "total_tasks": 0,
+      "user_id": 4,
+      "user_name": "Smoke User Editado"
+    }
+  ]
+}
+
+### 26. Relatório do usuário
+GET /reports/user/1
+status: 200
+{
+  "statistics": {
+    "cancelled": 0,
+    "completion_rate": 0.0,
+    "done": 0,
+    "high_priority": 3,
+    "in_progress": 1,
+    "overdue": 2,
+    "pending": 4,
+    "total_tasks": 5
+  },
+  "user": {
+    "email": "joao@email.com",
+    "id": 1,
+    "name": "João Silva"
+  }
+}
+
+### 27. Relatório de usuário inexistente
+GET /reports/user/9999
+status: 404
+{
+  "error": "Usuário não encontrado"
+}
+
+### 28. Listar categorias
+GET /categories
+status: 200
+[
+  {
+    "color": "#3498db",
+    "created_at": "<timestamp>",
+    "description": "Tarefas de backend",
+    "id": 1,
+    "name": "Backend",
+    "task_count": 7
+  },
+  {
+    "color": "#2ecc71",
+    "created_at": "<timestamp>",
+    "description": "Tarefas de frontend",
+    "id": 2,
+    "name": "Frontend",
+    "task_count": 1
+  },
+  {
+    "color": "#e74c3c",
+    "created_at": "<timestamp>",
+    "description": "Tarefas de infraestrutura",
+    "id": 3,
+    "name": "DevOps",
+    "task_count": 2
+  },
+  {
+    "color": "#e67e22",
+    "created_at": "<timestamp>",
+    "description": "Correção de bugs",
+    "id": 4,
+    "name": "Bug",
+    "task_count": 1
+  }
+]
+
+### 29. Criar categoria
+POST /categories
+request: {"color": "#123456", "description": "Categoria do smoke test", "name": "Smoke"}
+status: 201
+{
+  "color": "#123456",
+  "created_at": "<timestamp>",
+  "description": "Categoria do smoke test",
+  "id": 5,
+  "name": "Smoke"
+}
+
+### 30. Criar categoria sem dados
+POST /categories
+request: {}
+status: 400
+{
+  "error": "Dados inválidos"
+}
+
+### 31. Atualizar categoria
+PUT /categories/{category_id}  ->  /categories/5
+request: {"name": "Smoke Editada"}
+status: 200
+{
+  "color": "#123456",
+  "created_at": "<timestamp>",
+  "description": "Categoria do smoke test",
+  "id": 5,
+  "name": "Smoke Editada"
+}
+
+### 32. Deletar categoria criada
+DELETE /categories/{category_id}  ->  /categories/5
+status: 200
+{
+  "message": "Categoria deletada"
+}
+
+### 33. Deletar task criada
+DELETE /tasks/{task_id}  ->  /tasks/11
+status: 200
+{
+  "message": "Task deletada com sucesso"
+}
+
+### 34. Deletar task inexistente
+DELETE /tasks/9999
+status: 404
+{
+  "error": "Task não encontrada"
+}
+
+### 35. Deletar usuário criado
+DELETE /users/{user_id}  ->  /users/4
+status: 200
+{
+  "message": "Usuário deletado com sucesso"
+}
+
