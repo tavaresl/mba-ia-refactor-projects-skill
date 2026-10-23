@@ -6,6 +6,8 @@ agnóstica de tecnologia, e para inventariar o projeto corretamente.
 ## 1. Escopo: o que contar e o que ignorar
 
 Antes de qualquer detecção, monte a lista de **arquivos de código-fonte**.
+Toda busca parte da **PROJECT_ROOT** (o caminho recebido como argumento ou, na
+falta dele, o diretório atual) e **nunca** sai dela.
 
 **Conte** os fontes da aplicação (ex.: `.py`, `.js`, `.ts`, `.go`, `.rb`,
 `.java`, `.php`), incluindo os dentro de pastas de camadas (`models/`, `routes/`
@@ -13,12 +15,12 @@ etc.).
 
 **Ignore sempre**:
 
-- Diretórios de ferramentas: `.claude/`, `.git/`
+- Diretórios de ferramentas: `.claude/` (inclui a própria skill), `.git/`
+- Artefatos da skill: `reports/`
 - Dependências: `node_modules/`, `.venv/`, `venv/`, `vendor/`, `site-packages/`
-- Artefatos: `__pycache__/`, `dist/`, `build/`, `*.pyc`
+- Artefatos de build: `__pycache__/`, `dist/`, `build/`, `*.pyc`
 - Locks e manifestos não-fonte: `package-lock.json`, `yarn.lock`, `*.lock`
 - Bancos e dados: `*.db`, `*.sqlite`, `instance/`
-- Os próprios arquivos da skill (`.claude/skills/...`)
 
 > A contagem de "source files" do relatório **deve** refletir essa lista. Se o
 > projeto tem 4 arquivos de código, o relatório diz 4 — não conte lock, db nem
@@ -29,9 +31,11 @@ Comandos úteis (exemplos — adapte à stack):
 
 ```bash
 # Python: fontes reais
-find . -name '*.py' -not -path '*/.venv/*' -not -path '*/__pycache__/*'
+find <PROJECT_ROOT> -name '*.py' -not -path '*/.venv/*' -not -path '*/__pycache__/*' \
+  -not -path '*/.claude/*' -not -path '*/reports/*'
 # Node: fontes reais
-find . -name '*.js' -not -path '*/node_modules/*'
+find <PROJECT_ROOT> -name '*.js' -not -path '*/node_modules/*' \
+  -not -path '*/.claude/*' -not -path '*/reports/*'
 # Contagem de linhas por arquivo
 wc -l <arquivos>
 ```
@@ -97,8 +101,12 @@ Com base na organização dos arquivos:
 Descreva em uma frase (ex.: "Monolítica — tudo em 4 arquivos, sem separação de
 camadas").
 
-## 7. Saída da Fase 1
+## 7. Saída da Fase 1 (obrigatória)
 
 Preencha o bloco `PHASE 1: PROJECT ANALYSIS` do template com: linguagem,
 framework (+versão), dependências, domínio, arquitetura, nº de arquivos
-analisados e tabelas do banco.
+analisados, tabelas do banco e entry point/comando de boot. Em seguida, liste
+o inventário de rotas.
+
+**Imprima** esse bloco na resposta ao usuário antes de iniciar a Fase 2 — a
+Fase 1 não está concluída enquanto ele não for impresso.

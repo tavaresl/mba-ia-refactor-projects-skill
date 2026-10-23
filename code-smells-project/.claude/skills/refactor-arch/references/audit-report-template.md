@@ -1,9 +1,21 @@
-# Referência — Template do Relatório (Fase 2)
+# Referência — Template de Saída (Fases 1, 2 e 3)
 
-Use **exatamente** estes formatos. A Fase 1 imprime o primeiro bloco; a Fase 2
-gera o relatório completo e o salva em `reports/audit-project-<N>.md`.
+Use **exatamente** estes formatos. Todos os arquivos ficam em
+`<PROJECT_ROOT>/reports/`:
+
+| Arquivo | Conteúdo | Gerado em |
+|---|---|---|
+| `reports/audit-report.md` | Bloco da Fase 1 + relatório de auditoria | Fase 2 |
+| `reports/refactoring-plan.md` | Plano de refatoração | Fase 2 |
+| `reports/validation-report.md` | Evidências da validação + bloco da Fase 3 | Fase 3 |
+
+Esses arquivos são artefatos da skill: gerá-los **não** conta como alteração do
+projeto e é permitido antes da confirmação do usuário.
 
 ## Bloco da Fase 1 (resumo da análise)
+
+Impresso na resposta ao fim da Fase 1 (obrigatório) e repetido no topo de
+`audit-report.md`.
 
 ```
 ================================
@@ -16,8 +28,11 @@ Domain:        <o que a aplicação faz>
 Architecture:  <classificação em uma frase>
 Source files:  <N> files analyzed
 DB tables:     <tabela1, tabela2, ...>
+Entry point:   <arquivo> (boot: <comando>)
 ================================
 ```
+
+Logo depois do bloco, liste o inventário de rotas (método + path), uma por linha.
 
 ## Relatório de auditoria (Fase 2)
 
@@ -40,14 +55,11 @@ Description: <o que está errado, concreto>
 Impact: <consequência prática>
 Recommendation: <o que fazer — aponte o padrão do playbook>
 
-### [CRITICAL] <...>
+### [HIGH] <...>
 File: <...>
 Description: ...
 Impact: ...
 Recommendation: ...
-
-### [HIGH] <...>
-...
 
 ### [MEDIUM] <...>
 ...
@@ -60,22 +72,24 @@ Total: <N> findings
 ================================
 ```
 
-## Regras de preenchimento
+### Regras de preenchimento
 
 - **Ordem**: CRITICAL → HIGH → MEDIUM → LOW. Dentro da mesma severidade, do mais
   impactante para o menos.
-- **File**: sempre `caminho:linha` ou `caminho:inicio-fim`. Quando o mesmo
-  anti-pattern ocorre em muitos pontos, agrupe num finding e cite o arquivo +
-  o método/endpoint + o número de ocorrências (ex.:
-  `models.py — login_usuario, criar_usuario (+22 queries)`).
+- **File**: sempre `caminho:linha` ou `caminho:inicio-fim`, com caminho relativo
+  à PROJECT_ROOT. Quando o mesmo anti-pattern ocorre em muitos pontos, agrupe
+  num finding e cite os arquivos, os métodos/endpoints e o número de
+  ocorrências.
 - **Summary**: a soma dos contadores = `Total`.
 - **Recommendation**: aponte o padrão de refatoração correspondente
   (ex.: "RF-02 — queries parametrizadas").
+- **APIs deprecated**: se não houver nenhuma, registre isso numa linha após o
+  bloco.
 - **Não invente** findings para inflar números; reporte o que existe.
 
-## Plano de refatoração (apresentado junto ao relatório)
+## Plano de refatoração (Fase 2)
 
-Após o relatório, apresente o plano (ver SKILL.md, Fase 2.2). Formato sugerido:
+Impresso na resposta e salvo em `reports/refactoring-plan.md`.
 
 ```
 ## Refactoring Plan
@@ -83,18 +97,47 @@ Após o relatório, apresente o plano (ver SKILL.md, Fase 2.2). Formato sugerido
 Target structure:
 <árvore de diretórios MVC>
 
-Steps (prioridade CRITICAL → LOW):
+Steps (CRITICAL → LOW):
 1. [CRITICAL] <ação> — resolve <finding(s)> — padrão <RF-xx>
-2. [CRITICAL] <ação> — ...
-3. [HIGH]     <ação> — ...
-...
+2. [HIGH]     <ação> — resolve <finding(s)> — padrão <RF-xx>
+3. [MEDIUM]   <ação> — ...
+4. [LOW]      <ação> — ...
+
+Not addressed: <findings que ficam de fora e o motivo, ou "nenhum">
 
 Contract to preserve:
 - Rotas: <lista da Fase 1>
 - Boot: <comando original>
 
+Intentional behavior changes (segurança):
+- <mudança> — <motivo>
+
 Validation:
-- App sobe sem erros
-- Todos os endpoints respondem
-- Nenhum sinal CRITICAL/HIGH remanescente
+- App sobe sem erros com o comando de boot original
+- Todos os endpoints da Fase 1 respondem
+- Nenhum sinal do catálogo remanescente
+```
+
+## Bloco da Fase 3 (resumo da refatoração)
+
+Impresso na resposta ao fim da Fase 3 e repetido no fim de
+`reports/validation-report.md`, depois das evidências (comandos executados e
+status de cada endpoint).
+
+```
+================================
+PHASE 3: REFACTORING COMPLETE
+================================
+## New Project Structure
+<árvore de diretórios final>
+
+## Validation
+  ✓ Application boots without errors (<comando de boot>)
+  ✓ All endpoints respond (<n>/<n>)
+  ✓ No catalog anti-patterns remaining
+  ✗ <item que falhou ou ficou pendente, com motivo>
+
+## Behavior changes
+- <mudança intencional>
+================================
 ```
