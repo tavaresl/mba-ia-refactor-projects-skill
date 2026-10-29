@@ -110,6 +110,20 @@ ou expõem operações administrativas sem autenticação:
 6. Sempre: listar no plano como mudança intencional, documentar a variável no
    `.env.example` e validar **sem** token (403) e **com** token.
 
+## Política de autenticação de base e privilégios (obrigatória)
+
+Vale quando a API não tem autenticação (AP-SEC-07). Diferente da política de
+endpoints perigosos acima, que protege rotas administrativas específicas:
+
+1. **Campos de privilégio** (`role`, `is_admin`, `permissions`...) nunca são
+   definidos pelo cliente anônimo: só com a credencial de administrador
+   (token do ambiente, `X-Admin-Token`), aplicando o RF-16 nível 1.
+2. A leitura da credencial fica na camada HTTP (`middlewares/`); validators e
+   controllers recebem só o booleano (`is_admin`), sem importar o framework.
+3. Autenticação completa (token assinado + proteção das rotas) é o nível 2 do
+   RF-16: proposta no plano, aplicada só se o usuário pedir.
+4. Documentar a variável no `.env.example` e validar anônimo (403) e com token.
+
 ## Respostas de erro
 
 - O handler central reproduz o formato de erro **original** de cada rota (mesmos

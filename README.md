@@ -197,6 +197,7 @@ Invocação: `/refactor-arch [caminho-do-projeto]`. Sem argumento, o projeto é 
 | AP-ARCH-03 | Estado global mutável / conexão global | HIGH | Citado no enunciado; P1 e P2 |
 | AP-ARCH-04 | Acoplamento sem injeção de dependência | HIGH | Citado no enunciado |
 | AP-SEC-06 | Debug habilitado por padrão | HIGH | `debug=True` em P1 e P3 |
+| AP-SEC-07 | API sem autenticação de base / privilégio autoatribuível (distinto de AP-SEC-05; RF-16) | CRITICAL/HIGH | `role: "admin"` aceito de requisição anônima em `POST/PUT /users` (P3). Nível 1 (restringir `role` com `ADMIN_TOKEN`) aplicado; nível 2 (JWT + rotas protegidas) proposto, não aplicado |
 | AP-PERF-01 | Queries N+1 | MEDIUM | Citado no enunciado; P1, P2 e P3 |
 | AP-QUAL-01 | Tratamento de erro genérico, sem handler central | MEDIUM | `except Exception` e `except:` repetidos |
 | AP-QUAL-02 | Validação de entrada ausente ou fraca | MEDIUM | Citado no enunciado ("validações ausentes nas rotas") |
@@ -267,6 +268,7 @@ Mudanças:
 3. **Bloco da Fase 1** exigido no chat antes de abrir o catálogo e repetido no gate.
 4. **Validação:** baseline antes de alterar o código e comparação depois; novo `validation-protocol.md` com script-modelo em `bash`.
 5. **Política para endpoints perigosos** (RF-15).
+6. **Autenticação de base e campos de privilégio** (RF-16): feedback pós-entrega apontou que o AP-SEC-05 do P3 ficou "Not addressed". O padrão foi separado em AP-SEC-07 e a skill agora aplica o nível 1 (só admin com `X-Admin-Token` altera `role`); reexecutada no P3 (`task-manager-api/reports/`).
 6. **Invariantes de negócio no catálogo.**
 7. **Ajustes no código gerado:** relatório de validação com saídas reais, nada de `str(err)`, SQL fixo em vez de concatenar constantes, `validators/` e exceções dentro da estrutura.
 

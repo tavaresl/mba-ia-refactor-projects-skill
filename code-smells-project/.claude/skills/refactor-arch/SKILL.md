@@ -100,7 +100,8 @@ improvise critérios que os contradigam.
 7. **Mudanças de comportamento aceitas** (sempre declaradas no plano e
    provadas na validação):
    - **segurança**: parar de expor dados sensíveis, fechar injeção, exigir
-     token em endpoints perigosos (`mvc-guidelines.md`);
+     token em endpoints perigosos e impedir que clientes anônimos definam
+     campos de privilégio como `role` (`mvc-guidelines.md`, RF-16 nível 1);
    - **rejeição de entrada claramente inválida** que hoje é aceita ou vira erro
      500 (ex.: quantidade negativa, tipo errado, corpo ausente), respondendo
      4xx com a mensagem no formato original da rota.
@@ -130,6 +131,7 @@ cursor.execute("SELECT * FROM users WHERE name = '" + name + "'")   → SQL inje
 API_KEY = "sk_live_9f8a..."  (no código-fonte)                       → segredo hardcoded
 return {"id": u.id, "email": u.email, "password": u.password}        → dado sensível exposto
 um arquivo/classe com conexão, schema, rotas e regra de negócio      → God Class / God Module
+POST /users aceita {"role": "admin"} de requisição sem credencial    → privilégio autoatribuível (AP-SEC-07)
 ```
 
 **HIGH**

@@ -170,7 +170,7 @@ relacionamento dentro do laço.
 
 ---
 
-## RF-07 — Error handler central (resolve AP-QUAL-01, AP-SEC-05)
+## RF-07 — Error handler central (resolve AP-QUAL-01)
 
 **Antes**
 ```python
@@ -354,7 +354,7 @@ cartão/senha/segredo.
 
 ---
 
-## RF-14 — Camada de validação de entrada (resolve AP-QUAL-02, AP-SEC-05)
+## RF-14 — Camada de validação de entrada (resolve AP-QUAL-02)
 
 **Antes**
 ```python
@@ -431,3 +431,66 @@ function adminRequired(req, res, next) {
 ```
 Remova o endpoint só se o usuário pedir. Em qualquer caso, liste a mudança no
 plano como intencional e documente `ADMIN_TOKEN` no `.env.example`.
+
+---
+
+## RF-16 — Autenticação de base e campos de privilégio (resolve AP-SEC-07)
+
+Diferente do RF-15 (que protege uma rota perigosa), este padrão trata a API
+inteira sem identidade verificada. Tem **dois níveis**:
+
+### Nível 1 — restringir campos de privilégio (aplicar sempre na Fase 3)
+
+Não muda o contrato de quem usa a API normalmente: cadastro anônimo continua
+funcionando, só que **sem poder escolher um papel privilegiado**.
+
+Regras:
+
+1. Campo de privilégio ausente → valor padrão não privilegiado (como hoje).
+2. Valor igual ao padrão (criação) ou igual ao valor atual (atualização) →
+   permitido sem credencial (clientes que reenviam o objeto inteiro não quebram).
+3. Qualquer outro valor → exige a **credencial de administrador** (token do
+   ambiente, mesma política do RF-15, header `X-Admin-Token`). Sem token
+   configurado, ou token errado: **403** `Acesso negado`, antes de qualquer
+   escrita.
+4. Valor fora da lista de papéis continua sendo 400 (validação existente).
+5. Seeds/scripts internos gravam pelo model e não passam pela API: inalterados.
+
+**Antes**
+```python
+role = data.get('role', DEFAULT_ROLE)          # qualquer anônimo manda "admin"
+user = User(name=..., role=role)
+```
+**Depois (Flask)**
+```python
+# middlewares/admin_auth.py
+def has_admin_token():
+    expected = current_app.config.get('ADMIN_TOKEN', '')
+    received = request.headers.get('X-Admin-Token', '')
+    return bool(expected) and hmac.compare_digest(expected.encode(), received.encode())
+
+# routes: a camada HTTP calcula a credencial e injeta no controller
+user_controller.create_user(request.get_json(), is_admin=has_admin_token())
+
+# validators: regra pura, sem conhecer Flask
+def check_role_change(role, current_role, is_admin):
+    if role != current_role and not is_admin:
+        raise ApiError('Acesso negado', 403)
+```
+**Express**: o mesmo, com `adminRequired` do RF-15 exposto como
+`hasAdminToken(req)` e o resultado passado ao controller.
+
+Ordem das checagens: as validações de formato/obrigatoriedade existentes
+rodam primeiro (mesmas mensagens); a checagem de privilégio vem depois de
+`role` validado e **antes** de qualquer escrita. Documente `ADMIN_TOKEN` no
+`.env.example`, leia-o na config (RF-01) e valide: anônimo com papel
+privilegiado → 403; com token → 201/200; anônimo com papel padrão → como antes.
+
+### Nível 2 — autenticação completa (propor; não aplicar sem pedido)
+
+Login devolvendo token **assinado** (JWT/itsdangerous com `SECRET_KEY` do
+ambiente, com expiração), decorator `login_required`/`role_required` nas rotas
+de escrita e verificação de dono do recurso. Muda o contrato de todas as rotas
+(clientes passam a enviar `Authorization`) e o valor do token do login, então
+vai para "Not addressed" no plano, com esta recomendação, a menos que o
+usuário peça. O nível 1 vale mesmo quando o nível 2 fica pendente.

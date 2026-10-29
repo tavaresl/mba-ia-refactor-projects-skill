@@ -42,6 +42,12 @@ reais de segurança sem justificativa.
 - **Sinais**: serializer/`to_dict` que inclui `password`/`senha`/token; `print`/
   `console.log` de cartão, senha, segredo; endpoint de health que devolve a
   `SECRET_KEY`.
+- **Também conta como dado sensível** configuração interna devolvida ao
+  cliente: caminho de arquivo/banco (`db_path`), string de conexão, host
+  interno, flag de `debug`, versões de dependências. Um health check público
+  devolve só status e contagens; os campos internos saem da resposta (esta é
+  uma mudança de segurança declarada no plano). Se algum for mantido por ser
+  parte do contrato, justifique no plano.
 - **Por que**: vaza dado sensível para o cliente ou para os logs.
 - **Refatoração**: RF-13 (remover campos sensíveis da serialização/logs).
 
@@ -49,6 +55,8 @@ reais de segurança sem justificativa.
 - **Sinais**: endpoint que executa SQL/comando recebido no corpo; rota
   `/admin/...` destrutiva sem auth; `eval`/`exec` com input.
 - **Por que**: backdoor direto ao banco/servidor.
+- **Não confundir com** AP-SEC-07: aqui o alvo é uma rota *administrativa/
+  perigosa específica*; em AP-SEC-07 é a API inteira sem autenticação de base.
 - **Refatoração**: RF-15 (política de endpoints perigosos em
   `mvc-guidelines.md`: desligado por padrão, token vindo do ambiente,
   consulta somente-leitura).
@@ -90,6 +98,32 @@ reais de segurança sem justificativa.
 - **Por que**: expõe internals e, no Flask, habilita console com execução remota.
 - **Refatoração**: RF-01 (vir de ambiente, default seguro).
 
+### AP-SEC-07 — API sem autenticação de base / privilégio autoatribuível
+- **Sinais** (procure ativamente, mesmo que o projeto "não tenha auth"):
+  - nenhuma rota/middleware verifica credencial (`Authorization`, sessão,
+    cookie, `login_required`/decorator equivalente); busca por `before_request`,
+    `Depends(...)`, `passport`, `jwt`, `verify` retorna vazio;
+  - endpoint de login que devolve token **fixo/previsível** (`'fake-token-' +
+    id`, id puro, base64 do e-mail) que nenhuma rota valida;
+  - campo de privilégio (`role`, `is_admin`, `admin`, `permissions`, `scope`)
+    aceito do corpo do request em cadastro/atualização **sem** exigir
+    credencial privilegiada — qualquer cliente anônimo se promove a admin;
+  - método de autorização no model (`is_admin()`, `can_*`) definido e **nunca
+    chamado**;
+  - rotas de escrita/exclusão (`POST`/`PUT`/`DELETE`) abertas a qualquer cliente.
+- **Severidade**: **CRITICAL** somente quando há **escalada de privilégio
+  comprovada**: um cliente anônimo consegue conceder a si mesmo (ou a outro)
+  um papel privilegiado (campo `role`/`is_admin` aceito do corpo). **HIGH**
+  quando falta autenticação de base mas não há escalada, mesmo com rotas de
+  escrita/exclusão abertas ou listagens expondo dados de terceiros. Cite no
+  finding as rotas abertas; não use CRITICAL só por serem destrutivas.
+- **Por que**: sem identidade verificada não existe autorização; qualquer
+  cliente lê, altera e apaga tudo, e o papel "admin" não protege nada.
+- **Distinto de AP-SEC-05**: AP-SEC-05 trata uma rota perigosa isolada (RF-15);
+  AP-SEC-07 trata a ausência de autenticação na API como um todo.
+- **Refatoração**: RF-16 — nível 1 (restringir campos de privilégio, aplicado
+  na Fase 3) e nível 2 (autenticação completa, exige confirmação).
+
 ---
 
 ## MEDIUM
@@ -121,6 +155,12 @@ reais de segurança sem justificativa.
   - operação que pode deixar estoque, saldo ou total negativo;
   - campo numérico aceito como string (e usado em conta ou em SQL);
   - atualização/exclusão de recurso inexistente respondendo sucesso;
+  - referência a recurso inexistente aceita na criação/atualização (ex.:
+    `usuario_id`, `category_id` que não existem), deixando registro com
+    referência solta: é **entrada inválida** e deve ser rejeitada com 4xx no
+    formato de erro da rota (a rejeição não altera registros já gravados).
+    Se o contrato original aceitava e o plano preferir não rejeitar, a
+    exceção precisa estar justificada em "Not addressed";
   - registro criado antes de uma etapa que pode falhar (ex.: usuário criado
     mesmo com pagamento recusado), sem transação.
 - **Por que**: dados inválidos entram no sistema; regras de negócio são
