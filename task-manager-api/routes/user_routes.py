@@ -1,6 +1,8 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify
 
 from controllers import user_controller
+from middlewares.admin_auth import has_admin_token
+from routes.common import read_json
 
 user_bp = Blueprint('users', __name__)
 
@@ -17,19 +19,17 @@ def get_user(user_id):
 
 @user_bp.route('/users', methods=['POST'])
 def create_user():
-    return jsonify(user_controller.create_user(request.get_json())), 201
+    return jsonify(user_controller.create_user(read_json(), has_admin_token())), 201
 
 
 @user_bp.route('/users/<int:user_id>', methods=['PUT'])
 def update_user(user_id):
-    user = user_controller.find_user_or_404(user_id)
-    return jsonify(user_controller.update_user(user, request.get_json())), 200
+    return jsonify(user_controller.update_user(user_id, read_json, has_admin_token())), 200
 
 
 @user_bp.route('/users/<int:user_id>', methods=['DELETE'])
 def delete_user(user_id):
-    user_controller.delete_user(user_id)
-    return jsonify({'message': 'Usuário deletado com sucesso'}), 200
+    return jsonify(user_controller.delete_user(user_id)), 200
 
 
 @user_bp.route('/users/<int:user_id>/tasks', methods=['GET'])
@@ -39,4 +39,4 @@ def get_user_tasks(user_id):
 
 @user_bp.route('/login', methods=['POST'])
 def login():
-    return jsonify(user_controller.login(request.get_json())), 200
+    return jsonify(user_controller.login(read_json())), 200

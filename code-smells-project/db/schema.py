@@ -1,12 +1,7 @@
 """Criação do schema, seed de demonstração e migração de senhas legadas."""
-import logging
-import sqlite3
+from db.connection import transacao
 
-from services.auth_service import hash_senha, is_hashed
-
-logger = logging.getLogger(__name__)
-
-CREATE_STATEMENTS = (
+TABELAS = (
     """
     CREATE TABLE IF NOT EXISTS produtos (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -62,7 +57,7 @@ SEED_PRODUTOS = [
     ("Camiseta Dev", "Camiseta estampa código", 59.90, 100, "vestuario"),
 ]
 
-# Credenciais de demonstração documentadas no README; gravadas já com hash.
+# Credenciais de demonstração documentadas (gravadas com hash).
 SEED_USUARIOS = [
     ("Admin", "admin@loja.com", "admin123", "admin"),
     ("João Silva", "joao@email.com", "123456", "cliente"),
@@ -70,36 +65,29 @@ SEED_USUARIOS = [
 ]
 
 
-def _migrar_senhas_legadas(conn):
-    migradas = 0
-    for row in conn.execute("SELECT id, senha FROM usuarios").fetchall():
-        if not is_hashed(row[1]):
-            conn.execute("UPDATE usuarios SET senha = ? WHERE id = ?", (hash_senha(row[1] or ""), row[0]))
-            migradas += 1
-    if migradas:
-        logger.info("Senhas legadas convertidas para hash: %d", migradas)
+def inicializar(conn, gerar_hash, eh_hash):
+    """Cria tabelas, popula o seed se não há produtos e converte senhas em texto puro."""
+    for ddl in TABELAS:
+        conn.execute(ddl)
 
-
-def init_db(db_file):
-    conn = sqlite3.connect(db_file, isolation_level=None)
-    try:
-        for statement in CREATE_STATEMENTS:
-            conn.execute(statement)
-
+    with transacao(conn):
         if conn.execute("SELECT COUNT(*) FROM produtos").fetchone()[0] == 0:
-            conn.execute("BEGIN IMMEDIATE")
             conn.executemany(
                 "INSERT INTO produtos (nome, descricao, preco, estoque, categoria) VALUES (?, ?, ?, ?, ?)",
                 SEED_PRODUTOS,
             )
             conn.executemany(
                 "INSERT INTO usuarios (nome, email, senha, tipo) VALUES (?, ?, ?, ?)",
-                [(nome, email, hash_senha(senha), tipo) for nome, email, senha, tipo in SEED_USUARIOS],
+                [(nome, email, gerar_hash(senha), tipo) for nome, email, senha, tipo in SEED_USUARIOS],
             )
-            conn.execute("COMMIT")
+        migrar_senhas_texto_puro(conn, gerar_hash, eh_hash)
 
-        conn.execute("BEGIN IMMEDIATE")
-        _migrar_senhas_legadas(conn)
-        conn.execute("COMMIT")
-    finally:
-        conn.close()
+
+def migrar_senhas_texto_puro(conn, gerar_hash, eh_hash):
+    """Regrava como hash as senhas legadas em texto puro (a senha continua a mesma)."""
+    for usuario in conn.execute("SELECT id, senha FROM usuarios").fetchall():
+        if usuario["senha"] is not None and not eh_hash(usuario["senha"]):
+            conn.execute(
+                "UPDATE usuarios SET senha = ? WHERE id = ?",
+                (gerar_hash(usuario["senha"]), usuario["id"]),
+            )

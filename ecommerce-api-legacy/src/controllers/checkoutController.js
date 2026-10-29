@@ -1,12 +1,12 @@
-class CheckoutController {
-    constructor(checkoutService) {
-        this.checkoutService = checkoutService;
-    }
+const { MESSAGES } = require('../config/constants');
 
-    async checkout(req, res) {
-        const { enrollmentId } = await this.checkoutService.checkout(req.checkoutInput);
-        res.status(200).json({ msg: 'Sucesso', enrollment_id: enrollmentId });
-    }
+function createCheckoutController({ checkoutService }) {
+    return {
+        async create(req, res) {
+            const { enrollmentId } = await checkoutService.checkout(req.input);
+            res.status(200).json({ msg: MESSAGES.CHECKOUT_SUCCESS, enrollment_id: enrollmentId });
+        },
+    };
 }
 
-module.exports = CheckoutController;
+module.exports = { createCheckoutController };

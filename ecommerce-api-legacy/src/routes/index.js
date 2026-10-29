@@ -1,11 +1,14 @@
-const checkoutRoutes = require('./checkoutRoutes');
-const adminRoutes = require('./adminRoutes');
-const userRoutes = require('./userRoutes');
+const { Router } = require('express');
+const { createCheckoutRoutes } = require('./checkoutRoutes');
+const { createAdminRoutes } = require('./adminRoutes');
+const { createUserRoutes } = require('./userRoutes');
 
-function registerRoutes(app, { checkoutController, reportController, userController, adminAuth }) {
-    app.use(checkoutRoutes(checkoutController));
-    app.use(adminRoutes(reportController, adminAuth));
-    app.use(userRoutes(userController, adminAuth));
+function createRoutes(deps) {
+    const router = Router();
+    router.use(createCheckoutRoutes(deps));
+    router.use(createAdminRoutes(deps));
+    router.use(createUserRoutes(deps));
+    return router;
 }
 
-module.exports = { registerRoutes };
+module.exports = { createRoutes };

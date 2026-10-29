@@ -1,19 +1,16 @@
 import logging
 import sqlite3
 
-from flask import current_app, jsonify
-
-from config import constants
-from middlewares.errors import ApiError, MENSAGEM_ERRO_INTERNO
+from config.constants import VERSAO_API
 from models import pedido_model, produto_model, usuario_model
 
 logger = logging.getLogger(__name__)
 
 
 def index():
-    return jsonify({
+    return {
         "mensagem": "Bem-vindo à API da Loja",
-        "versao": constants.APP_VERSION,
+        "versao": VERSAO_API,
         "endpoints": {
             "produtos": "/produtos",
             "usuarios": "/usuarios",
@@ -22,26 +19,23 @@ def index():
             "relatorios": "/relatorios/vendas",
             "health": "/health",
         },
-    })
+    }, 200
 
 
-def health_check():
+def health(conn, ambiente):
     try:
-        counts = {
-            "produtos": produto_model.contar(),
-            "usuarios": usuario_model.contar(),
-            "pedidos": pedido_model.contar(),
+        contagens = {
+            "produtos": produto_model.contar(conn),
+            "usuarios": usuario_model.contar(conn),
+            "pedidos": pedido_model.contar(conn),
         }
     except sqlite3.Error:
-        logger.exception("Falha no health check")
-        raise ApiError({"status": "erro", "detalhes": MENSAGEM_ERRO_INTERNO}, 500)
-
-    return jsonify({
+        logger.exception("Health check falhou")
+        return {"status": "erro", "detalhes": "Banco de dados indisponível"}, 500
+    return {
         "status": "ok",
         "database": "connected",
-        "counts": counts,
-        "versao": constants.APP_VERSION,
-        "ambiente": current_app.config["APP_ENV"],
-        "db_path": current_app.config["DB_PATH"],
-        "debug": current_app.config["DEBUG"],
-    }), 200
+        "counts": contagens,
+        "versao": VERSAO_API,
+        "ambiente": ambiente,
+    }, 200

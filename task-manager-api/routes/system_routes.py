@@ -2,14 +2,14 @@ from datetime import datetime
 
 from flask import Blueprint
 
-main_bp = Blueprint('main', __name__)
+system_bp = Blueprint('system', __name__)
 
 
-@main_bp.route('/health')
+@system_bp.route('/health')
 def health():
     return {'status': 'ok', 'timestamp': str(datetime.now())}
 
 
-@main_bp.route('/')
+@system_bp.route('/')
 def index():
     return {'message': 'Task Manager API', 'version': '1.0'}

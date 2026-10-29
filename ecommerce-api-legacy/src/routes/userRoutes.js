@@ -1,9 +1,12 @@
 const { Router } = require('express');
 const asyncHandler = require('../middlewares/asyncHandler');
-const { validateUserId } = require('../validators/idValidator');
+const validate = require('../middlewares/validate');
+const { validateUserId } = require('../validators/userValidator');
 
-module.exports = (userController, adminAuth) => {
+function createUserRoutes({ userController, adminRequired }) {
     const router = Router();
-    router.delete('/api/users/:id', adminAuth, validateUserId, asyncHandler((req, res) => userController.deleteUser(req, res)));
+    router.delete('/users/:id', adminRequired, validate(validateUserId, 'params'), asyncHandler(userController.remove));
     return router;
-};
+}
+
+module.exports = { createUserRoutes };

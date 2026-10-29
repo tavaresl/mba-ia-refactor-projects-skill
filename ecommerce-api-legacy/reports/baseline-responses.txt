@@ -1,53 +1,48 @@
-### GET /rota-inexistente 
-status: 404
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<title>Error</title>
-</head>
-<body>
-<pre>Cannot GET /rota-inexistente</pre>
-</body>
-</html>
-
-### GET /api/admin/financial-report 
+### GET /api/admin/financial-report  
 status: 200
 [{"course":"Docker","revenue":0,"students":[]},{"course":"Clean Architecture","revenue":997,"students":[{"student":"Leonan","paid":997}]}]
 
-### GET /api/admin/financial-report  X-Admin-Token: qualquer
+### GET /api/admin/financial-report  [hdr: X-Admin-Token]
 status: 200
 [{"course":"Docker","revenue":0,"students":[]},{"course":"Clean Architecture","revenue":997,"students":[{"student":"Leonan","paid":997}]}]
 
-### POST /api/checkout body={"usr":"Guilherme","eml":"gui@fullcycle.com.br","pwd":"senhaforte","c_id":2,"card":"4111222233334444"}
+### GET /api/admin/financial-report  [hdr: X-Admin-Token]
+status: 200
+[{"course":"Docker","revenue":0,"students":[]},{"course":"Clean Architecture","revenue":997,"students":[{"student":"Leonan","paid":997}]}]
+
+### POST /api/checkout body={"usr":"Guilherme","eml":"gui@fullcycle.com.br","pwd":"senhaforte","c_id":2,"card":"4111222233334444"} 
 status: 200
 {"msg":"Sucesso","enrollment_id":2}
 
-### POST /api/checkout body={"usr":"Leonan","eml":"leonan@fullcycle.com.br","pwd":"123","c_id":1,"card":"4111222233334444"}
+### POST /api/checkout body={"usr":"Guilherme","eml":"gui@fullcycle.com.br","c_id":1,"card":"4111222233334444"} 
 status: 200
 {"msg":"Sucesso","enrollment_id":3}
 
-### POST /api/checkout body={"usr":"João","eml":"joao@teste.com","pwd":"123","c_id":1,"card":"5111222233334444"}
+### POST /api/checkout body={"usr":"João","eml":"joao@teste.com","pwd":"123","c_id":1,"card":"5111222233334444"} 
 status: 400
 Pagamento recusado
 
-### POST /api/checkout body={"usr":"Maria","eml":"maria@x.com","pwd":"abc","c_id":1,"card":"5111222233334444"}
+### POST /api/checkout body={"usr":"Maria Recusada","eml":"maria@teste.com","pwd":"abc12345","c_id":2,"card":"5111222233334444"} 
 status: 400
 Pagamento recusado
 
-### POST /api/checkout body={"usr":"Maria Nova","eml":"maria@x.com","pwd":"abc","c_id":1,"card":"4111222233334444"}
+### POST /api/checkout body={"usr":"Maria","eml":"maria@teste.com","pwd":"abc12345","c_id":2,"card":"4111222233334444"} 
 status: 200
 {"msg":"Sucesso","enrollment_id":4}
 
-### POST /api/checkout body={"usr":"A"}
+### POST /api/checkout body={"eml":"x@teste.com","pwd":"1","c_id":1,"card":"4111"} 
 status: 400
 Bad Request
 
-### POST /api/checkout body={}
+### POST /api/checkout body={} 
 status: 400
 Bad Request
 
-### POST /api/checkout body={
+### POST /api/checkout  
+status: 400
+Bad Request
+
+### POST /api/checkout body={ 
 status: 400
 <!DOCTYPE html>
 <html lang="en">
@@ -56,66 +51,84 @@ status: 400
 <title>Error</title>
 </head>
 <body>
-<pre>SyntaxError: Expected property name or &#39;}&#39; in JSON at position 1 (line 1 column 2)<br> &nbsp; &nbsp;at JSON.parse (&lt;anonymous&gt;)<br> &nbsp; &nbsp;at parse (/Users/lukaorocha/Dev/mba-ia-refactor-projects-skill/ecommerce-api-legacy/node_modules/body-parser/lib/types/json.js:92:19)<br>
+<pre>SyntaxError: Expected property name or &#39;}&#39; in JSON at position 1 (line 1 column 2)<br> &nbsp; &nbsp;at JSON.parse (&lt;anonymous&gt;)<br> &nbsp; &nbsp;at parse (/Users/lukaorocha/Dev/mba-ia/mba-ia-refactor-projects-skill/ecommerce-api-legacy/node_modules/body-parser/lib/types/json.js:92:19)<br> &nbsp; &nbsp;at /Users/lukaorocha/Dev/mba-ia/mba-ia-refactor-projects-skill/ecommerce-api-legacy/node_modules/body-parser/lib/read.js:128:18<br> &nbsp; &nbsp;at AsyncResource.runInAsyncScope (node:async_hooks:226:14)<br> &nbsp; &nbsp;at invokeCallback (/Users/lukaorocha/Dev/mba-ia/mba-ia-refactor-projects-skill/ecommerce-api-legacy/node_modules/raw-body/index.js:238:16)<br> &nbsp; &nbsp;at done (/Users/lukaorocha/Dev/mba-ia/mba-ia-refactor-projects-skill/ecommerce-api-legacy/node_modules/raw-body/index.js:227:7)<br> &nbsp; &nbsp;at IncomingMessage.onEnd (/Users/lukaorocha/Dev/mba-ia/mba-ia-refactor-projects-skill/ecommerce-api-legacy/node_modules/raw-body/index.js:287:7)<br> &nbsp; &nbsp;at IncomingMessage.emit (node:events:509:20)<br> &nbsp; &nbsp;at endReadableNT (node:internal/streams/readable:1753:12)<br> &nbsp; &nbsp;at process.processTicksAndRejections (node:internal/process/task_queues:90:21)</pre>
+</body>
+</html>
 
-### POST /api/checkout body={"usr":"Sem Arroba","eml":"sem-arroba","pwd":"x","c_id":1,"card":"4111"}
+### POST /api/checkout body={"usr":"A","eml":"a@teste.com","pwd":"1","c_id":999,"card":"4111"} 
+status: 404
+Curso não encontrado
+
+### POST /api/checkout body={"usr":"A","eml":"a@teste.com","pwd":"1","c_id":"abc","card":"4111"} 
+status: 404
+Curso não encontrado
+
+### POST /api/checkout body={"usr":"Str","eml":"str@teste.com","pwd":"1","c_id":"2","card":"4111"} 
 status: 200
 {"msg":"Sucesso","enrollment_id":5}
 
-### POST /api/checkout body={"usr":"Z","eml":"z@x.com","pwd":"x","c_id":999,"card":"4111"}
-status: 404
-Curso não encontrado
-
-### POST /api/checkout body={"usr":"Z","eml":"z2@x.com","pwd":"x","c_id":"abc","card":"4111"}
-status: 404
-Curso não encontrado
-
-### POST /api/checkout body={"usr":"StrId","eml":"strid@x.com","pwd":"x","c_id":"2","card":"4111"}
+### POST /api/checkout body={"usr":"Inv","eml":"invalido","pwd":"1","c_id":2,"card":"4111"} 
 status: 200
 {"msg":"Sucesso","enrollment_id":6}
 
-### POST /api/checkout body={"usr":"SemSenha","eml":"nopwd@x.com","c_id":2,"card":"4111"}
+### POST /api/checkout body={"usr":"SemPwd","eml":"sempwd@teste.com","c_id":2,"card":"4111"} 
 status: 200
 {"msg":"Sucesso","enrollment_id":7}
 
-### GET /api/admin/financial-report 
+### GET /api/admin/financial-report  [hdr: X-Admin-Token]
 status: 200
-[{"course":"Docker","revenue":1491,"students":[{"student":"Guilherme","paid":497},{"student":"StrId","paid":497},{"student":"SemSenha","paid":497}]},{"course":"Clean Architecture","revenue":3988,"students":[{"student":"Leonan","paid":997},{"student":"Leonan","paid":997},{"student":"Sem Arroba","paid":997},{"student":"Maria","paid":997}]}]
+[{"course":"Docker","revenue":2485,"students":[{"student":"Str","paid":497},{"student":"Inv","paid":497},{"student":"SemPwd","paid":497},{"student":"Maria Recusada","paid":497},{"student":"Guilherme","paid":497}]},{"course":"Clean Architecture","revenue":1994,"students":[{"student":"Guilherme","paid":997},{"student":"Leonan","paid":997}]}]
 
-### GET /api/admin/financial-report  X-Admin-Token: qualquer
-status: 200
-[{"course":"Docker","revenue":1491,"students":[{"student":"Guilherme","paid":497},{"student":"SemSenha","paid":497},{"student":"StrId","paid":497}]},{"course":"Clean Architecture","revenue":3988,"students":[{"student":"Leonan","paid":997},{"student":"Maria","paid":997},{"student":"Leonan","paid":997},{"student":"Sem Arroba","paid":997}]}]
-
-### DELETE /api/users/abc 
+### DELETE /api/users/1  
 status: 200
 Usuário deletado, mas as matrículas e pagamentos ficaram sujos no banco.
 
-### DELETE /api/users/abc  X-Admin-Token: qualquer
+### DELETE /api/users/1  [hdr: X-Admin-Token]
 status: 200
 Usuário deletado, mas as matrículas e pagamentos ficaram sujos no banco.
 
-### DELETE /api/users/9999  X-Admin-Token: qualquer
+### DELETE /api/users/1  [hdr: X-Admin-Token]
 status: 200
 Usuário deletado, mas as matrículas e pagamentos ficaram sujos no banco.
 
-### DELETE /api/users/1 
+### DELETE /api/users/999  [hdr: X-Admin-Token]
 status: 200
 Usuário deletado, mas as matrículas e pagamentos ficaram sujos no banco.
 
-### DELETE /api/users/1  X-Admin-Token: qualquer
+### DELETE /api/users/abc  [hdr: X-Admin-Token]
 status: 200
 Usuário deletado, mas as matrículas e pagamentos ficaram sujos no banco.
 
-### GET /api/admin/financial-report  X-Admin-Token: qualquer
+### DELETE /api/users/1  [hdr: X-Admin-Token]
 status: 200
-[{"course":"Docker","revenue":1491,"students":[{"student":"StrId","paid":497},{"student":"SemSenha","paid":497},{"student":"Guilherme","paid":497}]},{"course":"Clean Architecture","revenue":3988,"students":[{"student":"Maria","paid":997},{"student":"Unknown","paid":997},{"student":"Unknown","paid":997},{"student":"Sem Arroba","paid":997}]}]
+Usuário deletado, mas as matrículas e pagamentos ficaram sujos no banco.
 
-### POST /api/checkout body={"usr":"Num","eml":"num@x.com","pwd":"x","c_id":1,"card":4111}
+### GET /api/admin/financial-report  [hdr: X-Admin-Token]
+status: 200
+[{"course":"Clean Architecture","revenue":1994,"students":[{"student":"Unknown","paid":997},{"student":"Guilherme","paid":997}]},{"course":"Docker","revenue":2485,"students":[{"student":"Guilherme","paid":497},{"student":"Inv","paid":497},{"student":"SemPwd","paid":497},{"student":"Maria Recusada","paid":497},{"student":"Str","paid":497}]}]
+
+### GET /  
+status: 404
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot GET /</pre>
+</body>
+</html>
+
+### POST /api/checkout body={"usr":"T","eml":"t1@teste.com","pwd":"1","c_id":2,"card":4111222233334444} 
 status: 000
-[{"course":"Docker","revenue":1491,"students":[{"student":"StrId","paid":497},{"student":"SemSenha","paid":497},{"student":"Guilherme","paid":497}]},{"course":"Clean Architecture","revenue":3988,"students":[{"student":"Maria","paid":997},{"student":"Unknown","paid":997},{"student":"Unknown","paid":997},{"student":"Sem Arroba","paid":997}]}]
 
-### GET /api/admin/financial-report  X-Admin-Token: qualquer
+
+processo vivo após card numérico: NAO (servidor caiu)
+
+### POST /api/checkout body={"usr":"T","eml":"t2@teste.com","pwd":123,"c_id":2,"card":"4111"} 
 status: 000
-[{"course":"Docker","revenue":1491,"students":[{"student":"StrId","paid":497},{"student":"SemSenha","paid":497},{"student":"Guilherme","paid":497}]},{"course":"Clean Architecture","revenue":3988,"students":[{"student":"Maria","paid":997},{"student":"Unknown","paid":997},{"student":"Unknown","paid":997},{"student":"Sem Arroba","paid":997}]}]
 
-processo morto no fim
+
+processo vivo após pwd numérico: NAO (servidor caiu)
+

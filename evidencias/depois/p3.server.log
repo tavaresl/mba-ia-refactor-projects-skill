@@ -1,55 +1,57 @@
 $ rm -f tasks.db instance/tasks.db
 $ .venv/bin/python seed.py
+2026-10-28 21:55:32,606 WARNING app: SECRET_KEY não configurada no ambiente
 Seed concluído com sucesso!
   3 usuários
   4 categorias
   10 tasks
 $ .venv/bin/python app.py
+2026-10-28 21:55:33,112 WARNING app: SECRET_KEY não configurada no ambiente
  * Serving Flask app 'app'
  * Debug mode: off
-INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+2026-10-28 21:55:33,130 INFO werkzeug: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
  * Running on all addresses (0.0.0.0)
  * Running on http://127.0.0.1:5002
- * Running on http://192.168.15.5:5002
-INFO:werkzeug:[33mPress CTRL+C to quit[0m
-INFO:werkzeug:127.0.0.1 - - [23/Oct/2026 19:06:14] "GET / HTTP/1.1" 200 -
-INFO:werkzeug:127.0.0.1 - - [23/Oct/2026 19:06:14] "GET / HTTP/1.1" 200 -
-INFO:werkzeug:127.0.0.1 - - [23/Oct/2026 19:06:14] "GET /health HTTP/1.1" 200 -
-INFO:werkzeug:127.0.0.1 - - [23/Oct/2026 19:06:15] "GET /tasks HTTP/1.1" 200 -
-INFO:werkzeug:127.0.0.1 - - [23/Oct/2026 19:06:15] "GET /tasks/1 HTTP/1.1" 200 -
-INFO:werkzeug:127.0.0.1 - - [23/Oct/2026 19:06:15] "[33mGET /tasks/9999 HTTP/1.1[0m" 404 -
-INFO:werkzeug:127.0.0.1 - - [23/Oct/2026 19:06:15] "GET /tasks/search?q=API HTTP/1.1" 200 -
-INFO:werkzeug:127.0.0.1 - - [23/Oct/2026 19:06:15] "GET /tasks/search?status=pending&priority=1 HTTP/1.1" 200 -
-INFO:werkzeug:127.0.0.1 - - [23/Oct/2026 19:06:15] "GET /tasks/stats HTTP/1.1" 200 -
-INFO:controllers.task_controller:Task criada: 11 - Task do smoke test
-INFO:werkzeug:127.0.0.1 - - [23/Oct/2026 19:06:15] "[35m[1mPOST /tasks HTTP/1.1[0m" 201 -
-INFO:werkzeug:127.0.0.1 - - [23/Oct/2026 19:06:15] "[31m[1mPOST /tasks HTTP/1.1[0m" 400 -
-INFO:werkzeug:127.0.0.1 - - [23/Oct/2026 19:06:15] "[33mPOST /tasks HTTP/1.1[0m" 404 -
-INFO:controllers.task_controller:Task atualizada: 11
-INFO:werkzeug:127.0.0.1 - - [23/Oct/2026 19:06:15] "PUT /tasks/11 HTTP/1.1" 200 -
-INFO:werkzeug:127.0.0.1 - - [23/Oct/2026 19:06:15] "[31m[1mPUT /tasks/11 HTTP/1.1[0m" 400 -
-INFO:werkzeug:127.0.0.1 - - [23/Oct/2026 19:06:15] "[33mPUT /tasks/9999 HTTP/1.1[0m" 404 -
-INFO:werkzeug:127.0.0.1 - - [23/Oct/2026 19:06:15] "GET /users HTTP/1.1" 200 -
-INFO:werkzeug:127.0.0.1 - - [23/Oct/2026 19:06:15] "GET /users/1 HTTP/1.1" 200 -
-INFO:werkzeug:127.0.0.1 - - [23/Oct/2026 19:06:15] "[33mGET /users/9999 HTTP/1.1[0m" 404 -
-INFO:controllers.user_controller:Usuário criado: 4 - Smoke User
-INFO:werkzeug:127.0.0.1 - - [23/Oct/2026 19:06:15] "[35m[1mPOST /users HTTP/1.1[0m" 201 -
-INFO:werkzeug:127.0.0.1 - - [23/Oct/2026 19:06:15] "[31m[1mPOST /users HTTP/1.1[0m" 409 -
-INFO:werkzeug:127.0.0.1 - - [23/Oct/2026 19:06:15] "[31m[1mPOST /users HTTP/1.1[0m" 400 -
-INFO:werkzeug:127.0.0.1 - - [23/Oct/2026 19:06:15] "PUT /users/4 HTTP/1.1" 200 -
-INFO:werkzeug:127.0.0.1 - - [23/Oct/2026 19:06:15] "GET /users/1/tasks HTTP/1.1" 200 -
-INFO:werkzeug:127.0.0.1 - - [23/Oct/2026 19:06:15] "POST /login HTTP/1.1" 200 -
-INFO:werkzeug:127.0.0.1 - - [23/Oct/2026 19:06:15] "[31m[1mPOST /login HTTP/1.1[0m" 401 -
-INFO:werkzeug:127.0.0.1 - - [23/Oct/2026 19:06:15] "GET /reports/summary HTTP/1.1" 200 -
-INFO:werkzeug:127.0.0.1 - - [23/Oct/2026 19:06:15] "GET /reports/user/1 HTTP/1.1" 200 -
-INFO:werkzeug:127.0.0.1 - - [23/Oct/2026 19:06:15] "[33mGET /reports/user/9999 HTTP/1.1[0m" 404 -
-INFO:werkzeug:127.0.0.1 - - [23/Oct/2026 19:06:15] "GET /categories HTTP/1.1" 200 -
-INFO:werkzeug:127.0.0.1 - - [23/Oct/2026 19:06:15] "[35m[1mPOST /categories HTTP/1.1[0m" 201 -
-INFO:werkzeug:127.0.0.1 - - [23/Oct/2026 19:06:15] "[31m[1mPOST /categories HTTP/1.1[0m" 400 -
-INFO:werkzeug:127.0.0.1 - - [23/Oct/2026 19:06:15] "PUT /categories/5 HTTP/1.1" 200 -
-INFO:werkzeug:127.0.0.1 - - [23/Oct/2026 19:06:15] "DELETE /categories/5 HTTP/1.1" 200 -
-INFO:controllers.task_controller:Task deletada: 11
-INFO:werkzeug:127.0.0.1 - - [23/Oct/2026 19:06:15] "DELETE /tasks/11 HTTP/1.1" 200 -
-INFO:werkzeug:127.0.0.1 - - [23/Oct/2026 19:06:15] "[33mDELETE /tasks/9999 HTTP/1.1[0m" 404 -
-INFO:controllers.user_controller:Usuário deletado: 4
-INFO:werkzeug:127.0.0.1 - - [23/Oct/2026 19:06:15] "DELETE /users/4 HTTP/1.1" 200 -
+ * Running on http://192.168.15.4:5002
+2026-10-28 21:55:33,130 INFO werkzeug: [33mPress CTRL+C to quit[0m
+2026-10-28 21:55:33,180 INFO werkzeug: 127.0.0.1 - - [28/Oct/2026 21:55:33] "GET / HTTP/1.1" 200 -
+2026-10-28 21:55:33,182 INFO werkzeug: 127.0.0.1 - - [28/Oct/2026 21:55:33] "GET / HTTP/1.1" 200 -
+2026-10-28 21:55:33,183 INFO werkzeug: 127.0.0.1 - - [28/Oct/2026 21:55:33] "GET /health HTTP/1.1" 200 -
+2026-10-28 21:55:33,191 INFO werkzeug: 127.0.0.1 - - [28/Oct/2026 21:55:33] "GET /tasks HTTP/1.1" 200 -
+2026-10-28 21:55:33,193 INFO werkzeug: 127.0.0.1 - - [28/Oct/2026 21:55:33] "GET /tasks/1 HTTP/1.1" 200 -
+2026-10-28 21:55:33,194 INFO werkzeug: 127.0.0.1 - - [28/Oct/2026 21:55:33] "[33mGET /tasks/9999 HTTP/1.1[0m" 404 -
+2026-10-28 21:55:33,195 INFO werkzeug: 127.0.0.1 - - [28/Oct/2026 21:55:33] "GET /tasks/search?q=API HTTP/1.1" 200 -
+2026-10-28 21:55:33,197 INFO werkzeug: 127.0.0.1 - - [28/Oct/2026 21:55:33] "GET /tasks/search?status=pending&priority=1 HTTP/1.1" 200 -
+2026-10-28 21:55:33,199 INFO werkzeug: 127.0.0.1 - - [28/Oct/2026 21:55:33] "GET /tasks/stats HTTP/1.1" 200 -
+2026-10-28 21:55:33,203 INFO controllers.task_controller: Task criada: 11 - Task do smoke test
+2026-10-28 21:55:33,203 INFO werkzeug: 127.0.0.1 - - [28/Oct/2026 21:55:33] "[35m[1mPOST /tasks HTTP/1.1[0m" 201 -
+2026-10-28 21:55:33,203 INFO werkzeug: 127.0.0.1 - - [28/Oct/2026 21:55:33] "[31m[1mPOST /tasks HTTP/1.1[0m" 400 -
+2026-10-28 21:55:33,204 INFO werkzeug: 127.0.0.1 - - [28/Oct/2026 21:55:33] "[33mPOST /tasks HTTP/1.1[0m" 404 -
+2026-10-28 21:55:33,206 INFO controllers.task_controller: Task atualizada: 11
+2026-10-28 21:55:33,206 INFO werkzeug: 127.0.0.1 - - [28/Oct/2026 21:55:33] "PUT /tasks/11 HTTP/1.1" 200 -
+2026-10-28 21:55:33,207 INFO werkzeug: 127.0.0.1 - - [28/Oct/2026 21:55:33] "[31m[1mPUT /tasks/11 HTTP/1.1[0m" 400 -
+2026-10-28 21:55:33,208 INFO werkzeug: 127.0.0.1 - - [28/Oct/2026 21:55:33] "[33mPUT /tasks/9999 HTTP/1.1[0m" 404 -
+2026-10-28 21:55:33,209 INFO werkzeug: 127.0.0.1 - - [28/Oct/2026 21:55:33] "GET /users HTTP/1.1" 200 -
+2026-10-28 21:55:33,210 INFO werkzeug: 127.0.0.1 - - [28/Oct/2026 21:55:33] "GET /users/1 HTTP/1.1" 200 -
+2026-10-28 21:55:33,211 INFO werkzeug: 127.0.0.1 - - [28/Oct/2026 21:55:33] "[33mGET /users/9999 HTTP/1.1[0m" 404 -
+2026-10-28 21:55:33,284 INFO controllers.user_controller: Usuário criado: 4 - Smoke User
+2026-10-28 21:55:33,285 INFO werkzeug: 127.0.0.1 - - [28/Oct/2026 21:55:33] "[35m[1mPOST /users HTTP/1.1[0m" 201 -
+2026-10-28 21:55:33,286 INFO werkzeug: 127.0.0.1 - - [28/Oct/2026 21:55:33] "[31m[1mPOST /users HTTP/1.1[0m" 409 -
+2026-10-28 21:55:33,287 INFO werkzeug: 127.0.0.1 - - [28/Oct/2026 21:55:33] "[31m[1mPOST /users HTTP/1.1[0m" 400 -
+2026-10-28 21:55:33,291 INFO werkzeug: 127.0.0.1 - - [28/Oct/2026 21:55:33] "PUT /users/4 HTTP/1.1" 200 -
+2026-10-28 21:55:33,292 INFO werkzeug: 127.0.0.1 - - [28/Oct/2026 21:55:33] "GET /users/1/tasks HTTP/1.1" 200 -
+2026-10-28 21:55:33,359 INFO werkzeug: 127.0.0.1 - - [28/Oct/2026 21:55:33] "POST /login HTTP/1.1" 200 -
+2026-10-28 21:55:33,425 INFO werkzeug: 127.0.0.1 - - [28/Oct/2026 21:55:33] "[31m[1mPOST /login HTTP/1.1[0m" 401 -
+2026-10-28 21:55:33,429 INFO werkzeug: 127.0.0.1 - - [28/Oct/2026 21:55:33] "GET /reports/summary HTTP/1.1" 200 -
+2026-10-28 21:55:33,432 INFO werkzeug: 127.0.0.1 - - [28/Oct/2026 21:55:33] "GET /reports/user/1 HTTP/1.1" 200 -
+2026-10-28 21:55:33,432 INFO werkzeug: 127.0.0.1 - - [28/Oct/2026 21:55:33] "[33mGET /reports/user/9999 HTTP/1.1[0m" 404 -
+2026-10-28 21:55:33,434 INFO werkzeug: 127.0.0.1 - - [28/Oct/2026 21:55:33] "GET /categories HTTP/1.1" 200 -
+2026-10-28 21:55:33,436 INFO werkzeug: 127.0.0.1 - - [28/Oct/2026 21:55:33] "[35m[1mPOST /categories HTTP/1.1[0m" 201 -
+2026-10-28 21:55:33,437 INFO werkzeug: 127.0.0.1 - - [28/Oct/2026 21:55:33] "[31m[1mPOST /categories HTTP/1.1[0m" 400 -
+2026-10-28 21:55:33,439 INFO werkzeug: 127.0.0.1 - - [28/Oct/2026 21:55:33] "PUT /categories/5 HTTP/1.1" 200 -
+2026-10-28 21:55:33,441 INFO werkzeug: 127.0.0.1 - - [28/Oct/2026 21:55:33] "DELETE /categories/5 HTTP/1.1" 200 -
+2026-10-28 21:55:33,442 INFO controllers.task_controller: Task deletada: 11
+2026-10-28 21:55:33,442 INFO werkzeug: 127.0.0.1 - - [28/Oct/2026 21:55:33] "DELETE /tasks/11 HTTP/1.1" 200 -
+2026-10-28 21:55:33,443 INFO werkzeug: 127.0.0.1 - - [28/Oct/2026 21:55:33] "[33mDELETE /tasks/9999 HTTP/1.1[0m" 404 -
+2026-10-28 21:55:33,444 INFO controllers.user_controller: Usuário deletado: 4
+2026-10-28 21:55:33,445 INFO werkzeug: 127.0.0.1 - - [28/Oct/2026 21:55:33] "DELETE /users/4 HTTP/1.1" 200 -

@@ -1,38 +1,43 @@
 import logging
 
-from flask import jsonify
-
+from config.constants import TIPO_USUARIO_PADRAO
 from middlewares.errors import ApiError
 from models import usuario_model
 from services import auth_service
-from validators import payloads
+from validators.payloads import validar_login, validar_usuario
 
 logger = logging.getLogger(__name__)
 
 
-def listar_usuarios():
-    return jsonify({"dados": usuario_model.listar(), "sucesso": True}), 200
+def listar(conn):
+    return {"dados": usuario_model.listar(conn), "sucesso": True}, 200
 
 
-def buscar_usuario(usuario_id):
-    usuario = usuario_model.buscar_por_id(usuario_id)
+def buscar_por_id(conn, usuario_id):
+    usuario = usuario_model.obter(conn, usuario_id)
     if not usuario:
-        raise ApiError({"erro": "Usuário não encontrado"}, 404)
-    return jsonify({"dados": usuario, "sucesso": True}), 200
+        raise ApiError("Usuário não encontrado", 404)
+    return {"dados": usuario, "sucesso": True}, 200
 
 
-def criar_usuario():
-    nome, email, senha = payloads.validar_novo_usuario(payloads.corpo_json())
-    usuario_id = usuario_model.criar(nome, email, auth_service.hash_senha(senha))
-    logger.info("Usuário criado: id=%s", usuario_id)
-    return jsonify({"dados": {"id": usuario_id}, "sucesso": True}), 201
+def criar(conn, dados):
+    campos = validar_usuario(dados)
+    # O tipo nunca vem do cliente: cadastro público é sempre o papel padrão (RF-16 nível 1).
+    usuario_id = usuario_model.criar(
+        conn, campos["nome"], campos["email"], auth_service.gerar_hash(campos["senha"]), TIPO_USUARIO_PADRAO
+    )
+    logger.info("Usuário criado: id %s", usuario_id)
+    return {"dados": {"id": usuario_id}, "sucesso": True}, 201
 
 
-def login():
-    email, senha = payloads.validar_login(payloads.corpo_json())
-    usuario = auth_service.autenticar(email, senha)
-    if not usuario:
-        logger.info("Login falhou")
-        raise ApiError({"erro": "Email ou senha inválidos", "sucesso": False}, 401)
-    logger.info("Login bem-sucedido: usuario_id=%s", usuario["id"])
-    return jsonify({"dados": usuario, "sucesso": True, "mensagem": "Login OK"}), 200
+def login(conn, dados):
+    credenciais = validar_login(dados)
+    for linha in usuario_model.buscar_por_email(conn, credenciais["email"]):
+        confere, regravar = auth_service.verificar_senha(linha["senha"], credenciais["senha"])
+        if confere:
+            if regravar:
+                usuario_model.atualizar_senha(conn, linha["id"], auth_service.gerar_hash(credenciais["senha"]))
+            logger.info("Login bem-sucedido: usuário %s", linha["id"])
+            return {"dados": usuario_model.serializar_login(linha), "sucesso": True, "mensagem": "Login OK"}, 200
+    logger.info("Login falhou")
+    raise ApiError("Email ou senha inválidos", 401, sucesso=False)

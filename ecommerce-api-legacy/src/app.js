@@ -1,65 +1,55 @@
 const express = require('express');
-const { loadConfig } = require('./config');
-const { DB_FILENAME } = require('./config/constants');
-const { createLogger } = require('./utils/logger');
+const config = require('./config');
+const { createLogger } = require('./config/logger');
 const { createDatabase } = require('./db/connection');
 const { initSchema } = require('./db/schema');
-const UserModel = require('./models/userModel');
-const CourseModel = require('./models/courseModel');
-const EnrollmentModel = require('./models/enrollmentModel');
-const PaymentModel = require('./models/paymentModel');
-const AuditLogModel = require('./models/auditLogModel');
-const PasswordHasher = require('./services/passwordHasher');
-const PaymentGateway = require('./services/paymentGateway');
-const CheckoutService = require('./services/checkoutService');
-const ReportService = require('./services/reportService');
-const UserService = require('./services/userService');
-const CheckoutController = require('./controllers/checkoutController');
-const ReportController = require('./controllers/reportController');
-const UserController = require('./controllers/userController');
+const { createUserModel } = require('./models/userModel');
+const { createCourseModel } = require('./models/courseModel');
+const { createEnrollmentModel } = require('./models/enrollmentModel');
+const { createPaymentModel } = require('./models/paymentModel');
+const { createAuditLogModel } = require('./models/auditLogModel');
+const { createPasswordHasher } = require('./services/passwordHasher');
+const { createPaymentGateway } = require('./services/paymentGateway');
+const { createCheckoutService } = require('./services/checkoutService');
+const { createFinancialReportService } = require('./services/financialReportService');
+const { createUserService } = require('./services/userService');
+const { createCheckoutController } = require('./controllers/checkoutController');
+const { createReportController } = require('./controllers/reportController');
+const { createUserController } = require('./controllers/userController');
 const { createAdminAuth } = require('./middlewares/adminAuth');
 const { createErrorHandler } = require('./middlewares/errorHandler');
-const { registerRoutes } = require('./routes');
+const { createRoutes } = require('./routes');
 
-// Composition root: único ponto que conhece todas as peças.
+// Composition root: único lugar que conhece todas as peças.
 async function main() {
-    const config = loadConfig();
     const logger = createLogger(config.logLevel);
-
-    const db = createDatabase(DB_FILENAME);
-    const passwordHasher = new PasswordHasher();
+    const passwordHasher = createPasswordHasher();
+    const db = createDatabase();
     await initSchema(db, passwordHasher);
 
-    const userModel = new UserModel(db);
-    const courseModel = new CourseModel(db);
-    const enrollmentModel = new EnrollmentModel(db);
-    const paymentModel = new PaymentModel(db);
-    const auditLogModel = new AuditLogModel(db);
+    const userModel = createUserModel(db);
+    const courseModel = createCourseModel(db);
+    const enrollmentModel = createEnrollmentModel(db);
+    const paymentModel = createPaymentModel(db);
+    const auditLogModel = createAuditLogModel(db);
 
-    const checkoutService = new CheckoutService({
-        db,
-        userModel,
-        courseModel,
-        enrollmentModel,
-        paymentModel,
-        auditLogModel,
-        passwordHasher,
-        paymentGateway: new PaymentGateway({ apiKey: config.paymentGatewayKey, logger }),
-        cache: new Map(),
-        logger,
+    const paymentGateway = createPaymentGateway({ apiKey: config.paymentGatewayKey, logger });
+    const checkoutService = createCheckoutService({
+        db, userModel, courseModel, enrollmentModel, paymentModel, auditLogModel,
+        paymentGateway, passwordHasher, logger,
     });
-    const reportService = new ReportService({ courseModel, enrollmentModel });
-    const userService = new UserService({ db, userModel });
+    const financialReportService = createFinancialReportService({ courseModel, enrollmentModel, logger });
+    const userService = createUserService({ userModel, logger });
 
     const app = express();
     app.use(express.json());
-    registerRoutes(app, {
-        checkoutController: new CheckoutController(checkoutService),
-        reportController: new ReportController(reportService),
-        userController: new UserController(userService),
-        adminAuth: createAdminAuth(config.adminToken),
-    });
-    app.use(createErrorHandler(logger));
+    app.use('/api', createRoutes({
+        checkoutController: createCheckoutController({ checkoutService }),
+        reportController: createReportController({ financialReportService }),
+        userController: createUserController({ userService }),
+        adminRequired: createAdminAuth({ adminToken: config.adminToken }),
+    }));
+    app.use(createErrorHandler({ logger }));
 
     app.listen(config.port, () => {
         logger.info(`Frankenstein LMS rodando na porta ${config.port}...`);
@@ -67,6 +57,6 @@ async function main() {
 }
 
 main().catch((err) => {
-    process.stderr.write(`Falha ao iniciar a aplicação: ${err.stack || err}\n`);
+    console.error('Falha ao iniciar a aplicação:', err);
     process.exit(1);
 });

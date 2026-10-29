@@ -1,131 +1,153 @@
-"""Validação de forma e tipo dos payloads. Mensagens idênticas às da API original."""
-from flask import request
+"""Validação de forma/tipo dos payloads. Mensagens iguais às da API original."""
+import math
 
-from config import constants
+from config.constants import (
+    CATEGORIA_PADRAO, CATEGORIAS_VALIDAS, NOME_PRODUTO_MAX, NOME_PRODUTO_MIN, STATUS_PEDIDO_VALIDOS,
+)
 from middlewares.errors import ApiError
 
-MSG_DADOS_INVALIDOS = "Dados inválidos"
+
+def _numero(valor):
+    if isinstance(valor, bool) or not isinstance(valor, (int, float)) or not math.isfinite(valor):
+        return None
+    return valor
 
 
-def corpo_json():
-    """Corpo JSON ou None (ausente, malformado ou sem Content-Type JSON)."""
-    return request.get_json(silent=True)
+def _inteiro(valor):
+    """int, ou float de valor inteiro (ex.: 5.0); None para o resto (inclui bool)."""
+    if isinstance(valor, bool):
+        return None
+    if isinstance(valor, int):
+        return valor
+    if isinstance(valor, float) and math.isfinite(valor) and valor.is_integer():
+        return int(valor)
+    return None
 
 
-def _eh_inteiro(valor):
-    return isinstance(valor, int) and not isinstance(valor, bool)
-
-
-def _eh_numero(valor):
-    return isinstance(valor, (int, float)) and not isinstance(valor, bool)
-
-
-def _exigir_dict(dados, mensagem=MSG_DADOS_INVALIDOS):
+def _exigir_objeto(dados, mensagem="Dados inválidos"):
     if not dados or not isinstance(dados, dict):
-        raise ApiError({"erro": mensagem}, 400)
-    return dados
+        raise ApiError(mensagem)
 
 
 def validar_produto(dados):
-    dados = _exigir_dict(dados)
-    if "nome" not in dados:
-        raise ApiError({"erro": "Nome é obrigatório"}, 400)
-    if "preco" not in dados:
-        raise ApiError({"erro": "Preço é obrigatório"}, 400)
-    if "estoque" not in dados:
-        raise ApiError({"erro": "Estoque é obrigatório"}, 400)
+    _exigir_objeto(dados)
+    for campo, mensagem in (
+        ("nome", "Nome é obrigatório"),
+        ("preco", "Preço é obrigatório"),
+        ("estoque", "Estoque é obrigatório"),
+    ):
+        if campo not in dados:
+            raise ApiError(mensagem)
 
     nome = dados["nome"]
     descricao = dados.get("descricao", "")
     preco = dados["preco"]
     estoque = dados["estoque"]
-    categoria = dados.get("categoria", constants.CATEGORIA_PADRAO)
+    categoria = dados.get("categoria", CATEGORIA_PADRAO)
 
-    textos_validos = all(isinstance(v, str) for v in (nome, descricao, categoria))
-    if not textos_validos or not _eh_numero(preco) or not _eh_inteiro(estoque):
-        raise ApiError({"erro": MSG_DADOS_INVALIDOS}, 400)
-
+    if _numero(preco) is None:
+        raise ApiError("Preço deve ser um número")
     if preco < 0:
-        raise ApiError({"erro": "Preço não pode ser negativo"}, 400)
+        raise ApiError("Preço não pode ser negativo")
+    estoque = _inteiro(estoque)
+    if estoque is None:
+        raise ApiError("Estoque deve ser um número inteiro")
     if estoque < 0:
-        raise ApiError({"erro": "Estoque não pode ser negativo"}, 400)
-    if len(nome) < constants.NOME_PRODUTO_MIN:
-        raise ApiError({"erro": "Nome muito curto"}, 400)
-    if len(nome) > constants.NOME_PRODUTO_MAX:
-        raise ApiError({"erro": "Nome muito longo"}, 400)
-    if categoria not in constants.CATEGORIAS_VALIDAS:
-        raise ApiError({"erro": "Categoria inválida. Válidas: " + str(constants.CATEGORIAS_VALIDAS)}, 400)
+        raise ApiError("Estoque não pode ser negativo")
+    if not isinstance(nome, str):
+        raise ApiError("Nome deve ser um texto")
+    if len(nome) < NOME_PRODUTO_MIN:
+        raise ApiError("Nome muito curto")
+    if len(nome) > NOME_PRODUTO_MAX:
+        raise ApiError("Nome muito longo")
+    if not isinstance(descricao, str):
+        raise ApiError("Descrição deve ser um texto")
+    if categoria not in CATEGORIAS_VALIDAS:
+        raise ApiError("Categoria inválida. Válidas: " + str(CATEGORIAS_VALIDAS))
 
-    return nome, descricao, preco, estoque, categoria
+    return {"nome": nome, "descricao": descricao, "preco": preco, "estoque": estoque, "categoria": categoria}
 
 
 def validar_filtros_busca(args):
-    termo = args.get("q", "")
-    categoria = args.get("categoria") or None
-    try:
-        preco_min = float(args["preco_min"]) if args.get("preco_min") else None
-        preco_max = float(args["preco_max"]) if args.get("preco_max") else None
-    except ValueError:
-        raise ApiError({"erro": MSG_DADOS_INVALIDOS}, 400)
-    return termo, categoria, preco_min, preco_max
+    filtros = {"termo": args.get("q", ""), "categoria": args.get("categoria", None)}
+    for chave, parametro in (("preco_min", "preco_min"), ("preco_max", "preco_max")):
+        bruto = args.get(parametro, None)
+        filtros[chave] = None
+        if bruto:
+            try:
+                valor = float(bruto)
+            except ValueError:
+                raise ApiError("Filtro de preço inválido")
+            if not math.isfinite(valor):
+                raise ApiError("Filtro de preço inválido")
+            filtros[chave] = valor
+    return filtros
 
 
-def validar_novo_usuario(dados):
-    dados = _exigir_dict(dados)
+def validar_usuario(dados):
+    _exigir_objeto(dados)
     nome = dados.get("nome", "")
     email = dados.get("email", "")
     senha = dados.get("senha", "")
-    if not all(isinstance(v, str) for v in (nome, email, senha)):
-        raise ApiError({"erro": MSG_DADOS_INVALIDOS}, 400)
     if not nome or not email or not senha:
-        raise ApiError({"erro": "Nome, email e senha são obrigatórios"}, 400)
-    return nome, email, senha
+        raise ApiError("Nome, email e senha são obrigatórios")
+    if not all(isinstance(valor, str) for valor in (nome, email, senha)):
+        raise ApiError("Nome, email e senha devem ser texto")
+    return {"nome": nome, "email": email, "senha": senha}
 
 
 def validar_login(dados):
-    mensagem = "Email e senha são obrigatórios"
     if not isinstance(dados, dict):
-        raise ApiError({"erro": mensagem}, 400)
+        dados = {}
     email = dados.get("email", "")
     senha = dados.get("senha", "")
-    if not isinstance(email, str) or not isinstance(senha, str) or not email or not senha:
-        raise ApiError({"erro": mensagem}, 400)
-    return email, senha
+    if not email or not senha:
+        raise ApiError("Email e senha são obrigatórios")
+    if not isinstance(email, str) or not isinstance(senha, str):
+        raise ApiError("Email e senha devem ser texto")
+    return {"email": email, "senha": senha}
 
 
 def validar_pedido(dados):
-    dados = _exigir_dict(dados)
+    _exigir_objeto(dados)
     usuario_id = dados.get("usuario_id")
     itens = dados.get("itens", [])
-
     if not usuario_id:
-        raise ApiError({"erro": "Usuario ID é obrigatório"}, 400)
-    if not itens:
-        raise ApiError({"erro": "Pedido deve ter pelo menos 1 item"}, 400)
+        raise ApiError("Usuario ID é obrigatório")
+    if not itens or len(itens) == 0:
+        raise ApiError("Pedido deve ter pelo menos 1 item")
 
-    if not _eh_inteiro(usuario_id) or not isinstance(itens, list):
-        raise ApiError({"erro": MSG_DADOS_INVALIDOS}, 400)
+    usuario_id = _inteiro(usuario_id)
+    if usuario_id is None:
+        raise ApiError("Usuario ID inválido")
+    if not isinstance(itens, list):
+        raise ApiError("Itens do pedido inválidos")
+
+    itens_validos = []
     for item in itens:
-        if not isinstance(item, dict):
-            raise ApiError({"erro": MSG_DADOS_INVALIDOS}, 400)
-        produto_id = item.get("produto_id")
-        quantidade = item.get("quantidade")
-        if not _eh_inteiro(produto_id) or not _eh_inteiro(quantidade) or quantidade <= 0:
-            raise ApiError({"erro": MSG_DADOS_INVALIDOS}, 400)
-    return usuario_id, itens
+        if not isinstance(item, dict) or "produto_id" not in item or "quantidade" not in item:
+            raise ApiError("Itens do pedido inválidos")
+        produto_id = _inteiro(item["produto_id"])
+        if produto_id is None:
+            raise ApiError("Itens do pedido inválidos")
+        quantidade = _inteiro(item["quantidade"])
+        if quantidade is None or quantidade <= 0:
+            raise ApiError("Quantidade deve ser um número inteiro maior que zero")
+        itens_validos.append({"produto_id": produto_id, "quantidade": quantidade})
+    return {"usuario_id": usuario_id, "itens": itens_validos}
 
 
-def validar_status(dados):
+def validar_status_pedido(dados):
     if not isinstance(dados, dict):
-        raise ApiError({"erro": "Status inválido"}, 400)
+        dados = {}
     novo_status = dados.get("status", "")
-    if not isinstance(novo_status, str) or novo_status not in constants.STATUS_VALIDOS:
-        raise ApiError({"erro": "Status inválido"}, 400)
+    if novo_status not in STATUS_PEDIDO_VALIDOS:
+        raise ApiError("Status inválido")
     return novo_status
 
 
-def validar_query_admin(dados):
-    consulta = dados.get("sql", "") if isinstance(dados, dict) else ""
-    if not consulta or not isinstance(consulta, str):
-        raise ApiError({"erro": "Query não informada"}, 400)
-    return consulta
+def validar_consulta_admin(dados):
+    sql = dados.get("sql", "") if isinstance(dados, dict) else ""
+    if not sql or not isinstance(sql, str):
+        raise ApiError("Query não informada")
+    return sql

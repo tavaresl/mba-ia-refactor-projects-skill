@@ -5,48 +5,51 @@ from pathlib import Path
 
 from flask import current_app, g
 
-_ALLOWED_READ_ACTIONS = {
+_ACOES_LEITURA = {
     sqlite3.SQLITE_SELECT,
     sqlite3.SQLITE_READ,
     sqlite3.SQLITE_FUNCTION,
-    getattr(sqlite3, "SQLITE_RECURSIVE", -1),
+    getattr(sqlite3, "SQLITE_RECURSIVE", 33),
 }
+
+
+def conectar(db_path):
+    # isolation_level=None: autocommit; transações explícitas via transacao().
+    conn = sqlite3.connect(db_path, isolation_level=None)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+def conectar_somente_leitura(db_path):
+    """Conexão que só permite SELECT (modo ro + authorizer)."""
+    conn = sqlite3.connect(Path(db_path).resolve().as_uri() + "?mode=ro", uri=True, isolation_level=None)
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA query_only = ON")
+    conn.set_authorizer(
+        lambda acao, *_: sqlite3.SQLITE_OK if acao in _ACOES_LEITURA else sqlite3.SQLITE_DENY
+    )
+    return conn
 
 
 def get_db():
     if "db" not in g:
-        # autocommit: transações multi-etapa são explícitas via transaction()
-        g.db = sqlite3.connect(current_app.config["DB_FILE"], isolation_level=None)
-        g.db.row_factory = sqlite3.Row
+        g.db = conectar(current_app.config["DB_PATH"])
     return g.db
 
 
-def close_db(_exc=None):
-    db = g.pop("db", None)
-    if db is not None:
-        db.close()
+def fechar_db(_erro=None):
+    conn = g.pop("db", None)
+    if conn is not None:
+        conn.close()
 
 
 @contextmanager
-def transaction(db):
-    db.execute("BEGIN IMMEDIATE")
+def transacao(conn, imediata=False):
+    """BEGIN/COMMIT com ROLLBACK em qualquer erro. imediata=True trava escritas desde o início."""
+    conn.execute("BEGIN IMMEDIATE" if imediata else "BEGIN")
     try:
-        yield db
+        yield conn
     except BaseException:
-        db.execute("ROLLBACK")
+        conn.execute("ROLLBACK")
         raise
-    else:
-        db.execute("COMMIT")
-
-
-def _only_reads(action, *_args):
-    return sqlite3.SQLITE_OK if action in _ALLOWED_READ_ACTIONS else sqlite3.SQLITE_DENY
-
-
-def open_readonly(db_file):
-    """Conexão somente-leitura (modo ro + authorizer) para consultas administrativas."""
-    uri = Path(db_file).resolve().as_uri() + "?mode=ro"
-    conn = sqlite3.connect(uri, uri=True)
-    conn.row_factory = sqlite3.Row
-    conn.set_authorizer(_only_reads)
-    return conn
+    conn.execute("COMMIT")

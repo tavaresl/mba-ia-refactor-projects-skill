@@ -1,11 +1,9 @@
-class ReportController {
-    constructor(reportService) {
-        this.reportService = reportService;
-    }
-
-    async financialReport(req, res) {
-        res.json(await this.reportService.financialReport());
-    }
+function createReportController({ financialReportService }) {
+    return {
+        async financial(req, res) {
+            res.json(await financialReportService.build());
+        },
+    };
 }
 
-module.exports = ReportController;
+module.exports = { createReportController };

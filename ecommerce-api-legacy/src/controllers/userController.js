@@ -1,12 +1,9 @@
-class UserController {
-    constructor(userService) {
-        this.userService = userService;
-    }
-
-    async deleteUser(req, res) {
-        await this.userService.deleteUser(req.userId);
-        res.send('Usuário deletado, mas as matrículas e pagamentos ficaram sujos no banco.');
-    }
+function createUserController({ userService }) {
+    return {
+        async remove(req, res) {
+            res.send(await userService.remove(req.input.id));
+        },
+    };
 }
 
-module.exports = UserController;
+module.exports = { createUserController };

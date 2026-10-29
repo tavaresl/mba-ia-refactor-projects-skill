@@ -1,12 +1,37 @@
-from flask import Blueprint
+from flask import Blueprint, request
 
-from controllers import produto_controller as c
+from controllers import produto_controller
+from db.connection import get_db
+from routes._http import corpo_json, responder
 
 bp = Blueprint("produtos", __name__)
 
-bp.add_url_rule("/produtos", "listar_produtos", c.listar_produtos, methods=["GET"])
-bp.add_url_rule("/produtos/busca", "buscar_produtos", c.buscar_produtos, methods=["GET"])
-bp.add_url_rule("/produtos/<int:produto_id>", "buscar_produto", c.buscar_produto, methods=["GET"])
-bp.add_url_rule("/produtos", "criar_produto", c.criar_produto, methods=["POST"])
-bp.add_url_rule("/produtos/<int:produto_id>", "atualizar_produto", c.atualizar_produto, methods=["PUT"])
-bp.add_url_rule("/produtos/<int:produto_id>", "deletar_produto", c.deletar_produto, methods=["DELETE"])
+
+@bp.get("/produtos")
+def listar_produtos():
+    return responder(produto_controller.listar(get_db()))
+
+
+@bp.get("/produtos/busca")
+def buscar_produtos():
+    return responder(produto_controller.buscar(get_db(), request.args))
+
+
+@bp.get("/produtos/<int:produto_id>")
+def buscar_produto(produto_id):
+    return responder(produto_controller.buscar_por_id(get_db(), produto_id))
+
+
+@bp.post("/produtos")
+def criar_produto():
+    return responder(produto_controller.criar(get_db(), corpo_json()))
+
+
+@bp.put("/produtos/<int:produto_id>")
+def atualizar_produto(produto_id):
+    return responder(produto_controller.atualizar(get_db(), produto_id, corpo_json()))
+
+
+@bp.delete("/produtos/<int:produto_id>")
+def deletar_produto(produto_id):
+    return responder(produto_controller.deletar(get_db(), produto_id))

@@ -1,51 +1,46 @@
-"""Acesso a dados de usuários (SQL parametrizado). Nunca serializa a senha."""
-from config import constants
-from db.connection import get_db
+"""Acesso a dados de usuários. A senha (hash) nunca sai nos serializers."""
+
+COLUNAS_PUBLICAS = ("id", "nome", "email", "tipo", "criado_em")
+COLUNAS_LOGIN = ("id", "nome", "email", "tipo")
 
 
-def para_dict(row):
-    return {
-        "id": row["id"],
-        "nome": row["nome"],
-        "email": row["email"],
-        "tipo": row["tipo"],
-        "criado_em": row["criado_em"],
-    }
+def serializar(linha):
+    return {coluna: linha[coluna] for coluna in COLUNAS_PUBLICAS}
 
 
-def resumo_login(row):
-    return {"id": row["id"], "nome": row["nome"], "email": row["email"], "tipo": row["tipo"]}
+def serializar_login(linha):
+    return {coluna: linha[coluna] for coluna in COLUNAS_LOGIN}
 
 
-def listar():
-    rows = get_db().execute("SELECT * FROM usuarios ORDER BY id").fetchall()
-    return [para_dict(row) for row in rows]
+def listar(conn):
+    return [serializar(linha) for linha in conn.execute("SELECT * FROM usuarios").fetchall()]
 
 
-def buscar_por_id(usuario_id):
-    row = get_db().execute("SELECT * FROM usuarios WHERE id = ?", (usuario_id,)).fetchone()
-    return para_dict(row) if row else None
+def obter(conn, usuario_id):
+    linha = conn.execute("SELECT * FROM usuarios WHERE id = ?", (usuario_id,)).fetchone()
+    return serializar(linha) if linha else None
 
 
-def existe(usuario_id):
-    return get_db().execute("SELECT 1 FROM usuarios WHERE id = ?", (usuario_id,)).fetchone() is not None
+def existe(conn, usuario_id):
+    return conn.execute("SELECT 1 FROM usuarios WHERE id = ?", (usuario_id,)).fetchone() is not None
 
 
-def buscar_rows_por_email(email):
-    return get_db().execute("SELECT * FROM usuarios WHERE email = ? ORDER BY id", (email,)).fetchall()
+def buscar_por_email(conn, email):
+    """Linhas completas (com hash) para verificação de senha, na ordem de cadastro."""
+    return conn.execute("SELECT * FROM usuarios WHERE email = ? ORDER BY id", (email,)).fetchall()
 
 
-def criar(nome, email, senha_hash, tipo=constants.TIPO_USUARIO_PADRAO):
-    cursor = get_db().execute(
+def criar(conn, nome, email, senha_hash, tipo):
+    cursor = conn.execute(
         "INSERT INTO usuarios (nome, email, senha, tipo) VALUES (?, ?, ?, ?)",
         (nome, email, senha_hash, tipo),
     )
     return cursor.lastrowid
 
 
-def atualizar_senha(usuario_id, senha_hash):
-    get_db().execute("UPDATE usuarios SET senha = ? WHERE id = ?", (senha_hash, usuario_id))
+def atualizar_senha(conn, usuario_id, senha_hash):
+    conn.execute("UPDATE usuarios SET senha = ? WHERE id = ?", (senha_hash, usuario_id))
 
 
-def contar():
-    return get_db().execute("SELECT COUNT(*) FROM usuarios").fetchone()[0]
+def contar(conn):
+    return conn.execute("SELECT COUNT(*) FROM usuarios").fetchone()[0]

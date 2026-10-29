@@ -1,12 +1,11 @@
-const { DEFAULT_PORT } = require('./constants');
+const { DEFAULT_PORT, DEFAULT_LOG_LEVEL } = require('./constants');
 
-function loadConfig(env = process.env) {
-    return {
-        port: Number(env.PORT) || DEFAULT_PORT,
-        paymentGatewayKey: env.PAYMENT_GATEWAY_KEY || '',
-        adminToken: env.ADMIN_TOKEN || '',
-        logLevel: env.LOG_LEVEL || 'info',
-    };
-}
+// Segredos vêm só do ambiente (ver .env.example); sem valor padrão inseguro.
+const config = Object.freeze({
+    port: Number(process.env.PORT) || DEFAULT_PORT,
+    paymentGatewayKey: process.env.PAYMENT_GATEWAY_KEY || '',
+    adminToken: process.env.ADMIN_TOKEN || '',
+    logLevel: process.env.LOG_LEVEL || DEFAULT_LOG_LEVEL,
+});
 
-module.exports = { loadConfig };
+module.exports = config;

@@ -1,43 +1,51 @@
-const sqlite3 = require('sqlite3').verbose();
+const sqlite3 = require('sqlite3');
 
-// Envolve o driver sqlite3 em Promises e oferece transações serializadas.
-// Uma única conexão é compartilhada de propósito: o banco ':memory:' só existe nela.
-function createDatabase(filename) {
-    const driver = new sqlite3.Database(filename);
+function createDatabase(filename = ':memory:') {
+    const raw = new sqlite3.Database(filename);
 
     const run = (sql, params = []) => new Promise((resolve, reject) => {
-        driver.run(sql, params, function onDone(err) {
+        raw.run(sql, params, function onRun(err) {
             if (err) return reject(err);
-            return resolve({ lastID: this.lastID, changes: this.changes });
+            resolve({ lastID: this.lastID, changes: this.changes });
         });
     });
     const get = (sql, params = []) => new Promise((resolve, reject) => {
-        driver.get(sql, params, (err, row) => (err ? reject(err) : resolve(row)));
+        raw.get(sql, params, (err, row) => (err ? reject(err) : resolve(row)));
     });
     const all = (sql, params = []) => new Promise((resolve, reject) => {
-        driver.all(sql, params, (err, rows) => (err ? reject(err) : resolve(rows)));
+        raw.all(sql, params, (err, rows) => (err ? reject(err) : resolve(rows)));
     });
 
-    const executor = { run, get, all };
+    // A conexão é única: todas as operações passam por uma fila, e uma transação
+    // segura a fila até o COMMIT/ROLLBACK para não misturar requisições.
+    let tail = Promise.resolve();
+    const enqueue = (task) => {
+        const result = tail.then(task);
+        tail = result.catch(() => {});
+        return result;
+    };
 
-    let queue = Promise.resolve();
-    function transaction(work) {
-        const result = queue.then(async () => {
+    const direct = { run, get, all };
+
+    return {
+        run: (sql, params) => enqueue(() => run(sql, params)),
+        get: (sql, params) => enqueue(() => get(sql, params)),
+        all: (sql, params) => enqueue(() => all(sql, params)),
+        transaction: (work) => enqueue(async () => {
             await run('BEGIN');
             try {
-                const value = await work(executor);
+                const result = await work(direct);
                 await run('COMMIT');
-                return value;
+                return result;
             } catch (err) {
                 await run('ROLLBACK').catch(() => {});
                 throw err;
             }
-        });
-        queue = result.catch(() => {});
-        return result;
-    }
-
-    return { ...executor, transaction, close: () => driver.close() };
+        }),
+        close: () => enqueue(() => new Promise((resolve, reject) => {
+            raw.close((err) => (err ? reject(err) : resolve()));
+        })),
+    };
 }
 
 module.exports = { createDatabase };

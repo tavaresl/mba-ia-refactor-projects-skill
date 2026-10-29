@@ -1,37 +1,25 @@
 const crypto = require('crypto');
+const { promisify } = require('util');
+const { SCRYPT } = require('../config/constants');
 
-const SCHEME = 'scrypt';
-const KEY_LENGTH = 64;
-const SALT_BYTES = 16;
+const scrypt = promisify(crypto.scrypt);
 
-// Formato legado do projeto original ("badCrypto"): os 2 primeiros caracteres do
-// base64 da senha repetidos até 10 caracteres.
-const legacyDigest = (password) => Buffer.from(password).toString('base64').substring(0, 2).repeat(5);
+function createPasswordHasher() {
+    return {
+        async hash(password) {
+            const salt = crypto.randomBytes(SCRYPT.SALT_BYTES);
+            const key = await scrypt(password, salt, SCRYPT.KEY_LENGTH);
+            return `${SCRYPT.PREFIX}$${salt.toString('hex')}$${key.toString('hex')}`;
+        },
 
-const safeEqual = (a, b) => {
-    const left = Buffer.from(String(a));
-    const right = Buffer.from(String(b));
-    return left.length === right.length && crypto.timingSafeEqual(left, right);
-};
-
-class PasswordHasher {
-    hash(password) {
-        const salt = crypto.randomBytes(SALT_BYTES).toString('hex');
-        const derived = crypto.scryptSync(password, salt, KEY_LENGTH).toString('hex');
-        return `${SCHEME}$${salt}$${derived}`;
-    }
-
-    // Retorna { valid, needsRehash }. Aceita o formato novo e os legados
-    // (texto puro e badCrypto); quem chamar deve regravar com hash() quando needsRehash.
-    verify(password, stored) {
-        if (typeof stored === 'string' && stored.startsWith(`${SCHEME}$`)) {
-            const [, salt, expected] = stored.split('$');
-            const derived = crypto.scryptSync(password, salt, KEY_LENGTH).toString('hex');
-            return { valid: safeEqual(derived, expected), needsRehash: false };
-        }
-        const valid = safeEqual(stored, password) || safeEqual(stored, legacyDigest(password));
-        return { valid, needsRehash: valid };
-    }
+        async verify(password, stored) {
+            const [prefix, saltHex, keyHex] = String(stored || '').split('$');
+            if (prefix !== SCRYPT.PREFIX || !saltHex || !keyHex) return false;
+            const expected = Buffer.from(keyHex, 'hex');
+            const actual = await scrypt(password, Buffer.from(saltHex, 'hex'), expected.length);
+            return crypto.timingSafeEqual(actual, expected);
+        },
+    };
 }
 
-module.exports = PasswordHasher;
+module.exports = { createPasswordHasher };

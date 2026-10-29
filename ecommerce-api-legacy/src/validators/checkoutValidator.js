@@ -1,35 +1,28 @@
-const AppError = require('../middlewares/appError');
+const AppError = require('../exceptions/AppError');
+const { EMAIL_PATTERN, POSITIVE_INTEGER_PATTERN, MESSAGES } = require('../config/constants');
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+$/;
-const DIGITS_ONLY = /^\d+$/;
-
+const badRequest = () => new AppError(400, MESSAGES.BAD_REQUEST);
 const isNonEmptyString = (value) => typeof value === 'string' && value.trim() !== '';
 
 function parseCourseId(value) {
-    if (typeof value === 'number' && Number.isInteger(value) && value >= 1) return value;
-    if (typeof value === 'string' && DIGITS_ONLY.test(value) && Number(value) >= 1) return Number(value);
+    if (typeof value === 'number' && Number.isInteger(value) && value > 0) return value;
+    if (typeof value === 'string' && POSITIVE_INTEGER_PATTERN.test(value)) return Number(value);
     return null;
 }
 
-// Os nomes do contrato externo (usr, eml, pwd, c_id, card) são traduzidos aqui.
-function validateCheckout(req, res, next) {
-    const body = req.body || {};
-    const courseId = parseCourseId(body.c_id);
-    const passwordInvalid = body.pwd !== undefined && body.pwd !== null && typeof body.pwd !== 'string';
+// Campos externos (usr, eml, pwd, c_id, card) viram nomes descritivos aqui.
+function validateCheckout(body) {
+    if (!body || typeof body !== 'object' || Array.isArray(body)) throw badRequest();
 
-    if (!isNonEmptyString(body.usr) || !isNonEmptyString(body.eml) || !isNonEmptyString(body.card)
-        || !EMAIL_PATTERN.test(body.eml) || courseId === null || passwordInvalid) {
-        return next(new AppError(400, 'Bad Request'));
-    }
+    const { usr, eml, pwd, c_id: rawCourseId, card } = body;
+    const courseId = parseCourseId(rawCourseId);
 
-    req.checkoutInput = {
-        name: body.usr,
-        email: body.eml,
-        password: body.pwd || '',
-        courseId,
-        cardNumber: body.card,
-    };
-    return next();
+    if (!isNonEmptyString(usr) || !isNonEmptyString(eml) || !isNonEmptyString(card)) throw badRequest();
+    if (courseId === null) throw badRequest();
+    if (!EMAIL_PATTERN.test(eml)) throw badRequest();
+    if (pwd !== undefined && pwd !== null && typeof pwd !== 'string') throw badRequest();
+
+    return { name: usr, email: eml, password: pwd || '', courseId, cardNumber: card };
 }
 
 module.exports = { validateCheckout };

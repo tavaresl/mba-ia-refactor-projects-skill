@@ -2,17 +2,13 @@ import hashlib
 import hmac
 import re
 
-from sqlalchemy import func, select
-from sqlalchemy.orm import selectinload
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from models.database import db, utc_now
+from config.constants import DEFAULT_ROLE
+from models.db import db
+from utils.dates import utc_now
 
-USER_ROLES = ('user', 'admin', 'manager')
-DEFAULT_ROLE = 'user'
-MIN_PASSWORD_LENGTH = 4
-EMAIL_PATTERN = re.compile(r'^[a-zA-Z0-9+_.-]+@[a-zA-Z0-9.-]+$')
-LEGACY_MD5_PATTERN = re.compile(r'^[0-9a-f]{32}$')
+LEGACY_MD5_HASH = re.compile(r'^[0-9a-f]{32}$')
 
 
 class User(db.Model):
@@ -27,6 +23,7 @@ class User(db.Model):
     created_at = db.Column(db.DateTime, default=utc_now)
 
     def to_dict(self):
+        """Nunca inclui a senha nem o hash."""
         return {
             'id': self.id,
             'name': self.name,
@@ -36,39 +33,18 @@ class User(db.Model):
             'created_at': str(self.created_at),
         }
 
-    def set_password(self, password):
-        self.password = generate_password_hash(password)
+    def set_password(self, raw_password):
+        self.password = generate_password_hash(raw_password)
 
-    def uses_legacy_hash(self):
-        return bool(LEGACY_MD5_PATTERN.match(self.password or ''))
+    def check_password(self, raw_password):
+        """Aceita hashes MD5 legados e os regrava no formato novo quando corretos.
 
-    def check_password(self, password):
-        if self.uses_legacy_hash():
-            legacy_digest = hashlib.md5(password.encode()).hexdigest()
-            return hmac.compare_digest(self.password, legacy_digest)
-        return check_password_hash(self.password, password)
-
-    @staticmethod
-    def is_valid_email(email):
-        return bool(EMAIL_PATTERN.match(email))
-
-    @staticmethod
-    def find_by_id(user_id):
-        return db.session.get(User, user_id)
-
-    @staticmethod
-    def find_by_email(email):
-        return db.session.execute(select(User).filter_by(email=email)).scalars().first()
-
-    @staticmethod
-    def list_all_with_tasks():
-        query = select(User).options(selectinload(User.tasks))
-        return db.session.execute(query).scalars().all()
-
-    @staticmethod
-    def list_all():
-        return db.session.execute(select(User)).scalars().all()
-
-    @staticmethod
-    def count_all():
-        return db.session.scalar(select(func.count()).select_from(User))
+        Quem chama deve fazer commit se `self.password` mudou.
+        """
+        if LEGACY_MD5_HASH.match(self.password or ''):
+            legacy_hash = hashlib.md5(raw_password.encode()).hexdigest()
+            if not hmac.compare_digest(self.password, legacy_hash):
+                return False
+            self.set_password(raw_password)
+            return True
+        return check_password_hash(self.password, raw_password)

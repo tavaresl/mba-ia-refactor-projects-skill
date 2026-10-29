@@ -1,9 +1,12 @@
 const { Router } = require('express');
 const asyncHandler = require('../middlewares/asyncHandler');
+const validate = require('../middlewares/validate');
 const { validateCheckout } = require('../validators/checkoutValidator');
 
-module.exports = (checkoutController) => {
+function createCheckoutRoutes({ checkoutController }) {
     const router = Router();
-    router.post('/api/checkout', validateCheckout, asyncHandler((req, res) => checkoutController.checkout(req, res)));
+    router.post('/checkout', validate(validateCheckout), asyncHandler(checkoutController.create));
     return router;
-};
+}
+
+module.exports = { createCheckoutRoutes };

@@ -1,5 +1,5 @@
 01 GET / -> 200 {endpoints: {health: str, login: str, pedidos: str, produtos: str, relatorios: str, usuarios: str}, mensagem: str, versao: str}
-02 GET /health -> 200 {ambiente: str, counts: {pedidos: number, produtos: number, usuarios: number}, database: str, db_path: str, debug: bool, status: str, versao: str}
+02 GET /health -> 200 {ambiente: str, counts: {pedidos: number, produtos: number, usuarios: number}, database: str, status: str, versao: str}
 03 GET /produtos -> 200 {dados: [{ativo: number, categoria: str, criado_em: str, descricao: str, estoque: number, id: number, nome: str, preco: number}], sucesso: bool}
 04 GET /produtos/busca?q=gamer -> 200 {dados: [{ativo: number, categoria: str, criado_em: str, descricao: str, estoque: number, id: number, nome: str, preco: number}], sucesso: bool, total: number}
 05 GET /produtos/busca?categoria=informatica&preco_min=100&preco_max=500 -> 200 {dados: [{ativo: number, categoria: str, criado_em: str, descricao: str, estoque: number, id: number, nome: str, preco: number}], sucesso: bool, total: number}

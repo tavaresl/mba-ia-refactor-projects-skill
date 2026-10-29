@@ -1,104 +1,127 @@
-# Plano de refatoração — task-manager-api (Flask → MVC)
+# Plano de refatoração — task-manager-api → MVC
+
+> Gerado em plan mode e aprovado pelo usuário. Base: `reports/audit-report.md`.
 
 ## Context
 
-A auditoria (`reports/audit-report.md`) achou 17 findings: 3 CRITICAL, 4 HIGH, 6 MEDIUM e 4 LOW. Os mais graves: o hash MD5 da senha volta nas respostas, as senhas usam MD5 sem sal, há segredos no código e o debug fica ligado em 0.0.0.0. As rotas concentram validação, regra de negócio, acesso a dados e serialização. O objetivo é levar o projeto ao MVC (config, models, controllers, services, routes, middlewares e um entry point que monta tudo) e resolver os findings sem mudar o contrato externo. Ficam só as mudanças de segurança e de rejeição de entrada inválida listadas abaixo.
+A auditoria (`reports/audit-report.md`) achou 17 problemas: **CRITICAL 4 | HIGH 4 | MEDIUM 5 | LOW 4**. Os mais graves:
+qualquer cliente anônimo se promove a admin via `role`; o hash MD5 da senha volta em 4 endpoints;
+os segredos estão no código; o boot sobe com `debug=True` em `0.0.0.0`. Na arquitetura, as rotas
+concentram validação, regra e persistência, e `services/` e `utils/` não são usados.
+Objetivo: chegar ao MVC e resolver todos os findings de todas as severidades, **sem mudar o contrato externo**
+(paths, campos, mensagens, boot), a não ser pelas mudanças de segurança e de entrada inválida listadas abaixo.
+
+Findings (ids usados nos passos): F1 role autoatribuível · F2 hash exposto · F3 MD5 · F4 segredos ·
+F5 sem auth de base · F6 debug · F7 lógica nas rotas · F8 acoplamento · F9 validação/invariantes ·
+F10 erro genérico · F11 N+1 · F12 duplicação · F13 deprecated · F14 print · F15 magic numbers ·
+F16 código morto · F17 nomes.
 
 ## Refactoring Plan
 
 Target structure:
 ```
 task-manager-api/
-├── app.py                       # composition root: create_app(); `app = create_app()` e `db` exportados (seed e `flask --app app` continuam funcionando); boot: python app.py
-├── seed.py                      # mesmo comando e mesmos dados; prints mantidos (saída de CLI)
-├── requirements.txt             # sem marshmallow e requests (não usados)
-├── .env.example                 # SECRET_KEY, DATABASE_URL, DEBUG, HOST, PORT, SMTP_*
+├── app.py                      # composition root: create_app(); app = create_app(); boot "python app.py"
+├── seed.py                     # setup "python seed.py" — mesmos dados e mensagens
+├── requirements.txt            # sem marshmallow/requests (python-dotenv passa a ser usado)
+├── .env.example                # já existe: SECRET_KEY, DATABASE_URL, DEBUG, HOST, PORT, SMTP_*, ADMIN_TOKEN
+├── README.md                   # + seção curta de configuração (variáveis de ambiente, X-Admin-Token)
 ├── config/
-│   ├── __init__.py
-│   └── settings.py              # lê o ambiente (python-dotenv); defaults seguros
+│   ├── settings.py             # Settings via os.environ + load_dotenv(<raiz>/.env) — caminho explícito
+│   └── constants.py            # status, papéis, prioridade 1–5/padrão 3/alta ≤2, rótulos, limites, 7 dias, formato de data
 ├── models/
-│   ├── __init__.py
-│   ├── database.py              # db = SQLAlchemy(); utc_now() (substitui utcnow)
-│   ├── user.py                  # USER_ROLES; hashing werkzeug + verificação do MD5 legado; to_dict sem password; consultas
-│   ├── task.py                  # TASK_STATUSES, PRIORITY_MIN/MAX, HIGH_PRIORITY_MAX; is_overdue(); to_dict(); consultas e agregações (select/GROUP BY)
-│   └── category.py              # DEFAULT_COLOR; consultas e contagem de tasks por categoria
+│   ├── __init__.py             # exporta db, init_db, Task, User, Category
+│   ├── db.py                   # db = SQLAlchemy(); init_db(app) → create_all (substitui database.py)
+│   ├── task.py                 # Task: to_dict, is_overdue(now), to_user_task_dict (subset de /users/<id>/tasks)
+│   ├── user.py                 # User: to_dict SEM password; set/check_password (scrypt + migração MD5)
+│   └── category.py
+├── validators/
+│   ├── common.py               # checagens de tipo (objeto, str, int não-bool, lista de str)
+│   ├── task_validator.py
+│   ├── user_validator.py       # + check_role_change(role, current_role, is_admin)
+│   └── category_validator.py
+├── services/
+│   ├── report_service.py       # stats, summary, user_report — agregações com GROUP BY
+│   └── notification_service.py # SMTP com config e smtp_factory injetados (continua não conectado às rotas)
 ├── controllers/
-│   ├── __init__.py
+│   ├── common.py               # commit_or_fail(mensagem_da_rota): rollback + log + ApiError(msg, 500)
 │   ├── task_controller.py
-│   ├── user_controller.py
+│   ├── user_controller.py      # CRUD + login (+ commit do rehash)
 │   ├── category_controller.py
 │   └── report_controller.py
-├── services/
-│   ├── __init__.py
-│   ├── auth_service.py          # authenticate() + rehash do MD5 no login
-│   ├── report_service.py        # summary, user report, task stats (regras de atraso, taxas, janela de 7 dias)
-│   └── notification_service.py  # config SMTP injetada pelo construtor, logger (continua sem ser ligado a rotas)
 ├── routes/
-│   ├── __init__.py
-│   ├── main_routes.py           # GET /, GET /health
-│   ├── task_routes.py           # /tasks...
-│   ├── user_routes.py           # /users..., /login
-│   ├── category_routes.py       # /categories... (sai de report_routes)
-│   ├── report_routes.py         # /reports...
-│   └── validators.py            # checagens de tipo/obrigatoriedade na ordem e com as mensagens originais
-└── middlewares/
-    ├── __init__.py
-    └── errors.py                # ApiError + errorhandlers centrais
+│   ├── __init__.py             # register_routes(app)
+│   ├── common.py               # read_json(): JSON malformado → ApiError('Dados inválidos', 400); 415 mantido
+│   ├── system_routes.py        # GET /, GET /health
+│   ├── task_routes.py
+│   ├── user_routes.py          # /users..., /login
+│   ├── category_routes.py      # /categories... (sai do blueprint de relatórios)
+│   └── report_routes.py        # /reports/...
+├── middlewares/
+│   ├── errors.py               # ApiError + register_error_handlers(app)
+│   └── admin_auth.py           # has_admin_token(): X-Admin-Token × ADMIN_TOKEN, hmac.compare_digest
+└── utils/
+    └── dates.py                # utc_now() = datetime.now(timezone.utc).replace(tzinfo=None); parse_date()
 ```
-Removidos: `database.py` (raiz, vira `models/database.py`) e `utils/` (helpers.py e __init__.py: código morto; o que for útil vira constante/model).
+Removidos: `database.py` (→ `models/db.py`), `utils/helpers.py` (o que tem valor vai para constants/validators/services).
+Direção: routes → controllers → services/models; validators puros (recebem `is_admin` booleano, sem Flask).
 
 Steps (CRITICAL → LOW):
-1. [CRITICAL] Tirar `password` de `User.to_dict()`, que passa a ser o único serializador de usuário — resolve AP-SEC-04 — padrão RF-13
-2. [CRITICAL] `set_password` com `werkzeug.security.generate_password_hash`; `check_password` reconhece hash MD5 legado (`^[0-9a-f]{32}$`), compara com `hmac.compare_digest` e o `auth_service` regrava no formato novo depois do login bem-sucedido — resolve AP-SEC-03 — padrão RF-08
-3. [CRITICAL] `config/settings.py` lendo `SECRET_KEY` (sem literal; se ausente, valor aleatório por processo via `secrets`, nunca logado), `SMTP_HOST/PORT/USER/PASSWORD` (sem default para usuário/senha); `NotificationService(settings)` recebe a config; `.env.example` — resolve AP-SEC-01 — padrão RF-01
-4. [HIGH] `DEBUG` (padrão false), `HOST` (padrão 0.0.0.0) e `PORT` (padrão 5000) vindos do ambiente — resolve AP-SEC-06 — padrão RF-01
-5. [HIGH] `create_app()` em app.py como composition root: carrega settings, `db.init_app`, CORS, registra blueprints e error handlers, `db.create_all()` dentro do contexto; `DATABASE_URL` padrão `sqlite:///tasks.db` (mesmo arquivo `instance/tasks.db`) — resolve AP-ARCH-04 — padrão RF-03/RF-05
-6. [HIGH] Rotas finas (só leem request, chamam o validator e o controller, devolvem jsonify); controllers orquestram; regras de relatório/estatística em `report_service`; consultas nos models; CRUD de categorias em `category_routes.py` — resolve AP-ARCH-02 — padrão RF-04/RF-03
-7. [MEDIUM] `middlewares/errors.py`: `ApiError(message, status)` → `{'error': message}`; `HTTPException` devolvida como está (mantém as páginas padrão do Flask para JSON malformado 400, sem content-type 415, 404/405); qualquer outra exceção → log + `{'error': 'Erro interno'}` 500. Falhas de commit continuam com rollback e as mesmas mensagens ('Erro ao criar task', 'Erro ao atualizar', 'Erro ao deletar', 'Erro ao criar usuário', 'Erro ao criar categoria'); `except` restritos (ValueError/TypeError no parse de data, SQLAlchemyError no commit) — resolve AP-QUAL-01 — padrão RF-07
-8. [MEDIUM] `routes/validators.py` reproduz exatamente a sequência e as mensagens atuais de cada rota e acrescenta só a checagem de tipo (ver "Intentional behavior changes") — resolve AP-QUAL-02 (validação) — padrão RF-14
-9. [MEDIUM] `selectinload(Task.user, Task.category)` em GET /tasks; `selectinload(User.tasks)` em GET /users; `GROUP BY` para contagens por status, prioridade, usuário (total/concluídas) e categoria; a consulta principal e a ordem dos resultados (por id) não mudam — resolve AP-PERF-01 — padrão RF-06
-10. [MEDIUM] Atraso só via `Task.is_overdue()`; serialização de task no model (`to_dict()` e a variante resumida de `/users/<id>/tasks`); validação de criar e atualizar compartilhada; uma regex de e-mail — resolve AP-QUAL-03 — padrão RF-04/RF-13
-11. [MEDIUM] `utc_now()` = `datetime.now(timezone.utc).replace(tzinfo=None)` (mantém o formato naive gravado e exibido); `db.session.get(Model, id)`; `select()`/`db.session.execute` nas consultas — resolve AP-DEPR-01 — padrão RF-10
-12. [LOW] `logging.getLogger(__name__)` no lugar dos print (exceto a saída de CLI do seed) — resolve AP-QUAL-04 — padrão RF-12
-13. [LOW] Constantes nomeadas (status, papéis, limites de título 3/200, senha mínima 4, prioridade 1..5, alta prioridade <= 2, janela de 7 dias, mapa prioridade → rótulo, cor padrão, porta) — resolve AP-QUAL-05 — padrão RF-11
-14. [LOW] Renomear variáveis internas (t/u/c/p/d/p1..p5/td/pwd → nomes descritivos), sem mudar campos de request/response — resolve AP-QUAL-06
-15. [LOW] Remover imports mortos, `utils/helpers.py`, `Task.validate_status/validate_priority`, `User.is_admin` (sem uso); tirar marshmallow e requests do requirements.txt; python-dotenv passa a ser usado pela config — resolve AP-QUAL-07
+0. Pré-passo (validation-protocol): copiar os fontes originais para `reports/.tmp/original-src/` e gravar `reports/baseline-responses.txt` com o app original, antes de tocar em qualquer arquivo.
+1. [CRITICAL] `middlewares/admin_auth.has_admin_token()` + `user_validator.check_role_change()`: no POST, role ausente ou `"user"` passa; outro valor exige token. No PUT, role igual ao atual passa; diferente exige token. Sem `ADMIN_TOKEN` configurado ou com token errado → 403 `{"error": "Acesso negado"}`. A checagem roda depois das validações existentes (inclusive `Role inválido`) e antes de qualquer escrita — resolve F1 (e o nível 1 de F5) — padrão RF-16 nível 1.
+2. [CRITICAL] `User.to_dict()` sem `password` (afeta GET /users/<id>, POST/PUT /users, POST /login); logs sem `str(e)`; `SQLALCHEMY_ENGINE_OPTIONS={'hide_parameters': True}` — resolve F2 — RF-13.
+3. [CRITICAL] `set_password` com `generate_password_hash` (scrypt); `check_password`: hash de 32 hex = MD5 legado → `hmac.compare_digest` e, se bater, regrava em scrypt (o controller de login faz o commit); senão `check_password_hash`. O seed grava as mesmas senhas no formato novo — resolve F3 — RF-08.
+4. [CRITICAL] `config/settings.py`: `SECRET_KEY` do ambiente, sem default (ausente → `None` + aviso no log, sem valor; nada no app usa a chave); `SMTP_HOST/PORT` com os defaults não sensíveis antigos; `SMTP_USER/PASSWORD` só do ambiente; `ADMIN_TOKEN` do ambiente — resolve F4 — RF-01.
+5. [HIGH] `DEBUG` do ambiente (default `false`); `HOST`/`PORT` do ambiente (defaults `0.0.0.0`/`5000`); `app.run(host, port, debug)` — resolve F6 — RF-01.
+6. [HIGH] `create_app()` como composition root: carrega Settings, `db.init_app`, `init_db` (create_all), CORS, error handlers, blueprints e logging; `app = create_app()` em nível de módulo (para `python app.py`, `flask --app app` e `from app import app` no seed). `NotificationService(host, port, user, password, smtp_factory=smtplib.SMTP)` + `from_config()` — resolve F8 — RF-03/RF-05.
+7. [HIGH] Rotas finas (ler JSON, `has_admin_token`, chamar o controller, `jsonify`); controllers orquestram na **ordem original das checagens** (ex.: POST /users: corpo → nome → email → senha → regex → tamanho → 409 email → `Role inválido` → privilégio; POST /tasks: … → usuário/categoria 404 → `due_date`); regra de relatório em `report_service`; `/categories` em `category_routes.py`; cascata do DELETE /users (apaga as tasks do usuário) mantida igual — resolve F7 — RF-04.
+8. [HIGH] F5 nível 2 (autenticação completa) → "Not addressed" (abaixo); o nível 1 já entra no passo 1.
+9. [MEDIUM] `validators/`: regra única "tipo errado → 400 `{"error": "Dados inválidos"}`", aplicada na posição em que o original quebrava ou aceitava. Corpo precisa ser objeto JSON; `user_id`/`category_id` com qualquer valor não nulo passam pela checagem de existência (0 → 404); `name: ""` em PUT /users e PUT /categories → `Nome é obrigatório`. `{}` em PUT /categories continua 200 (atualização vazia, como hoje) — resolve F9 — RF-14 + RF-04.
+10. [MEDIUM] `middlewares/errors.py`: `ApiError` → `{"error": msg}`, status; `HTTPException` devolvida como está (404/405/415 iguais ao Flask); `Exception` → log + 500 `{"error": "Erro interno"}`. Falhas de commit usam a mensagem original de cada rota (`Erro ao criar task`, `Erro ao atualizar`, `Erro ao deletar`, `Erro ao criar usuário`, `Erro ao criar categoria`) via `commit_or_fail`; rotas sem `except:`/`except Exception` — resolve F10 — RF-07.
+11. [MEDIUM] GET /tasks com `selectinload(Task.user, Task.category)`; contagens por usuário/categoria/status/prioridade com GROUP BY numa query; `order_by(id)` explícito, igual à ordem atual por rowid — resolve F11 — RF-06.
+12. [MEDIUM] Uma só regra de atraso (`is_overdue(due_date, status, now)` no model) e um só `to_dict`; constantes e validators compartilhados; mensagens de cada rota mantidas palavra por palavra (ex.: `Formato de data inválido. Use YYYY-MM-DD` no POST × `Formato de data inválido` no PUT) — resolve F12 — RF-04/RF-13.
+13. [MEDIUM] `utc_now()` (UTC sem fuso: mesmo formato gravado e devolvido, comparação sem TypeError) no lugar de `datetime.utcnow`; `db.session.get()` / `select()` no lugar de `Model.query.get()` — resolve F13 — RF-10.
+14. [LOW] `logging.getLogger(__name__)` no lugar de `print` (mesmos textos de evento: "Task criada: …"); seed mantém os `print` de saída de CLI — resolve F14 — RF-12.
+15. [LOW] Literais → `config/constants.py` — resolve F15 — RF-11.
+16. [LOW] Remover imports sem uso, `utils/helpers.py`, `Task.validate_status/validate_priority`, `User.is_admin`, `marshmallow`/`requests` do requirements; `NotificationService` fica (serviço de domínio, refatorado no passo 6) — resolve F16 — limpeza.
+17. [LOW] Nomes descritivos internos (`task`, `user`, `category`, `priority_counts`…) — resolve F17 — renomear.
 
 Not addressed:
-- AP-SEC-05 (sem autenticação; token 'fake-jwt-token-<id>'; role admin autoatribuível): exigir token em todas as rotas, ou trocar o token, muda o contrato de todos os clientes. Recomendação: JWT assinado com SECRET_KEY do ambiente, um decorator `login_required`/`role_required` e restringir `role` a admins. A política de endpoints perigosos (token do ambiente) não é aplicada aos DELETE de CRUD porque eles são funcionalidade normal da API, não operações administrativas. Se você quiser aplicá-la, peça e eu incluo.
-- AP-QUAL-02 (integridade): DELETE /users/<id> continua apagando as tasks do usuário e DELETE /categories/<id> continua deixando tasks órfãs. Mudar isso alteraria o comportamento ou os registros. Recomendação: exclusão lógica de usuário e 409 para categoria em uso.
-- Validação de formato além do tipo (cor `#RRGGBB`, regex de e-mail mais rígida): seria regra nova. Recomendação registrada.
-- Respostas HTML padrão do Flask para JSON malformado (400), content-type ausente (415) e rota/método inexistente (404/405): mantidas como contrato. Recomendação: padronizar em JSON.
-- NotificationService continua sem ser chamado por rotas (ligá-lo criaria o envio de e-mail, um efeito colateral novo).
+- F5 nível 2 (token assinado com expiração, `login_required`/`role_required`, dono do recurso): muda o contrato de todas as rotas e o valor do token de `/login`. Recomendado como próximo passo, só com pedido explícito.
+- Busca LIKE sem escapar `%`/`_` (parte de F9): escapar mudaria resultados de buscas existentes. Recomendação: `like(..., escape='\\')`.
+- Registros já gravados com valores inválidos (prioridade 2.5, `user_id` 0, nomes vazios) não são alterados (princípio 8). Recomendação: script de saneamento revisado manualmente.
+- DELETE /users apaga as tasks do usuário e DELETE /categories zera o `category_id` das tasks (comportamento original, mantido). Recomendação: exclusão lógica ou reatribuição.
+- Regex de e-mail permissiva (aceita `a@b`) e `color` sem validação de formato: endurecer rejeitaria valores hoje aceitos que não são claramente inválidos.
+- `NotificationService` continua sem chamada nas rotas: ligar o envio de e-mail seria efeito colateral novo.
 
 Contract to preserve:
-- Rotas (22): GET /, GET /health, GET/POST /tasks, GET/PUT/DELETE /tasks/<id>, GET /tasks/search, GET /tasks/stats, GET/POST /users, GET/PUT/DELETE /users/<id>, GET /users/<id>/tasks, POST /login, GET /reports/summary, GET /reports/user/<id>, GET/POST /categories, PUT/DELETE /categories/<id>.
-- Respostas: mesmos campos e valores (GET /tasks com overdue/user_name/category_name; GET /tasks/<id> = to_dict + overdue; /users/<id>/tasks com o subconjunto atual; GET /users com task_count; relatórios com as mesmas chaves e cálculos), mesma ordem das listas, mesmos status HTTP, mesmas mensagens de sucesso e erro palavra por palavra, na mesma ordem de checagem (ex.: PUT /tasks/<id> checa existência → corpo → title → status → priority → user → category → due_date). Token de login 'fake-jwt-token-<id>' mantido.
-- Boot: `python app.py` (porta padrão 5000; `PORT` opcional). `python seed.py` continua sendo a preparação.
+- Rotas (22): GET / · GET /health · GET/POST /tasks · GET/PUT/DELETE /tasks/<id> · GET /tasks/search · GET /tasks/stats · GET/POST /users · GET/PUT/DELETE /users/<id> · GET /users/<id>/tasks · POST /login · GET /reports/summary · GET /reports/user/<id> · GET/POST /categories · PUT/DELETE /categories/<id>
+- Respostas: mesmos campos e status; JSON do Flask (chaves ordenadas); erros `{"error": "<mensagem original>"}`; token do login `fake-jwt-token-<id>`; `/` e `/health` iguais; 404/405/415 do Flask inalterados.
+- Boot: `python app.py` (porta padrão 5000, host 0.0.0.0); setup `python seed.py`; banco padrão `sqlite:///tasks.db` → `instance/tasks.db`.
 
 Intentional behavior changes (só "segurança" ou "entrada inválida"):
-- [segurança] Campo `password` removido do objeto de usuário em GET /users/<id>, POST /users, PUT /users/<id> e POST /login (`user`) — expunha o hash — prova: `POST /login {"email":"joao@email.com","password":"1234"}` e `GET /users/1` sem `password`
-- [segurança] Senhas novas gravadas com werkzeug (pbkdf2/scrypt + sal); hashes MD5 existentes aceitos e regravados no primeiro login — MD5 sem sal — prova: login de usuário com hash MD5 inserido no banco → 200, e o hash armazenado muda para o formato werkzeug
-- [segurança] Debug desligado por padrão: um erro inesperado responde 500 `{'error': 'Erro interno'}` em vez do debugger/HTML do Werkzeug — debugger exposto em 0.0.0.0 — prova: log de boot sem "Debugger is active"
-- [segurança] SECRET_KEY e credenciais SMTP vêm do ambiente (nenhuma resposta muda) — segredos no código — prova: grep sem literais
-- [entrada inválida] Corpo JSON que não é objeto (ex.: `[1,2]`) em POST/PUT /tasks, POST/PUT /users, POST /login, POST/PUT /categories → 400 `{'error': 'Dados inválidos'}` (antes 500) — prova: `POST /tasks [1,2]`
-- [entrada inválida] POST/PUT /tasks com tipo errado → 400 `{'error': 'Dados inválidos'}`: title não-string ou null no PUT, description não-string, priority não-inteiro (string, float, bool, null), tags que não sejam string ou lista de strings (ex.: `5`, `[1,2]`), user_id/category_id que não sejam inteiro/string/null (antes 500, ou gravado no caso de tags `5`) — prova: `POST /tasks {"title":"abcd","priority":"3"}`, `{"title":123}`, `{"title":"abcd","tags":[1,2]}`, `{"title":"abcd","tags":5}`, `PUT /tasks/1 {"priority":null}`
-- [entrada inválida] GET /tasks/search com priority ou user_id não inteiros → 400 `{'error': 'Dados inválidos'}` (antes 500) — prova: `GET /tasks/search?priority=abc`
-- [entrada inválida] POST /users com name/email/password não-string → 400 `{'error': 'Dados inválidos'}` (antes 500, ou gravado) — prova: `POST /users {"name":"X","email":"x@x.com","password":12345}`
-- [entrada inválida] PUT /users/<id>: name null ou "" → 400 `{'error': 'Nome é obrigatório'}` (mensagem do POST; antes 500 / 200 com nome vazio); name/email/password não-string ou active não-booleano → 400 `{'error': 'Dados inválidos'}` (antes 500) — prova: `PUT /users/2 {"name":null}`, `{"name":""}`, `{"active":"abc"}`
-- [entrada inválida] POST /login com email/password não-string → 400 `{'error': 'Dados inválidos'}` (antes 500) — prova: `POST /login {"email":"joao@email.com","password":1234}`
-- [entrada inválida] POST/PUT /categories: corpo null/não-objeto no PUT → 400 `{'error': 'Dados inválidos'}`; name null ou "" no PUT → 400 `{'error': 'Nome é obrigatório'}`; name/description/color com tipo errado → 400 `{'error': 'Dados inválidos'}` (antes 500, ou aceito). `{}` no PUT continua 200 — prova: `PUT /categories/1` com corpo `null`, `{"name":null}`
+- [segurança] `password` sai das respostas de GET /users/<id>, POST /users, PUT /users/<id> e POST /login — expunha o hash — prova: `GET /users/1`, `POST /login` com joao@email.com/1234.
+- [segurança] `role` diferente do padrão (POST) ou do atual (PUT) sem `X-Admin-Token` válido → 403 `{"error":"Acesso negado"}`; com token → 201/200 como antes; `role:"user"` anônimo e role igual ao atual seguem como antes — escalada de privilégio — prova: `POST /users` com role admin (sem token / token errado / token certo); `PUT /users/2` com role admin (sem/com token); `POST /users` com role user sem token.
+- [segurança] debug desligado por padrão: sem traceback nem console do Werkzeug; exceção inesperada → 500 `{"error":"Erro interno"}` em JSON — prova: log do boot ("Debug mode: off").
+- [segurança] hash de senha scrypt no lugar de MD5, com migração no login — prova: login com credencial do seed; login num banco criado pelo seed **original** (MD5) e leitura do prefixo do hash no banco antes (32 hex) e depois (`scrypt:`).
+- [segurança] `SECRET_KEY` e credenciais SMTP saem do código e passam a vir do ambiente — prova: grep sem literais.
+- [entrada inválida] JSON malformado em POST/PUT → 400 `{"error":"Dados inválidos"}` (antes: página HTML 400) — prova: `POST /tasks -d '{'` (e o malformado de cada POST/PUT).
+- [entrada inválida] corpo JSON que não é objeto (`[1]`, `"x"`, `null` no PUT /categories) → 400 `Dados inválidos` (antes 500) — prova: `POST /tasks '[1]'`, `PUT /categories/1 'null'`.
+- [entrada inválida] tipo errado → 400 `Dados inválidos` (antes 500, ou valor gravado fora do domínio/convertido): tasks `title`, `description`, `priority` (inclui `"5"`, `null`, `2.5`, `true`), `user_id`/`category_id` não inteiros, `tags` que não é texto nem lista de textos; users `name`, `email`, `password`, `active` (só booleano); categories `name`, `description`, `color`; login `email`/`password`; `/tasks/search` com `priority`/`user_id` não numéricos — prova: `POST /tasks priority "5"` e `2.5`, `POST /users email 123`, `PUT /users/3 active "x"`, `POST /login password 123`, `GET /tasks/search?priority=abc`.
+- [entrada inválida] `user_id`/`category_id` = 0 → 404 `Usuário não encontrado` / `Categoria não encontrada` (antes gravava referência solta) — prova: `POST /tasks user_id 0`.
+- [entrada inválida] `name: ""` em PUT /users/<id> e PUT /categories/<id> → 400 `Nome é obrigatório` (antes gravava nome vazio) — prova: as duas chamadas.
 
 Data preservation:
-- Seeds: mesmos 3 usuários (joao@email.com/1234 admin, maria@email.com/abcd user, pedro@email.com/pass manager), 4 categorias e 10 tasks; só o formato do hash muda.
-- Credenciais existentes: hashes MD5 já gravados (ex.: instance/tasks.db atual) continuam válidos e são migrados no primeiro login; nada de recriar o banco ou rodar o seed de novo.
-- Registros persistidos: nenhuma correção apaga ou altera registros. A cascata atual de DELETE /users é mantida (contrato) e está em "Not addressed".
-- Segredos: nenhum em log ou resposta; a SECRET_KEY aleatória de fallback nunca é logada; credenciais SMTP só pelo ambiente.
+- Seeds: os mesmos 3 usuários (joao@email.com/1234 admin, maria@email.com/abcd user, pedro@email.com/pass manager), 4 categorias e 10 tasks, com as mesmas mensagens; muda só o formato do hash.
+- Credenciais existentes: hashes MD5 já gravados continuam válidos (aceitos com compare_digest e regravados em scrypt no 1º login); nunca é preciso recriar o banco ou rodar o seed de novo.
+- Registros persistidos: nenhuma migração de dados; as cascatas originais (DELETE /users, DELETE /categories) não mudam e nenhuma nova é criada; as rejeições novas não tocam registros gravados.
+- Segredos: `SECRET_KEY`, `SMTP_*` e `ADMIN_TOKEN` só por ambiente; nenhum gerado na hora; nenhum em log ou resposta (`hide_parameters` também tira o hash dos logs de erro SQL).
 
-Validation:
-- Antes de alterar: copiar os fontes para `reports/.tmp/original-src/`, fazer backup de `instance/tasks.db` em `reports/.tmp/data-backup/`, escolher uma porta livre (5000 pode estar com o AirPlay) e capturar `reports/baseline-responses.txt` com o app original (`flask --app app run --port $PORT`, já que a porta está fixa no código), depois de `python seed.py`.
-- Cobertura: todas as 22 rotas no caso de sucesso; ID inexistente em cada rota com parâmetro; corpo válido, sem campo obrigatório e JSON malformado (`{`) em cada POST/PUT; cada chamada de prova acima; login com as credenciais do seed; IDs capturados das respostas; rotas destrutivas por último.
-- Depois: `python app.py` com `PORT` livre, o mesmo seed e as mesmas chamadas → `reports/after-responses.txt`; diff com timestamps mascarados. Toda diferença tem que estar na lista acima; o resto é regressão e será corrigido.
-- Prova do MD5 legado: inserir um usuário com hash MD5 direto no SQLite, fazer login (200) e conferir que o hash foi regravado.
-- O app sobe sem erro com o comando de boot original; reverificação por grep dos sinais do catálogo (todas as severidades) com a saída real; nenhum sinal remanescente sem justificativa.
-- Limpeza: servidores encerrados e porta livre, `instance/tasks.db` restaurado, `reports/.tmp/` apagado; evidências em `reports/validation-report.md`.
+Validation (validation-protocol.md, tudo com scripts `bash` em `reports/.tmp/`):
+- Estado de dados: hoje não existe `instance/`; garantir que não exista antes de cada execução, rodar `python seed.py` antes de cada uma e, no fim, deixar sem banco como antes.
+- Baseline (app original, antes de qualquer alteração): `python app.py` se a 5000 estiver livre; senão `flask --app app run --port <livre>`. Depois: `PORT=<livre> ADMIN_TOKEN=<teste> python app.py`. Portas confirmadas livres antes do boot; PID + `trap` para encerrar.
+- Mesmas chamadas, na mesma ordem: sucesso de cada uma das 22 rotas; id inexistente em cada rota com parâmetro; para cada POST/PUT, corpo válido, corpo sem campo obrigatório e JSON malformado; uma prova de cada mudança intencional; login com o seed; destrutivas por último; ids criados capturados da resposta.
+- Prova extra da migração: banco criado pelo seed de `reports/.tmp/original-src/` (MD5) → login no app novo → 200 e hash regravado com `scrypt:`. Prova do 403 sem `ADMIN_TOKEN` configurado (boot curto sem a variável).
+- `diff` mascarado (timestamps) entre baseline e depois: cada diferença conferida contra a lista acima; o resto é regressão e é corrigido antes de concluir.
+- Reverificação do catálogo (grep: segredos, md5, `'password'` em to_dict, `debug=True`, `except:`/`except Exception`, `print(`, `utcnow`, `.query.get(`, imports sem uso), com a saída real e a justificativa de cada linha que ficar.
+- Limpeza: servidores encerrados e porta livre, dados restaurados, `reports/.tmp/` apagado; evidências em `reports/validation-report.md` + bloco PHASE 3.

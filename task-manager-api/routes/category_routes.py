@@ -1,6 +1,7 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify
 
 from controllers import category_controller
+from routes.common import read_json
 
 category_bp = Blueprint('categories', __name__)
 
@@ -12,16 +13,14 @@ def get_categories():
 
 @category_bp.route('/categories', methods=['POST'])
 def create_category():
-    return jsonify(category_controller.create_category(request.get_json())), 201
+    return jsonify(category_controller.create_category(read_json())), 201
 
 
 @category_bp.route('/categories/<int:cat_id>', methods=['PUT'])
 def update_category(cat_id):
-    category = category_controller.find_category_or_404(cat_id)
-    return jsonify(category_controller.update_category(category, request.get_json())), 200
+    return jsonify(category_controller.update_category(cat_id, read_json)), 200
 
 
 @category_bp.route('/categories/<int:cat_id>', methods=['DELETE'])
 def delete_category(cat_id):
-    category_controller.delete_category(cat_id)
-    return jsonify({'message': 'Categoria deletada'}), 200
+    return jsonify(category_controller.delete_category(cat_id)), 200

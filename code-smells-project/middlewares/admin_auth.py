@@ -1,4 +1,4 @@
-"""Proteção dos endpoints administrativos: desligados sem ADMIN_TOKEN configurado."""
+"""Autenticação dos endpoints administrativos (ADMIN_TOKEN + header X-Admin-Token)."""
 import hmac
 from functools import wraps
 
@@ -12,8 +12,8 @@ def admin_required(view):
     def wrapper(*args, **kwargs):
         esperado = current_app.config.get("ADMIN_TOKEN", "")
         recebido = request.headers.get("X-Admin-Token", "")
-        if not esperado or not hmac.compare_digest(esperado.encode("utf-8"), recebido.encode("utf-8")):
-            raise ApiError({"erro": "Acesso negado"}, 403)
+        if not esperado or not hmac.compare_digest(esperado.encode(), recebido.encode()):
+            raise ApiError("Acesso negado", 403)
         return view(*args, **kwargs)
 
     return wrapper

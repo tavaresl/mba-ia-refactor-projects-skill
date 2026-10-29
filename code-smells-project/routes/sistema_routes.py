@@ -1,8 +1,17 @@
-from flask import Blueprint
+from flask import Blueprint, current_app
 
-from controllers import sistema_controller as c
+from controllers import sistema_controller
+from db.connection import get_db
+from routes._http import responder
 
 bp = Blueprint("sistema", __name__)
 
-bp.add_url_rule("/", "index", c.index, methods=["GET"])
-bp.add_url_rule("/health", "health_check", c.health_check, methods=["GET"])
+
+@bp.get("/")
+def index():
+    return responder(sistema_controller.index())
+
+
+@bp.get("/health")
+def health_check():
+    return responder(sistema_controller.health(get_db(), current_app.config["APP_ENV"]))

@@ -1,8 +1,6 @@
-from sqlalchemy import func, select
-
-from models.database import db, utc_now
-
-DEFAULT_COLOR = '#000000'
+from config.constants import DEFAULT_COLOR
+from models.db import db
+from utils.dates import utc_now
 
 
 class Category(db.Model):
@@ -22,15 +20,3 @@ class Category(db.Model):
             'color': self.color,
             'created_at': str(self.created_at),
         }
-
-    @staticmethod
-    def find_by_id(category_id):
-        return db.session.get(Category, category_id)
-
-    @staticmethod
-    def list_all():
-        return db.session.execute(select(Category)).scalars().all()
-
-    @staticmethod
-    def count_all():
-        return db.session.scalar(select(func.count()).select_from(Category))

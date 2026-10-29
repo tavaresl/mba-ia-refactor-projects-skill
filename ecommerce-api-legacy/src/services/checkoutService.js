@@ -1,73 +1,60 @@
-const AppError = require('../middlewares/appError');
-const { PAYMENT_STATUS } = require('../config/constants');
+const AppError = require('../exceptions/AppError');
+const { PAYMENT_STATUS, MESSAGES } = require('../config/constants');
 
-async function orFail(promise, message, logger) {
-    try {
-        return await promise;
-    } catch (err) {
-        logger.error(message, err);
-        throw new AppError(500, message);
-    }
-}
-
-class CheckoutService {
-    constructor({ db, userModel, courseModel, enrollmentModel, paymentModel, auditLogModel,
-        passwordHasher, paymentGateway, cache, logger }) {
-        this.db = db;
-        this.userModel = userModel;
-        this.courseModel = courseModel;
-        this.enrollmentModel = enrollmentModel;
-        this.paymentModel = paymentModel;
-        this.auditLogModel = auditLogModel;
-        this.passwordHasher = passwordHasher;
-        this.paymentGateway = paymentGateway;
-        this.cache = cache;
-        this.logger = logger;
+function createCheckoutService({
+    db, userModel, courseModel, enrollmentModel, paymentModel, auditLogModel,
+    paymentGateway, passwordHasher, logger,
+}) {
+    // Executa uma etapa de banco; falha vira AppError com a mensagem original da etapa.
+    async function step(work, status, message) {
+        try {
+            return await work();
+        } catch (err) {
+            if (err instanceof AppError) throw err;
+            logger.error(`${message}: ${err.message}`);
+            throw new AppError(status, message);
+        }
     }
 
-    async checkout({ name, email, password, courseId, cardNumber }) {
-        const course = await this.courseModel.findActiveById(courseId).catch(() => null);
-        if (!course) throw new AppError(404, 'Curso não encontrado');
+    async function checkout({ name, email, password, courseId, cardNumber }) {
+        // Falha de banco aqui sempre respondeu 404 no original (mantido).
+        const course = await step(() => courseModel.findActiveById(courseId), 404, MESSAGES.COURSE_NOT_FOUND);
+        if (!course) throw new AppError(404, MESSAGES.COURSE_NOT_FOUND);
 
-        // O pagamento é decidido antes de qualquer escrita: recusa não deixa registros.
-        const status = this.paymentGateway.charge(cardNumber);
-        if (status === PAYMENT_STATUS.DENIED) throw new AppError(400, 'Pagamento recusado');
+        const existingUser = await step(() => userModel.findByEmail(email), 500, MESSAGES.DB_ERROR);
+        if (!existingUser && !password) throw new AppError(400, MESSAGES.BAD_REQUEST);
 
-        const { userId, enrollmentId } = await this.db.transaction(async (tx) => {
-            const existing = await orFail(this.userModel.findByEmail(email, tx), 'Erro DB', this.logger);
+        // Pagamento decidido antes de qualquer escrita: recusa não grava nada.
+        const status = paymentGateway.charge({ cardNumber });
+        if (status === PAYMENT_STATUS.DENIED) throw new AppError(400, MESSAGES.PAYMENT_DENIED);
 
-            let id;
-            if (existing) {
-                id = existing.id;
-            } else {
-                if (!password) throw new AppError(400, 'Bad Request');
-                const passwordHash = this.passwordHasher.hash(password);
-                id = await orFail(
-                    this.userModel.create({ name, email, passwordHash }, tx),
-                    'Erro ao criar usuário',
-                    this.logger,
-                );
-            }
+        const passwordHash = existingUser ? null : await passwordHasher.hash(password);
 
-            const newEnrollmentId = await orFail(
-                this.enrollmentModel.create({ userId: id, courseId }, tx),
-                'Erro Matrícula',
-                this.logger,
+        const { userId, enrollmentId } = await db.transaction(async (tx) => {
+            const ownerId = existingUser
+                ? existingUser.id
+                : await step(() => userModel.create({ name, email, passwordHash }, tx), 500, MESSAGES.USER_CREATE_ERROR);
+            const newEnrollmentId = await step(
+                () => enrollmentModel.create({ userId: ownerId, courseId }, tx), 500, MESSAGES.ENROLLMENT_ERROR,
             );
-            await orFail(
-                this.paymentModel.create({ enrollmentId: newEnrollmentId, amount: course.price, status }, tx),
-                'Erro Pagamento',
-                this.logger,
+            await step(
+                () => paymentModel.create({ enrollmentId: newEnrollmentId, amount: course.price, status }, tx),
+                500, MESSAGES.PAYMENT_ERROR,
             );
-            await this.auditLogModel.create(`Checkout curso ${courseId} por ${id}`, tx);
-
-            return { userId: id, enrollmentId: newEnrollmentId };
+            return { userId: ownerId, enrollmentId: newEnrollmentId };
         });
 
-        this.cache.set(`last_checkout_${userId}`, course.title);
-        this.logger.debug(`Salvando no cache: last_checkout_${userId}`);
+        try {
+            await auditLogModel.create(`Checkout curso ${courseId} por ${userId}`);
+        } catch (err) {
+            logger.error(`Falha ao gravar auditoria do checkout: ${err.message}`);
+        }
+        logger.info(`Checkout concluído: curso ${courseId}, usuário ${userId}`);
+
         return { enrollmentId };
     }
+
+    return { checkout };
 }
 
-module.exports = CheckoutService;
+module.exports = { createCheckoutService };

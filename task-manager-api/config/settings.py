@@ -1,44 +1,28 @@
-"""Configuração da aplicação, lida de variáveis de ambiente (e do .env local)."""
+"""Configuração lida do ambiente (e do .env na raiz do projeto)."""
 import os
-import secrets
-from dataclasses import dataclass, field
-from pathlib import Path
 
 from dotenv import load_dotenv
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-
-DEFAULT_DATABASE_URL = 'sqlite:///tasks.db'
-DEFAULT_HOST = '0.0.0.0'
-DEFAULT_PORT = 5000
-DEFAULT_SMTP_HOST = 'smtp.gmail.com'
-DEFAULT_SMTP_PORT = 587
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
-@dataclass(frozen=True)
+def _as_bool(value):
+    return str(value).strip().lower() in ('1', 'true', 'yes', 'on')
+
+
 class Settings:
-    secret_key: str = field(repr=False)
-    database_url: str
-    debug: bool
-    host: str
-    port: int
-    smtp_host: str
-    smtp_port: int
-    smtp_user: str
-    smtp_password: str = field(repr=False)
+    """Segredos não têm default: vêm só do ambiente."""
 
-    @classmethod
-    def from_env(cls):
-        load_dotenv(PROJECT_ROOT / '.env')
-        return cls(
-            # Sem SECRET_KEY no ambiente, usa uma chave aleatória só desta execução.
-            secret_key=os.environ.get('SECRET_KEY') or secrets.token_hex(32),
-            database_url=os.environ.get('DATABASE_URL', DEFAULT_DATABASE_URL),
-            debug=os.environ.get('DEBUG', 'false').lower() == 'true',
-            host=os.environ.get('HOST', DEFAULT_HOST),
-            port=int(os.environ.get('PORT', DEFAULT_PORT)),
-            smtp_host=os.environ.get('SMTP_HOST', DEFAULT_SMTP_HOST),
-            smtp_port=int(os.environ.get('SMTP_PORT', DEFAULT_SMTP_PORT)),
-            smtp_user=os.environ.get('SMTP_USER', ''),
-            smtp_password=os.environ.get('SMTP_PASSWORD', ''),
-        )
+    def __init__(self):
+        load_dotenv(os.path.join(PROJECT_ROOT, '.env'))
+        env = os.environ
+        self.SECRET_KEY = env.get('SECRET_KEY') or None
+        self.ADMIN_TOKEN = env.get('ADMIN_TOKEN') or ''
+        self.DATABASE_URL = env.get('DATABASE_URL') or 'sqlite:///tasks.db'
+        self.DEBUG = _as_bool(env.get('DEBUG', 'false'))
+        self.HOST = env.get('HOST') or '0.0.0.0'
+        self.PORT = int(env.get('PORT') or 5000)
+        self.SMTP_HOST = env.get('SMTP_HOST') or 'smtp.gmail.com'
+        self.SMTP_PORT = int(env.get('SMTP_PORT') or 587)
+        self.SMTP_USER = env.get('SMTP_USER') or ''
+        self.SMTP_PASSWORD = env.get('SMTP_PASSWORD') or ''

@@ -2,7 +2,7 @@
 
 Solução do desafio descrito em [`ENUNCIADO.md`](ENUNCIADO.md): uma Skill do Claude Code que analisa, audita e refatora projetos legados para o padrão MVC, testada em três projetos com stacks diferentes (Python/Flask e Node.js/Express).
 
-> **Status:** skill `refactor-arch` concluída (4 iterações) e executada nos 3 projetos; relatórios em `reports/`, código refatorado nas pastas dos projetos e evidências em `evidencias/`. Planejamento em [`PLANO.md`](PLANO.md).
+> **Status:** skill `refactor-arch` concluída (5 iterações) e executada nos 3 projetos; relatórios em `reports/`, código refatorado nas pastas dos projetos e evidências em `evidencias/`. Planejamento em [`PLANO.md`](PLANO.md).
 
 ## Sumário
 
@@ -153,10 +153,10 @@ Requisito mínimo por projeto: 5 problemas, com pelo menos 1 CRITICAL ou HIGH, 2
 ├── SKILL.md                       # orquestra as 3 fases, limites de acesso e gates
 └── references/
     ├── project-analysis.md        # heurísticas de detecção de stack, escopo e arquitetura
-    ├── anti-patterns-catalog.md   # 20 anti-patterns com sinais de detecção e severidade
+    ├── anti-patterns-catalog.md   # 21 anti-patterns com sinais de detecção e severidade
     ├── audit-report-template.md   # formato dos blocos das Fases 1 e 3, do relatório, do plano e das evidências
     ├── mvc-guidelines.md          # camadas MVC, mapeamento por framework e políticas (endpoints perigosos, erros)
-    ├── refactoring-playbook.md    # 15 padrões de transformação com código antes/depois
+    ├── refactoring-playbook.md    # 16 padrões de transformação com código antes/depois
     └── validation-protocol.md     # baseline, porta livre, boot, chamadas, comparação e limpeza
 ```
 
@@ -183,7 +183,7 @@ Invocação: `/refactor-arch [caminho-do-projeto]`. Sem argumento, o projeto é 
 
 ### Catálogo de anti-patterns
 
-20 anti-patterns (6 CRITICAL, 4 HIGH, 6 MEDIUM, 4 LOW), cada um com sinais de detecção acionáveis e o padrão do playbook que o resolve. Os critérios de inclusão foram: ser citado no enunciado ou aparecer na análise manual dos 3 projetos, e ter um sinal que um agente consiga procurar no código ("query SQL concatenada", não "código ruim").
+21 anti-patterns (6 CRITICAL, 5 HIGH, 6 MEDIUM, 4 LOW), cada um com sinais de detecção acionáveis e o padrão do playbook que o resolve. Os critérios de inclusão foram: ser citado no enunciado ou aparecer na análise manual dos 3 projetos, e ter um sinal que um agente consiga procurar no código ("query SQL concatenada", não "código ruim").
 
 | ID | Anti-pattern | Severidade | Por que foi incluído |
 | --- | --- | --- | --- |
@@ -197,7 +197,7 @@ Invocação: `/refactor-arch [caminho-do-projeto]`. Sem argumento, o projeto é 
 | AP-ARCH-03 | Estado global mutável / conexão global | HIGH | Citado no enunciado; P1 e P2 |
 | AP-ARCH-04 | Acoplamento sem injeção de dependência | HIGH | Citado no enunciado |
 | AP-SEC-06 | Debug habilitado por padrão | HIGH | `debug=True` em P1 e P3 |
-| AP-SEC-07 | API sem autenticação de base / privilégio autoatribuível (distinto de AP-SEC-05; RF-16) | CRITICAL/HIGH | `role: "admin"` aceito de requisição anônima em `POST/PUT /users` (P3). Nível 1 (restringir `role` com `ADMIN_TOKEN`) aplicado; nível 2 (JWT + rotas protegidas) proposto, não aplicado |
+| AP-SEC-07 | API sem autenticação de base / privilégio autoatribuível (distinto de AP-SEC-05; RF-16) | CRITICAL (com escalada) / HIGH (sem escalada) | Feedback pós-entrega: `role: "admin"` aceito de requisição anônima em `POST/PUT /users` (P3) é CRITICAL; sem campo de privilégio (P1, P2) a falta de autenticação é HIGH |
 | AP-PERF-01 | Queries N+1 | MEDIUM | Citado no enunciado; P1, P2 e P3 |
 | AP-QUAL-01 | Tratamento de erro genérico, sem handler central | MEDIUM | `except Exception` e `except:` repetidos |
 | AP-QUAL-02 | Validação de entrada ausente ou fraca | MEDIUM | Citado no enunciado ("validações ausentes nas rotas") |
@@ -268,7 +268,6 @@ Mudanças:
 3. **Bloco da Fase 1** exigido no chat antes de abrir o catálogo e repetido no gate.
 4. **Validação:** baseline antes de alterar o código e comparação depois; novo `validation-protocol.md` com script-modelo em `bash`.
 5. **Política para endpoints perigosos** (RF-15).
-6. **Autenticação de base e campos de privilégio** (RF-16): feedback pós-entrega apontou que o AP-SEC-05 do P3 ficou "Not addressed". O padrão foi separado em AP-SEC-07 e a skill agora aplica o nível 1 (só admin com `X-Admin-Token` altera `role`); reexecutada no P3 (`task-manager-api/reports/`).
 6. **Invariantes de negócio no catálogo.**
 7. **Ajustes no código gerado:** relatório de validação com saídas reais, nada de `str(err)`, SQL fixo em vez de concatenar constantes, `validators/` e exceções dentro da estrutura.
 
@@ -310,9 +309,38 @@ Motivada pela execução da iteração 3 nos Projetos 2 e 3 (cópias fora do rep
 | Correção apagando dados | Nenhuma correção apaga ou altera registros persistidos; vai para "Not addressed" |
 | Mensagens e regras alteradas | Mensagens preservadas; só duas categorias de mudança aceitas: **segurança** e **rejeição de entrada claramente inválida** |
 
-**Resultado:** a skill foi executada nos 3 projetos, nas pastas reais. Os relatórios foram validados contra o código original (20, 19 e 17 findings, Summary e Total coerentes, ordem correta, 320 referências de linha e 56 amostras de conteúdo conferidas, cobertura de 33 dos 34 achados da análise manual) e copiados para `reports/`. O smoke test independente nas pastas refatoradas (seção C) mostrou apenas as diferenças declaradas nos planos: P1 29/31, P2 5/8 e P3 35/35, onde os 403 vêm da ausência do token na spec do baseline. O login com a credencial de exemplo do seed continua funcionando no P1, e o `validation-report.md` do P3 traz a seção de migração de hash MD5.
+**Resultado (execução da iteração 4, substituída pela da iteração 5):** a skill foi executada nos 3 projetos, nas pastas reais. Os relatórios dessa rodada tinham 20, 19 e 17 findings, com Summary e Total coerentes e ordem correta. O smoke test independente nas pastas refatoradas (seção C) mostrou apenas as diferenças declaradas nos planos: P1 29/31, P2 5/8 e P3 35/35, onde os 403 vêm da ausência do token na spec do baseline. O login com a credencial de exemplo do seed continua funcionando no P1, e o `validation-report.md` do P3 traz a seção de migração de hash MD5.
 
 **Pendência conhecida:** o bloco `PHASE 1: PROJECT ANALYSIS` é gerado e gravado no topo de cada `audit-report.md`, mas não é impresso no chat. A decisão foi não tratar mais esse ponto.
+
+
+#### Iteração 5 — feedback pós-entrega: API sem autenticação de base (AP-SEC-07 / RF-16)
+
+**Feedback recebido:** no `task-manager-api`, o AP-SEC-05 do relatório apontava que qualquer requisição se promove a admin, mas a Fase 3 deixou isso como "Not addressed": `validate_user_create` ainda aceitava `role: "admin"` de quem não está autenticado e nenhuma rota exigia token. O pedido foi acrescentar ao catálogo e ao playbook um padrão para API sem autenticação de base, distinto do RF-15, aplicar ao menos a restrição do campo `role` e rodar a skill de novo.
+
+| Mudança na skill | Detalhe |
+| --- | --- |
+| **AP-SEC-07** no catálogo | "API sem autenticação de base / privilégio autoatribuível". Distinto do AP-SEC-05 (uma rota administrativa perigosa, RF-15): aqui é a API inteira sem identidade verificada. Sinais: nenhuma rota/middleware verifica credencial, login com token fixo que nada valida, campo de privilégio (`role`, `is_admin`) aceito do corpo, `is_admin()` nunca chamado. |
+| **RF-16** no playbook | Dois níveis. **Nível 1 (aplicado sempre):** campo de privilégio só muda com a credencial de administrador (`ADMIN_TOKEN` do ambiente, header `X-Admin-Token`; sem token configurado → 403), com valor padrão/atual permitido sem credencial para não quebrar clientes. **Nível 2 (proposto, só aplicado a pedido):** token assinado com expiração e rotas protegidas, porque muda o contrato de todas as rotas. |
+| Política em `mvc-guidelines.md` | A leitura da credencial fica na camada HTTP (`middlewares/`); validators e controllers recebem só o booleano `is_admin`. |
+| Princípio 7 do `SKILL.md` | Restringir campos de privilégio passa a ser uma mudança de segurança aceita. |
+| Correção de rótulo | RF-07 e RF-14 apontavam para AP-SEC-05 por engano; o rótulo foi removido. |
+
+Três ajustes de calibragem, vindos da avaliação das execuções de teste no `code-smells-project`:
+
+1. **Severidade do AP-SEC-07:** CRITICAL só com escalada de privilégio comprovada. Sem escalada, mesmo com escrita/exclusão abertas, é HIGH, e o finding lista as rotas abertas.
+2. **Configuração interna é dado sensível (AP-SEC-04):** `db_path`, string de conexão, host interno, flag `debug` e versões saem de um health check público.
+3. **Referência inexistente (AP-QUAL-02):** aceitar `usuario_id`/`category_id` que não existem é entrada inválida e deve ser rejeitada com 4xx (a exceção precisa ser justificada).
+
+**Execução:** a skill foi reexecutada do zero (código original restaurado) nos 3 projetos.
+
+| Projeto | Como o AP-SEC-07 saiu | O que foi aplicado | Resultado verificado |
+| --- | --- | --- | --- |
+| P3 task-manager-api | CRITICAL (privilégio autoatribuível) + HIGH (API sem autenticação, token `fake-jwt-token-<id>`) | Nível 1: `role` só com `X-Admin-Token` válido | `POST /users` com `role: admin` sem token → 403; com token → 201; sem `role` → 201 (`user`). `PUT /users/2` com `role: admin` sem token → 403; com token → 200 |
+| P1 code-smells-project | HIGH (sem escalada: `POST /usuarios` ignora `tipo`) | Nível 1 já satisfeito; `tipo: admin` no cadastro continua virando `cliente`. Rotas `/admin/*` pelo RF-15 | cadastro com `tipo: admin` → `cliente`; `/admin/query` sem token → 403 |
+| P2 ecommerce-api-legacy | HIGH (sem campo de privilégio; checkout em nome de e-mail já cadastrado sem conferir senha) | Rotas admin pelo RF-15; verificação de identidade no checkout fica no nível 2 | `GET /api/admin/financial-report` sem token → 403, com token → 200 |
+
+**Limite aceito:** o nível 2 (autenticação completa) não foi aplicado em nenhum projeto. No P3, `POST /login` ainda devolve `fake-jwt-token-<id>` e as rotas de escrita seguem abertas; isso está declarado em "Not addressed" nos três planos, com a recomendação (token assinado com `SECRET_KEY`, `login_required`/`role_required`, checagem de dono).
 
 ---
 
@@ -346,11 +374,11 @@ Os três projetos foram revalidados nos runtimes alvo (**Python 3.11** e **Node 
 
 | Projeto | CRITICAL | HIGH | MEDIUM | LOW | Total | Relatório |
 | --- | :-: | :-: | :-: | :-: | :-: | --- |
-| P1 code-smells-project | 6 | 5 | 5 | 4 | 20 | [audit-project-1.md](reports/audit-project-1.md) |
-| P2 ecommerce-api-legacy | 5 | 5 | 5 | 4 | 19 | [audit-project-2.md](reports/audit-project-2.md) |
-| P3 task-manager-api | 3 | 4 | 6 | 4 | 17 | [audit-project-3.md](reports/audit-project-3.md) |
+| P1 code-smells-project | 6 | 5 | 6 | 4 | 21 | [audit-project-1.md](reports/audit-project-1.md) |
+| P2 ecommerce-api-legacy | 6 | 5 | 4 | 4 | 19 | [audit-project-2.md](reports/audit-project-2.md) |
+| P3 task-manager-api | 4 | 4 | 5 | 4 | 17 | [audit-project-3.md](reports/audit-project-3.md) |
 
-Os relatórios foram validados contra o código original: Summary e Total batem com os findings, a ordem é CRITICAL → LOW, todos os findings têm `arquivo:linha` (320 referências dentro do tamanho dos arquivos originais e 56 amostras de conteúdo conferidas) e cobrem 33 dos 34 achados da análise manual. O P3 reporta `datetime.utcnow()` (~19×) e `Query.get()` (16×) como APIs deprecated; P1 e P2 declaram que não há nenhuma. Artefatos completos de cada execução (plano, respostas antes/depois e relatório de validação) ficam em `<projeto>/reports/`.
+Os relatórios em `reports/` são cópias exatas do `audit-report.md` gerado pela skill em cada projeto (iteração 5, sobre o código original restaurado). Conferência automática: os contadores do Summary batem com os findings e com o Total, a ordem é CRITICAL → LOW e todos os findings trazem `File:` com linha. As referências de linha não foram reconferidas uma a uma nesta rodada. O P3 reporta `datetime.utcnow()` (22 linhas) e `Model.query.get()` (16 linhas) como APIs deprecated; P1 e P2 declaram que não há nenhuma. Artefatos completos de cada execução (plano, respostas antes/depois e relatório de validação) ficam em `<projeto>/reports/`.
 
 ### Estrutura antes e depois
 
@@ -358,9 +386,9 @@ Código-fonte apenas (`.py` e `.js`; sem dependências, bancos e `reports/`). A 
 
 | Projeto | Diretórios (antes → depois) | Arquivos de código (antes → depois) | Linhas (antes → depois) |
 | --- | :-: | :-: | :-: |
-| Projeto 1 — code-smells-project | 1 → 9 | 4 → 36 | 780 → 1087 |
-| Projeto 2 — ecommerce-api-legacy | 1 → 10 | 3 → 29 | 180 → 654 |
-| Projeto 3 — task-manager-api | 5 → 8 | 15 → 29 | 1158 → 1317 |
+| Projeto 1 — code-smells-project | 1 → 9 | 4 → 37 | 780 → 1112 |
+| Projeto 2 — ecommerce-api-legacy | 1 → 10 | 3 → 30 | 180 → 637 |
+| Projeto 3 — task-manager-api | 5 → 9 | 15 → 36 | 1158 → 1447 |
 
 #### Projeto 1 — code-smells-project
 
@@ -370,15 +398,15 @@ Código-fonte apenas (`.py` e `.js`; sem dependências, bancos e `reports/`). A 
 ```
 **Depois**
 ```
-./                  1 arquivo(s),   34 linhas
-config/             3 arquivo(s),   58 linhas
-controllers/        7 arquivo(s),  205 linhas
-db/                 3 arquivo(s),  157 linhas
-middlewares/        3 arquivo(s),   50 linhas
-models/             5 arquivo(s),  256 linhas
-routes/             7 arquivo(s),   62 linhas
-services/           5 arquivo(s),  134 linhas
-validators/         2 arquivo(s),  131 linhas
+./                  1 arquivo(s),   40 linhas
+config/             3 arquivo(s),   48 linhas
+controllers/        7 arquivo(s),  181 linhas
+db/                 3 arquivo(s),  148 linhas
+middlewares/        3 arquivo(s),   52 linhas
+models/             5 arquivo(s),  227 linhas
+routes/             8 arquivo(s),  158 linhas
+services/           5 arquivo(s),  105 linhas
+validators/         2 arquivo(s),  153 linhas
 ```
 
 #### Projeto 2 — ecommerce-api-legacy
@@ -389,16 +417,16 @@ src/                3 arquivo(s),  180 linhas
 ```
 **Depois**
 ```
-src/                1 arquivo(s),   72 linhas
-src/config/         2 arquivo(s),   36 linhas
-src/controllers/    3 arquivo(s),   35 linhas
-src/db/             2 arquivo(s),   70 linhas
-src/middlewares/    4 arquivo(s),   51 linhas
-src/models/         5 arquivo(s),  104 linhas
-src/routes/         4 arquivo(s),   37 linhas
-src/services/       5 arquivo(s),  182 linhas
-src/utils/          1 arquivo(s),   21 linhas
-src/validators/     2 arquivo(s),   46 linhas
+src/                1 arquivo(s),   62 linhas
+src/config/         3 arquivo(s),   78 linhas
+src/controllers/    3 arquivo(s),   30 linhas
+src/db/             2 arquivo(s),   72 linhas
+src/exceptions/     1 arquivo(s),    9 linhas
+src/middlewares/    4 arquivo(s),   57 linhas
+src/models/         5 arquivo(s),   77 linhas
+src/routes/         4 arquivo(s),   48 linhas
+src/services/       5 arquivo(s),  164 linhas
+src/validators/     2 arquivo(s),   40 linhas
 ```
 
 #### Projeto 3 — task-manager-api
@@ -413,14 +441,15 @@ utils/              2 arquivo(s),  117 linhas
 ```
 **Depois**
 ```
-./                  2 arquivo(s),  119 linhas
-config/             2 arquivo(s),   44 linhas
-controllers/        6 arquivo(s),  233 linhas
-middlewares/        2 arquivo(s),   30 linhas
-models/             5 arquivo(s),  263 linhas
-routes/             6 arquivo(s),  142 linhas
-services/           4 arquivo(s),  196 linhas
-validators/         2 arquivo(s),  290 linhas
+./                  2 arquivo(s),  152 linhas
+config/             3 arquivo(s),   71 linhas
+controllers/        6 arquivo(s),  367 linhas
+middlewares/        3 arquivo(s),   41 linhas
+models/             5 arquivo(s),  154 linhas
+routes/             7 arquivo(s),  168 linhas
+services/           3 arquivo(s),  221 linhas
+utils/              2 arquivo(s),   14 linhas
+validators/         5 arquivo(s),  259 linhas
 ```
 
 ### Checklist de validação
@@ -450,7 +479,7 @@ validators/         2 arquivo(s),  290 linhas
 | Aplicação inicia sem erros | ✓ | ✓ | ✓ |
 | Endpoints originais respondem corretamente² | ✓ | ✓ | ✓ |
 
-¹ P3: o relatório informa 12 arquivos analisados mais 3 `__init__.py` vazios (15 no total).
+¹ P3: o relatório informa 12 arquivos analisados mais 3 `__init__.py` vazios (15 no total); a contagem de 36 arquivos em "Estrutura antes e depois" é do código depois da refatoração.
 ² Respondem com o mesmo status e formato do original, exceto as mudanças declaradas no plano (ver "Evidências de execução"). As rotas `/admin/*` (P1) e `/api/admin/*` e `DELETE /api/users/:id` (P2) passam a exigir `ADMIN_TOKEN`; sem ele respondem 403.
 
 ### Critérios de aceite
@@ -458,13 +487,13 @@ validators/         2 arquivo(s),  290 linhas
 | Critério | P1 | P2 | P3 |
 | --- | :-: | :-: | :-: |
 | Fase 1 detecta a stack corretamente | ✓ | ✓ | ✓ |
-| Fase 2 encontra ≥ 5 findings | ✓ (20) | ✓ (19) | ✓ (17) |
-| Fase 2 inclui pelo menos 1 CRITICAL ou HIGH | ✓ (11) | ✓ (10) | ✓ (7) |
+| Fase 2 encontra ≥ 5 findings | ✓ (21) | ✓ (19) | ✓ (17) |
+| Fase 2 inclui pelo menos 1 CRITICAL ou HIGH | ✓ (11) | ✓ (11) | ✓ (8) |
 | Aplicação funciona após a refatoração | ✓ | ✓ | ✓ |
 
 ### Evidências de execução
 
-Validação independente da skill, com o mesmo smoke test do baseline (`scripts/smoke.py`), rodado nas pastas refatoradas com o comando de boot original (`python app.py` e `npm start`). Saídas completas em [`evidencias/depois/`](evidencias/depois/); comparação com [`evidencias/py311-node22/`](evidencias/py311-node22/) (código original).
+Validação independente da skill, com o mesmo smoke test do baseline (`scripts/smoke.py`), rodado nas pastas refatoradas com o comando de boot original (`python app.py` e `npm start`). Saídas completas (regeneradas na iteração 5; o P2 rodou na porta 3001 porque a 3000 estava ocupada) em [`evidencias/depois/`](evidencias/depois/); comparação com [`evidencias/py311-node22/`](evidencias/py311-node22/) (código original).
 
 | Projeto | Requisições | Status como esperado | Linhas do contrato que mudaram |
 | --- | :-: | :-: | :-: |
@@ -473,13 +502,13 @@ Validação independente da skill, com o mesmo smoke test do baseline (`scripts/
 | P3 | 35 | 35/35 | 4 |
 
 **Todas as diferenças são mudanças declaradas nos planos:**
-- **P1:** `GET /health` deixa de devolver `secret_key` (e `debug` passa a `false`); `GET /usuarios` e `/usuarios/<id>` deixam de devolver `senha`; `POST /admin/query` e `/admin/reset-db` respondem 403 sem token. O login com a credencial de exemplo do seed continua funcionando.
+- **P1:** `GET /health` deixa de devolver `secret_key`, `db_path` e `debug`; `GET /usuarios` e `/usuarios/<id>` deixam de devolver `senha`; `POST /admin/query` e `/admin/reset-db` respondem 403 sem token. O login com a credencial de exemplo do seed continua funcionando.
 - **P2:** `GET /api/admin/financial-report` e `DELETE /api/users/:id` respondem 403 sem `X-Admin-Token`. As 5 chamadas de checkout ficam idênticas ao original.
-- **P3:** o campo `password` (hash) sai das respostas de `GET /users/<id>`, `POST /users`, `PUT /users/<id>` e `POST /login`. As 35 chamadas continuam com o mesmo status do original.
+- **P3:** o campo `password` (hash) sai das respostas de `GET /users/<id>`, `POST /users`, `PUT /users/<id>` e `POST /login`. As 35 chamadas continuam com o mesmo status do original. O smoke test não envia `role` privilegiado; a restrição do `role` (403 sem token, 201/200 com `X-Admin-Token`) é provada no `validation-report.md` do projeto e na iteração 5.
 
 Os 403 contam como "status inesperado" apenas porque a spec do baseline não envia o token. Com o token configurado, as rotas protegidas voltam ao comportamento original, verificado pela própria skill em `<projeto>/reports/validation-report.md` (seção "Rotas protegidas").
 
-Evidências geradas pela skill em cada projeto (`reports/`): `baseline-responses.txt` e `after-responses.txt` (P1: 78 chamadas, P2: 26, P3: 100, mesmas chamadas antes e depois), `validation-report.md` (diff real, reverificação do catálogo, limpeza) e `refactoring-plan.md`. Log de boot do P2 refatorado: [`evidencias/depois/p2.server.log`](evidencias/depois/p2.server.log).
+Evidências geradas pela skill em cada projeto (`reports/`): `baseline-responses.txt` e `after-responses.txt` (P1: 100 chamadas, P2: 28, P3: 114, mesmas chamadas antes e depois), `validation-report.md` (diff real, reverificação do catálogo, limpeza) e `refactoring-plan.md`. Log de boot do P2 refatorado: [`evidencias/depois/p2.server.log`](evidencias/depois/p2.server.log).
 
 As aplicações são APIs sem interface; no lugar de screenshots, as evidências são os logs de boot e as respostas HTTP registradas acima.
 
@@ -487,7 +516,8 @@ As aplicações são APIs sem interface; no lugar de screenshots, as evidências
 
 - **P1 (Flask, monólito em 4 arquivos):** reestruturação completa para `config/`, `db/`, `models/`, `services/`, `controllers/`, `routes/`, `validators/` e `middlewares/`. Trocou SQL concatenado por consultas parametrizadas e a conexão global por conexão por requisição.
 - **P2 (Express, uma God Class):** mesmas três fases numa stack diferente. Substituiu callbacks aninhados por `async/await`, escolheu `crypto.scrypt` no lugar do hash caseiro e criou um logger que não registra cartão nem chaves.
-- **P3 (Flask com camadas parciais):** aproveitou a organização existente (manteve `models/`, `routes/`, `services/`, `utils/`, `seed.py`) e acrescentou `controllers/`, `config/`, `middlewares/`. Removeu todas as ocorrências de `Query.get()` e `utcnow()` e migrou hashes MD5 antigos no primeiro login.
+- **P3 (Flask com camadas parciais):** aproveitou a organização existente (manteve `models/`, `routes/`, `services/`, `utils/`, `seed.py`) e acrescentou `controllers/`, `config/`, `middlewares/`, `validators/`. Removeu as ocorrências de `Query.get()` e `utcnow()`, migrou hashes MD5 antigos no primeiro login e passou a exigir `X-Admin-Token` para alterar `role` (AP-SEC-07, RF-16 nível 1).
+- **Autenticação (AP-SEC-07):** a skill distinguiu os casos: no P3 havia escalada de privilégio (CRITICAL, corrigida); no P1 e no P2 não havia campo de privilégio aceito do cliente (HIGH, só reportado). Autenticação completa continua pendente nos três.
 - **Em comum:** nos três, os endpoints originais continuaram respondendo, as rotas perigosas ficaram desligadas por padrão e nenhum servidor ficou rodando ao final da validação.
 
 ---

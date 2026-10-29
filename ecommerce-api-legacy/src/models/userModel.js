@@ -1,24 +1,20 @@
-class UserModel {
-    constructor(db) {
-        this.db = db;
-    }
+function createUserModel(db) {
+    return {
+        findByEmail: (email) => db.get('SELECT id FROM users WHERE email = ?', [email]),
 
-    findByEmail(email, executor = this.db) {
-        return executor.get('SELECT id FROM users WHERE email = ?', [email]);
-    }
+        async create({ name, email, passwordHash }, executor = db) {
+            const { lastID } = await executor.run(
+                'INSERT INTO users (name, email, pass) VALUES (?, ?, ?)',
+                [name, email, passwordHash],
+            );
+            return lastID;
+        },
 
-    async create({ name, email, passwordHash }, executor = this.db) {
-        const { lastID } = await executor.run(
-            'INSERT INTO users (name, email, pass) VALUES (?, ?, ?)',
-            [name, email, passwordHash],
-        );
-        return lastID;
-    }
-
-    async deleteById(id, executor = this.db) {
-        const { changes } = await executor.run('DELETE FROM users WHERE id = ?', [id]);
-        return changes;
-    }
+        async deleteById(id) {
+            const { changes } = await db.run('DELETE FROM users WHERE id = ?', [id]);
+            return changes;
+        },
+    };
 }
 
-module.exports = UserModel;
+module.exports = { createUserModel };

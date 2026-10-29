@@ -1,4 +1,104 @@
-### GET /rota-inexistente 
+### GET /api/admin/financial-report  
+status: 403
+Acesso negado
+
+### GET /api/admin/financial-report  [hdr: X-Admin-Token]
+status: 403
+Acesso negado
+
+### GET /api/admin/financial-report  [hdr: X-Admin-Token]
+status: 200
+[{"course":"Docker","revenue":0,"students":[]},{"course":"Clean Architecture","revenue":997,"students":[{"student":"Leonan","paid":997}]}]
+
+### POST /api/checkout body={"usr":"Guilherme","eml":"gui@fullcycle.com.br","pwd":"senhaforte","c_id":2,"card":"4111222233334444"} 
+status: 200
+{"msg":"Sucesso","enrollment_id":2}
+
+### POST /api/checkout body={"usr":"Guilherme","eml":"gui@fullcycle.com.br","c_id":1,"card":"4111222233334444"} 
+status: 200
+{"msg":"Sucesso","enrollment_id":3}
+
+### POST /api/checkout body={"usr":"João","eml":"joao@teste.com","pwd":"123","c_id":1,"card":"5111222233334444"} 
+status: 400
+Pagamento recusado
+
+### POST /api/checkout body={"usr":"Maria Recusada","eml":"maria@teste.com","pwd":"abc12345","c_id":2,"card":"5111222233334444"} 
+status: 400
+Pagamento recusado
+
+### POST /api/checkout body={"usr":"Maria","eml":"maria@teste.com","pwd":"abc12345","c_id":2,"card":"4111222233334444"} 
+status: 200
+{"msg":"Sucesso","enrollment_id":4}
+
+### POST /api/checkout body={"eml":"x@teste.com","pwd":"1","c_id":1,"card":"4111"} 
+status: 400
+Bad Request
+
+### POST /api/checkout body={} 
+status: 400
+Bad Request
+
+### POST /api/checkout  
+status: 400
+Bad Request
+
+### POST /api/checkout body={ 
+status: 400
+Bad Request
+
+### POST /api/checkout body={"usr":"A","eml":"a@teste.com","pwd":"1","c_id":999,"card":"4111"} 
+status: 404
+Curso não encontrado
+
+### POST /api/checkout body={"usr":"A","eml":"a@teste.com","pwd":"1","c_id":"abc","card":"4111"} 
+status: 400
+Bad Request
+
+### POST /api/checkout body={"usr":"Str","eml":"str@teste.com","pwd":"1","c_id":"2","card":"4111"} 
+status: 200
+{"msg":"Sucesso","enrollment_id":5}
+
+### POST /api/checkout body={"usr":"Inv","eml":"invalido","pwd":"1","c_id":2,"card":"4111"} 
+status: 400
+Bad Request
+
+### POST /api/checkout body={"usr":"SemPwd","eml":"sempwd@teste.com","c_id":2,"card":"4111"} 
+status: 400
+Bad Request
+
+### GET /api/admin/financial-report  [hdr: X-Admin-Token]
+status: 200
+[{"course":"Clean Architecture","revenue":1994,"students":[{"student":"Leonan","paid":997},{"student":"Guilherme","paid":997}]},{"course":"Docker","revenue":1491,"students":[{"student":"Guilherme","paid":497},{"student":"Maria","paid":497},{"student":"Str","paid":497}]}]
+
+### DELETE /api/users/1  
+status: 403
+Acesso negado
+
+### DELETE /api/users/1  [hdr: X-Admin-Token]
+status: 403
+Acesso negado
+
+### DELETE /api/users/1  [hdr: X-Admin-Token]
+status: 200
+Usuário deletado, mas as matrículas e pagamentos ficaram sujos no banco.
+
+### DELETE /api/users/999  [hdr: X-Admin-Token]
+status: 404
+Usuário não encontrado
+
+### DELETE /api/users/abc  [hdr: X-Admin-Token]
+status: 400
+Bad Request
+
+### DELETE /api/users/1  [hdr: X-Admin-Token]
+status: 404
+Usuário não encontrado
+
+### GET /api/admin/financial-report  [hdr: X-Admin-Token]
+status: 200
+[{"course":"Clean Architecture","revenue":1994,"students":[{"student":"Unknown","paid":997},{"student":"Guilherme","paid":997}]},{"course":"Docker","revenue":1491,"students":[{"student":"Guilherme","paid":497},{"student":"Maria","paid":497},{"student":"Str","paid":497}]}]
+
+### GET /  
 status: 404
 <!DOCTYPE html>
 <html lang="en">
@@ -7,108 +107,19 @@ status: 404
 <title>Error</title>
 </head>
 <body>
-<pre>Cannot GET /rota-inexistente</pre>
+<pre>Cannot GET /</pre>
 </body>
 </html>
 
-### GET /api/admin/financial-report 
-status: 403
-Acesso negado
-
-### GET /api/admin/financial-report  X-Admin-Token: tok-teste
-status: 200
-[{"course":"Docker","revenue":0,"students":[]},{"course":"Clean Architecture","revenue":997,"students":[{"student":"Leonan","paid":997}]}]
-
-### POST /api/checkout body={"usr":"Guilherme","eml":"gui@fullcycle.com.br","pwd":"senhaforte","c_id":2,"card":"4111222233334444"}
-status: 200
-{"msg":"Sucesso","enrollment_id":2}
-
-### POST /api/checkout body={"usr":"Leonan","eml":"leonan@fullcycle.com.br","pwd":"123","c_id":1,"card":"4111222233334444"}
-status: 200
-{"msg":"Sucesso","enrollment_id":3}
-
-### POST /api/checkout body={"usr":"João","eml":"joao@teste.com","pwd":"123","c_id":1,"card":"5111222233334444"}
-status: 400
-Pagamento recusado
-
-### POST /api/checkout body={"usr":"Maria","eml":"maria@x.com","pwd":"abc","c_id":1,"card":"5111222233334444"}
-status: 400
-Pagamento recusado
-
-### POST /api/checkout body={"usr":"Maria Nova","eml":"maria@x.com","pwd":"abc","c_id":1,"card":"4111222233334444"}
-status: 200
-{"msg":"Sucesso","enrollment_id":4}
-
-### POST /api/checkout body={"usr":"A"}
+### POST /api/checkout body={"usr":"T","eml":"t1@teste.com","pwd":"1","c_id":2,"card":4111222233334444} 
 status: 400
 Bad Request
 
-### POST /api/checkout body={}
+processo vivo após card numérico: sim
+
+### POST /api/checkout body={"usr":"T","eml":"t2@teste.com","pwd":123,"c_id":2,"card":"4111"} 
 status: 400
 Bad Request
 
-### POST /api/checkout body={
-status: 400
-Bad Request
+processo vivo após pwd numérico: sim
 
-### POST /api/checkout body={"usr":"Sem Arroba","eml":"sem-arroba","pwd":"x","c_id":1,"card":"4111"}
-status: 400
-Bad Request
-
-### POST /api/checkout body={"usr":"Z","eml":"z@x.com","pwd":"x","c_id":999,"card":"4111"}
-status: 404
-Curso não encontrado
-
-### POST /api/checkout body={"usr":"Z","eml":"z2@x.com","pwd":"x","c_id":"abc","card":"4111"}
-status: 400
-Bad Request
-
-### POST /api/checkout body={"usr":"StrId","eml":"strid@x.com","pwd":"x","c_id":"2","card":"4111"}
-status: 200
-{"msg":"Sucesso","enrollment_id":5}
-
-### POST /api/checkout body={"usr":"SemSenha","eml":"nopwd@x.com","c_id":2,"card":"4111"}
-status: 400
-Bad Request
-
-### GET /api/admin/financial-report 
-status: 403
-Acesso negado
-
-### GET /api/admin/financial-report  X-Admin-Token: tok-teste
-status: 200
-[{"course":"Clean Architecture","revenue":2991,"students":[{"student":"Leonan","paid":997},{"student":"Leonan","paid":997},{"student":"Maria Nova","paid":997}]},{"course":"Docker","revenue":994,"students":[{"student":"Guilherme","paid":497},{"student":"StrId","paid":497}]}]
-
-### DELETE /api/users/abc 
-status: 403
-Acesso negado
-
-### DELETE /api/users/abc  X-Admin-Token: tok-teste
-status: 400
-Bad Request
-
-### DELETE /api/users/9999  X-Admin-Token: tok-teste
-status: 404
-Usuário não encontrado
-
-### DELETE /api/users/1 
-status: 403
-Acesso negado
-
-### DELETE /api/users/1  X-Admin-Token: tok-teste
-status: 200
-Usuário deletado, mas as matrículas e pagamentos ficaram sujos no banco.
-
-### GET /api/admin/financial-report  X-Admin-Token: tok-teste
-status: 200
-[{"course":"Clean Architecture","revenue":2991,"students":[{"student":"Unknown","paid":997},{"student":"Unknown","paid":997},{"student":"Maria Nova","paid":997}]},{"course":"Docker","revenue":994,"students":[{"student":"Guilherme","paid":497},{"student":"StrId","paid":497}]}]
-
-### POST /api/checkout body={"usr":"Num","eml":"num@x.com","pwd":"x","c_id":1,"card":4111}
-status: 400
-Bad Request
-
-### GET /api/admin/financial-report  X-Admin-Token: tok-teste
-status: 200
-[{"course":"Clean Architecture","revenue":2991,"students":[{"student":"Unknown","paid":997},{"student":"Unknown","paid":997},{"student":"Maria Nova","paid":997}]},{"course":"Docker","revenue":994,"students":[{"student":"Guilherme","paid":497},{"student":"StrId","paid":497}]}]
-
-processo vivo no fim

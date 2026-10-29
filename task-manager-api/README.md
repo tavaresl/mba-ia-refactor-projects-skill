@@ -12,10 +12,27 @@ python app.py
 
 A aplicação sobe em `http://localhost:5000`. O `seed.py` popula o banco SQLite (`tasks.db`) com usuários, categorias e tasks de exemplo — **rode-o antes do primeiro boot**, caso contrário os endpoints vão retornar listas vazias.
 
-## Configuração
-
-A configuração vem de variáveis de ambiente (ou de um `.env` na raiz; veja `.env.example`): `SECRET_KEY`, `DATABASE_URL`, `DEBUG` (padrão `false`), `HOST`, `PORT` (padrão `5000`) e `SMTP_*`. Sem `SECRET_KEY`, a aplicação gera uma chave aleatória a cada execução.
-
 ## Estrutura
 
-`config/` (settings), `models/` (dados), `routes/` (rotas finas), `validators/` (validação de entrada), `controllers/` (casos de uso), `services/` (regras de relatório, autenticação, notificação), `middlewares/` (tratamento central de erros) e `app.py` (`create_app`, ponto de composição).
+```
+app.py            # create_app() (composition root) e entry point
+seed.py           # dados de exemplo
+config/           # settings (ambiente) e constantes
+models/           # User, Task, Category e db
+validators/       # validação de entrada
+controllers/      # orquestração dos casos de uso
+services/         # relatórios/estatísticas e notificações
+routes/           # blueprints (método + path)
+middlewares/      # erros e credencial de administrador
+utils/            # datas
+```
+
+## Configuração
+
+Copie `.env.example` para `.env` (ou exporte as variáveis). Principais:
+
+- `SECRET_KEY`, `SMTP_USER`, `SMTP_PASSWORD`: segredos, sem valor padrão.
+- `DEBUG` (padrão `false`), `HOST` (`0.0.0.0`), `PORT` (`5000`), `DATABASE_URL` (`sqlite:///tasks.db`).
+- `ADMIN_TOKEN`: habilita definir/alterar o campo `role` em `POST/PUT /users` com o header `X-Admin-Token`. Sem ele, o `role` só pode ser o padrão (`user`) ou o valor atual; qualquer outro retorna 403.
+
+Senhas passam a ser gravadas com scrypt; hashes MD5 antigos continuam válidos e são regravados no primeiro login.

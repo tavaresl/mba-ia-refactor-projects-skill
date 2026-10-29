@@ -1,73 +1,101 @@
 """Script para popular o banco com dados iniciais"""
 from datetime import timedelta
 
-from sqlalchemy import delete
+from sqlalchemy import delete, func, select
 
-from app import app, db
-from models.category import Category
-from models.database import utc_now
-from models.task import Task
-from models.user import User
-
-SEED_USERS = [
-    {'name': 'João Silva', 'email': 'joao@email.com', 'password': '1234', 'role': 'admin'},
-    {'name': 'Maria Santos', 'email': 'maria@email.com', 'password': 'abcd', 'role': 'user'},
-    {'name': 'Pedro Oliveira', 'email': 'pedro@email.com', 'password': 'pass', 'role': 'manager'},
-]
-
-SEED_CATEGORIES = [
-    {'name': 'Backend', 'description': 'Tarefas de backend', 'color': '#3498db'},
-    {'name': 'Frontend', 'description': 'Tarefas de frontend', 'color': '#2ecc71'},
-    {'name': 'DevOps', 'description': 'Tarefas de infraestrutura', 'color': '#e74c3c'},
-    {'name': 'Bug', 'description': 'Correção de bugs', 'color': '#e67e22'},
-]
-
-
-def build_tasks_data(users, categories):
-    joao, maria, pedro = users
-    backend, frontend, devops, bug = categories
-    now = utc_now()
-    return [
-        {'title': 'Implementar autenticação JWT', 'description': 'Adicionar autenticação real com JWT', 'status': 'pending', 'priority': 1, 'user_id': joao.id, 'category_id': backend.id, 'due_date': now - timedelta(days=3)},
-        {'title': 'Criar tela de login', 'description': 'Tela de login responsiva', 'status': 'in_progress', 'priority': 2, 'user_id': maria.id, 'category_id': frontend.id, 'due_date': now + timedelta(days=5)},
-        {'title': 'Configurar CI/CD', 'description': 'Pipeline com GitHub Actions', 'status': 'done', 'priority': 2, 'user_id': pedro.id, 'category_id': devops.id, 'tags': 'devops,ci,github'},
-        {'title': 'Corrigir bug no filtro de busca', 'description': 'Filtro não funciona com caracteres especiais', 'status': 'pending', 'priority': 1, 'user_id': joao.id, 'category_id': bug.id, 'due_date': now - timedelta(days=1)},
-        {'title': 'Adicionar paginação na API', 'description': 'Endpoints retornam todos os registros', 'status': 'pending', 'priority': 3, 'user_id': joao.id, 'category_id': backend.id, 'due_date': now + timedelta(days=10)},
-        {'title': 'Escrever testes unitários', 'description': 'Cobertura mínima de 80%', 'status': 'pending', 'priority': 2, 'user_id': maria.id, 'category_id': backend.id},
-        {'title': 'Documentar API com Swagger', 'description': 'Gerar documentação automática', 'status': 'cancelled', 'priority': 4, 'user_id': pedro.id, 'category_id': backend.id},
-        {'title': 'Refatorar models', 'description': 'Melhorar organização dos models', 'status': 'in_progress', 'priority': 3, 'user_id': maria.id, 'category_id': backend.id, 'tags': 'refactor,tech-debt'},
-        {'title': 'Configurar monitoramento', 'description': 'Prometheus + Grafana', 'status': 'pending', 'priority': 4, 'user_id': pedro.id, 'category_id': devops.id, 'due_date': now + timedelta(days=20)},
-        {'title': 'Melhorar validações de input', 'description': 'Usar marshmallow ou pydantic', 'status': 'pending', 'priority': 3, 'user_id': joao.id, 'category_id': backend.id, 'tags': 'improvement,validation'},
-    ]
-
+from app import app
+from models import Category, Task, User, db
+from utils.dates import utc_now
 
 def seed_data():
     with app.app_context():
-        for model in (Task, User, Category):
-            db.session.execute(delete(model))
+
+        db.session.execute(delete(Task))
+        db.session.execute(delete(User))
+        db.session.execute(delete(Category))
         db.session.commit()
 
-        users = []
-        for user_data in SEED_USERS:
-            user = User(name=user_data['name'], email=user_data['email'], role=user_data['role'])
-            user.set_password(user_data['password'])
-            db.session.add(user)
-            users.append(user)
+        u1 = User()
+        u1.name = 'João Silva'
+        u1.email = 'joao@email.com'
+        u1.set_password('1234')
+        u1.role = 'admin'
+        db.session.add(u1)
+
+        u2 = User()
+        u2.name = 'Maria Santos'
+        u2.email = 'maria@email.com'
+        u2.set_password('abcd')
+        u2.role = 'user'
+        db.session.add(u2)
+
+        u3 = User()
+        u3.name = 'Pedro Oliveira'
+        u3.email = 'pedro@email.com'
+        u3.set_password('pass')
+        u3.role = 'manager'
+        db.session.add(u3)
+
         db.session.commit()
 
-        categories = [Category(**category_data) for category_data in SEED_CATEGORIES]
-        db.session.add_all(categories)
+        c1 = Category()
+        c1.name = 'Backend'
+        c1.description = 'Tarefas de backend'
+        c1.color = '#3498db'
+        db.session.add(c1)
+
+        c2 = Category()
+        c2.name = 'Frontend'
+        c2.description = 'Tarefas de frontend'
+        c2.color = '#2ecc71'
+        db.session.add(c2)
+
+        c3 = Category()
+        c3.name = 'DevOps'
+        c3.description = 'Tarefas de infraestrutura'
+        c3.color = '#e74c3c'
+        db.session.add(c3)
+
+        c4 = Category()
+        c4.name = 'Bug'
+        c4.description = 'Correção de bugs'
+        c4.color = '#e67e22'
+        db.session.add(c4)
+
         db.session.commit()
 
-        for task_data in build_tasks_data(users, categories):
-            db.session.add(Task(**task_data))
-        db.session.commit()
+        tasks_data = [
+            {'title': 'Implementar autenticação JWT', 'description': 'Adicionar autenticação real com JWT', 'status': 'pending', 'priority': 1, 'user_id': u1.id, 'category_id': c1.id, 'due_date': utc_now() - timedelta(days=3)},
+            {'title': 'Criar tela de login', 'description': 'Tela de login responsiva', 'status': 'in_progress', 'priority': 2, 'user_id': u2.id, 'category_id': c2.id, 'due_date': utc_now() + timedelta(days=5)},
+            {'title': 'Configurar CI/CD', 'description': 'Pipeline com GitHub Actions', 'status': 'done', 'priority': 2, 'user_id': u3.id, 'category_id': c3.id, 'tags': 'devops,ci,github'},
+            {'title': 'Corrigir bug no filtro de busca', 'description': 'Filtro não funciona com caracteres especiais', 'status': 'pending', 'priority': 1, 'user_id': u1.id, 'category_id': c4.id, 'due_date': utc_now() - timedelta(days=1)},
+            {'title': 'Adicionar paginação na API', 'description': 'Endpoints retornam todos os registros', 'status': 'pending', 'priority': 3, 'user_id': u1.id, 'category_id': c1.id, 'due_date': utc_now() + timedelta(days=10)},
+            {'title': 'Escrever testes unitários', 'description': 'Cobertura mínima de 80%', 'status': 'pending', 'priority': 2, 'user_id': u2.id, 'category_id': c1.id},
+            {'title': 'Documentar API com Swagger', 'description': 'Gerar documentação automática', 'status': 'cancelled', 'priority': 4, 'user_id': u3.id, 'category_id': c1.id},
+            {'title': 'Refatorar models', 'description': 'Melhorar organização dos models', 'status': 'in_progress', 'priority': 3, 'user_id': u2.id, 'category_id': c1.id, 'tags': 'refactor,tech-debt'},
+            {'title': 'Configurar monitoramento', 'description': 'Prometheus + Grafana', 'status': 'pending', 'priority': 4, 'user_id': u3.id, 'category_id': c3.id, 'due_date': utc_now() + timedelta(days=20)},
+            {'title': 'Melhorar validações de input', 'description': 'Usar marshmallow ou pydantic', 'status': 'pending', 'priority': 3, 'user_id': u1.id, 'category_id': c1.id, 'tags': 'improvement,validation'},
+        ]
 
+        for td in tasks_data:
+            t = Task()
+            t.title = td['title']
+            t.description = td['description']
+            t.status = td['status']
+            t.priority = td['priority']
+            t.user_id = td['user_id']
+            t.category_id = td['category_id']
+            if 'due_date' in td:
+                t.due_date = td['due_date']
+            if 'tags' in td:
+                t.tags = td['tags']
+            db.session.add(t)
+
+        db.session.commit()
         print("Seed concluído com sucesso!")
-        print(f"  {User.count_all()} usuários")
-        print(f"  {Category.count_all()} categorias")
-        print(f"  {Task.count_all()} tasks")
-
+        for model, label in ((User, 'usuários'), (Category, 'categorias'), (Task, 'tasks')):
+            total = db.session.scalar(select(func.count()).select_from(model))
+            print(f"  {total} {label}")
 
 if __name__ == '__main__':
     seed_data()

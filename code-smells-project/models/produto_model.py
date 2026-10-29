@@ -1,78 +1,62 @@
-"""Acesso a dados de produtos (SQL parametrizado)."""
-from db.connection import get_db
+"""Acesso a dados de produtos (SQL parametrizado, sem HTTP)."""
 
-BUSCA_SQL = """
-    SELECT * FROM produtos
-    WHERE (:termo = '' OR nome LIKE '%' || :termo || '%' OR descricao LIKE '%' || :termo || '%')
-      AND (:categoria IS NULL OR categoria = :categoria)
-      AND (:preco_min IS NULL OR preco >= :preco_min)
-      AND (:preco_max IS NULL OR preco <= :preco_max)
-    ORDER BY id
-"""
+COLUNAS = ("id", "nome", "descricao", "preco", "estoque", "categoria", "ativo", "criado_em")
 
 
-def para_dict(row):
-    return {
-        "id": row["id"],
-        "nome": row["nome"],
-        "descricao": row["descricao"],
-        "preco": row["preco"],
-        "estoque": row["estoque"],
-        "categoria": row["categoria"],
-        "ativo": row["ativo"],
-        "criado_em": row["criado_em"],
-    }
+def serializar(linha):
+    return {coluna: linha[coluna] for coluna in COLUNAS}
 
 
-def listar():
-    rows = get_db().execute("SELECT * FROM produtos ORDER BY id").fetchall()
-    return [para_dict(row) for row in rows]
+def listar(conn):
+    return [serializar(linha) for linha in conn.execute("SELECT * FROM produtos").fetchall()]
 
 
-def buscar_row_por_id(produto_id):
-    return get_db().execute("SELECT * FROM produtos WHERE id = ?", (produto_id,)).fetchone()
+def obter(conn, produto_id):
+    linha = conn.execute("SELECT * FROM produtos WHERE id = ?", (produto_id,)).fetchone()
+    return serializar(linha) if linha else None
 
 
-def buscar_por_id(produto_id):
-    row = buscar_row_por_id(produto_id)
-    return para_dict(row) if row else None
-
-
-def criar(nome, descricao, preco, estoque, categoria):
-    cursor = get_db().execute(
+def criar(conn, nome, descricao, preco, estoque, categoria):
+    cursor = conn.execute(
         "INSERT INTO produtos (nome, descricao, preco, estoque, categoria) VALUES (?, ?, ?, ?, ?)",
         (nome, descricao, preco, estoque, categoria),
     )
     return cursor.lastrowid
 
 
-def atualizar(produto_id, nome, descricao, preco, estoque, categoria):
-    get_db().execute(
+def atualizar(conn, produto_id, nome, descricao, preco, estoque, categoria):
+    conn.execute(
         "UPDATE produtos SET nome = ?, descricao = ?, preco = ?, estoque = ?, categoria = ? WHERE id = ?",
         (nome, descricao, preco, estoque, categoria, produto_id),
     )
 
 
-def deletar(produto_id):
-    get_db().execute("DELETE FROM produtos WHERE id = ?", (produto_id,))
+def deletar(conn, produto_id):
+    conn.execute("DELETE FROM produtos WHERE id = ?", (produto_id,))
 
 
-def baixar_estoque(produto_id, quantidade):
-    get_db().execute(
-        "UPDATE produtos SET estoque = estoque - ? WHERE id = ?", (quantidade, produto_id)
-    )
+def baixar_estoque(conn, produto_id, quantidade):
+    conn.execute("UPDATE produtos SET estoque = estoque - ? WHERE id = ?", (quantidade, produto_id))
 
 
-def buscar(termo, categoria=None, preco_min=None, preco_max=None):
-    # Filtros 0/vazio são ignorados, como na API original.
-    params = {
-        "termo": termo or "",
-        "categoria": categoria or None,
-        "preco_min": preco_min or None,
-        "preco_max": preco_max or None,
-    }
-    return [para_dict(row) for row in get_db().execute(BUSCA_SQL, params).fetchall()]
+def buscar(conn, termo, categoria=None, preco_min=None, preco_max=None):
+    # Só trechos SQL fixos são concatenados; todos os valores vão como parâmetros.
+    sql = "SELECT * FROM produtos WHERE 1=1"
+    parametros = []
+    if termo:
+        sql += " AND (nome LIKE ? OR descricao LIKE ?)"
+        parametros += [f"%{termo}%", f"%{termo}%"]
+    if categoria:
+        sql += " AND categoria = ?"
+        parametros.append(categoria)
+    if preco_min:
+        sql += " AND preco >= ?"
+        parametros.append(preco_min)
+    if preco_max:
+        sql += " AND preco <= ?"
+        parametros.append(preco_max)
+    return [serializar(linha) for linha in conn.execute(sql, parametros).fetchall()]
 
 
-def contar():
-    return get_db().execute("SELECT COUNT(*) FROM produtos").fetchone()[0]
+def contar(conn):
+    return conn.execute("SELECT COUNT(*) FROM produtos").fetchone()[0]

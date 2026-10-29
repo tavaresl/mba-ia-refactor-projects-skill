@@ -1,28 +1,33 @@
 # Validation Report
 
 ## Ambiente
-- Porta usada: 3000 no baseline (fixa no código original; livre antes do boot: sim) e 5050 no app refatorado via PORT (livre antes do boot: sim); 5051 no teste de concorrência (livre: sim)
-- Boot baseline: `node src/app.js` — log: `Frankenstein LMS rodando na porta 3000...`
-- Boot refatorado: `npm start` (`node src/app.js`) com `PORT=5050 ADMIN_TOKEN=tok-teste` — log: `[INFO] Frankenstein LMS rodando na porta 5050...`
-- Estado de dados: banco SQLite `:memory:` recriado a cada boot; o projeto não tem arquivo de dados (nada a restaurar)
-- Cópia dos fontes originais: `reports/.tmp/original-src/` (removida na limpeza)
+- Porta usada: 5050 (baseline, app original) e 5051 (app refatorado); concorrência em 5052. Todas livres antes do boot: sim (script confere via `/dev/tcp`).
+- Porta 3000 (padrão): ocupada por um processo `ssh` do usuário (PID 57123), que **não foi encerrado**. O app original fixa a porta no código (`src/utils.js:6`), então o baseline foi capturado com um pré-carregamento (`node -r reports/.tmp/port-override.js`) que só redireciona `listen(3000)` para `PORT`, sem editar o código original. O app refatorado lê `PORT` (padrão 3000).
+- Boot refatorado: `node src/app.js` (= `npm start`) com `PORT=5051`:
+```
+[INFO] Frankenstein LMS rodando na porta 5051...
+```
+- Dependências: `npm ci` (lock inalterado: `cmp package-lock.json` e `cmp package.json` contra a cópia original = idênticos). O `sqlite3` precisou de `prebuild-install -r napi` dentro de `node_modules/sqlite3`, porque o npm 12 não executa scripts de instalação por padrão.
+- Estado de dados: banco SQLite em memória, recriado a cada boot (nada a restaurar). `ADMIN_TOKEN=teste-admin-token` e `PAYMENT_GATEWAY_KEY=pk_test_fake_key_for_validation` definidos só nas execuções de teste (o original ignora as duas).
+- Chamadas: 25 no fluxo principal + 2 boots separados (`card` numérico e `pwd` numérico), mesma sequência no original e no refatorado (`reports/.tmp/validate.sh`).
 
 ## Baseline × depois
-Chamadas idênticas e na mesma ordem (`reports/baseline-responses.txt` × `reports/after-responses.txt`). O app original ignora o header `X-Admin-Token`; no depois o valor é `tok-teste`.
+Comando: `diff <(mask baseline-responses.txt) <(mask after-responses.txt)` (máscara de datas e caminhos absolutos). Saída real:
 
 ```
-$ diff reports/baseline-responses.txt reports/after-responses.txt
-15,16c15,16
+2,3c2,3
 < status: 200
 < [{"course":"Docker","revenue":0,"students":[]},{"course":"Clean Architecture","revenue":997,"students":[{"student":"Leonan","paid":997}]}]
 ---
 > status: 403
 > Acesso negado
-18c18
-< ### GET /api/admin/financial-report  X-Admin-Token: qualquer
+6,7c6,7
+< status: 200
+< [{"course":"Docker","revenue":0,"students":[]},{"course":"Clean Architecture","revenue":997,"students":[{"student":"Leonan","paid":997}]}]
 ---
-> ### GET /api/admin/financial-report  X-Admin-Token: tok-teste
-52,59c52
+> status: 403
+> Acesso negado
+47,56c47
 < <!DOCTYPE html>
 < <html lang="en">
 < <head>
@@ -30,252 +35,277 @@ $ diff reports/baseline-responses.txt reports/after-responses.txt
 < <title>Error</title>
 < </head>
 < <body>
-< <pre>SyntaxError: Expected property name or &#39;}&#39; in JSON at position 1 (line 1 column 2)<br> &nbsp; &nbsp;at JSON.parse (&lt;anonymous&gt;)<br> &nbsp; &nbsp;at parse (/Users/lukaorocha/Dev/mba-ia-refactor-projects-skill/ecommerce-api-legacy/node_modules/body-parser/lib/types/json.js:92:19)<br>
+< <pre>SyntaxError: Expected property name or &#39;}&#39; in JSON at position 1 (line 1 column 2)<br> &nbsp; &nbsp;at JSON.parse (&lt;anonymous&gt;)<br> &nbsp; &nbsp;at parse (<path>/node_modules/body-parser/lib/types/json.js:92:19)<br> &nbsp; &nbsp;at <path>/node_modules/body-parser/lib/read.js:128:18<br> &nbsp; &nbsp;at AsyncResource.runInAsyncScope (node:async_hooks:226:14)<br> &nbsp; &nbsp;at invokeCallback (<path>/node_modules/raw-body/index.js:238:16)<br> &nbsp; &nbsp;at done (<path>/node_modules/raw-body/index.js:227:7)<br> &nbsp; &nbsp;at IncomingMessage.onEnd (<path>/node_modules/raw-body/index.js:287:7)<br> &nbsp; &nbsp;at IncomingMessage.emit (node:events:509:20)<br> &nbsp; &nbsp;at endReadableNT (node:internal/streams/readable:1753:12)<br> &nbsp; &nbsp;at process.processTicksAndRejections (node:internal/process/task_queues:90:21)</pre>
+< </body>
+< </html>
 ---
 > Bad Request
-62,63c55,56
-< status: 200
-< {"msg":"Sucesso","enrollment_id":5}
----
-> status: 400
-> Bad Request
-70,71c63,64
+63,64c54,55
 < status: 404
 < Curso não encontrado
 ---
 > status: 400
 > Bad Request
-75c68
+71,72c62,63
+< status: 200
 < {"msg":"Sucesso","enrollment_id":6}
 ---
-> {"msg":"Sucesso","enrollment_id":5}
-78,79c71,72
+> status: 400
+> Bad Request
+75,76c66,67
 < status: 200
 < {"msg":"Sucesso","enrollment_id":7}
 ---
 > status: 400
 > Bad Request
-82,83c75,76
-< status: 200
-< [{"course":"Docker","revenue":1491,"students":[{"student":"Guilherme","paid":497},{"student":"StrId","paid":497},{"student":"SemSenha","paid":497}]},{"course":"Clean Architecture","revenue":3988,"students":[{"student":"Leonan","paid":997},{"student":"Leonan","paid":997},{"student":"Sem Arroba","paid":997},{"student":"Maria","paid":997}]}]
+80c71
+< [{"course":"Docker","revenue":2485,"students":[{"student":"Str","paid":497},{"student":"Inv","paid":497},{"student":"SemPwd","paid":497},{"student":"Maria Recusada","paid":497},{"student":"Guilherme","paid":497}]},{"course":"Clean Architecture","revenue":1994,"students":[{"student":"Guilherme","paid":997},{"student":"Leonan","paid":997}]}]
 ---
-> status: 403
-> Acesso negado
-85c78
-< ### GET /api/admin/financial-report  X-Admin-Token: qualquer
----
-> ### GET /api/admin/financial-report  X-Admin-Token: tok-teste
-87c80
-< [{"course":"Docker","revenue":1491,"students":[{"student":"Guilherme","paid":497},{"student":"SemSenha","paid":497},{"student":"StrId","paid":497}]},{"course":"Clean Architecture","revenue":3988,"students":[{"student":"Leonan","paid":997},{"student":"Maria","paid":997},{"student":"Leonan","paid":997},{"student":"Sem Arroba","paid":997}]}]
----
-> [{"course":"Clean Architecture","revenue":2991,"students":[{"student":"Leonan","paid":997},{"student":"Leonan","paid":997},{"student":"Maria Nova","paid":997}]},{"course":"Docker","revenue":994,"students":[{"student":"Guilherme","paid":497},{"student":"StrId","paid":497}]}]
-90,91c83,84
+> [{"course":"Clean Architecture","revenue":1994,"students":[{"student":"Leonan","paid":997},{"student":"Guilherme","paid":997}]},{"course":"Docker","revenue":1491,"students":[{"student":"Guilherme","paid":497},{"student":"Maria","paid":497},{"student":"Str","paid":497}]}]
+83,84c74,75
 < status: 200
 < Usuário deletado, mas as matrículas e pagamentos ficaram sujos no banco.
 ---
 > status: 403
 > Acesso negado
-93,95c86,88
-< ### DELETE /api/users/abc  X-Admin-Token: qualquer
+87,88c78,79
 < status: 200
 < Usuário deletado, mas as matrículas e pagamentos ficaram sujos no banco.
 ---
-> ### DELETE /api/users/abc  X-Admin-Token: tok-teste
-> status: 400
-> Bad Request
-97,99c90,92
-< ### DELETE /api/users/9999  X-Admin-Token: qualquer
+> status: 403
+> Acesso negado
+95,96c86,87
 < status: 200
 < Usuário deletado, mas as matrículas e pagamentos ficaram sujos no banco.
 ---
-> ### DELETE /api/users/9999  X-Admin-Token: tok-teste
 > status: 404
 > Usuário não encontrado
-102,103c95,96
+99,100c90,91
 < status: 200
 < Usuário deletado, mas as matrículas e pagamentos ficaram sujos no banco.
 ---
-> status: 403
-> Acesso negado
-105c98
-< ### DELETE /api/users/1  X-Admin-Token: qualquer
+> status: 400
+> Bad Request
+103,104c94,95
+< status: 200
+< Usuário deletado, mas as matrículas e pagamentos ficaram sujos no banco.
 ---
-> ### DELETE /api/users/1  X-Admin-Token: tok-teste
-109c102
-< ### GET /api/admin/financial-report  X-Admin-Token: qualquer
+> status: 404
+> Usuário não encontrado
+108c99
+< [{"course":"Clean Architecture","revenue":1994,"students":[{"student":"Unknown","paid":997},{"student":"Guilherme","paid":997}]},{"course":"Docker","revenue":2485,"students":[{"student":"Guilherme","paid":497},{"student":"Inv","paid":497},{"student":"SemPwd","paid":497},{"student":"Maria Recusada","paid":497},{"student":"Str","paid":497}]}]
 ---
-> ### GET /api/admin/financial-report  X-Admin-Token: tok-teste
-111c104
-< [{"course":"Docker","revenue":1491,"students":[{"student":"StrId","paid":497},{"student":"SemSenha","paid":497},{"student":"Guilherme","paid":497}]},{"course":"Clean Architecture","revenue":3988,"students":[{"student":"Maria","paid":997},{"student":"Unknown","paid":997},{"student":"Unknown","paid":997},{"student":"Sem Arroba","paid":997}]}]
----
-> [{"course":"Clean Architecture","revenue":2991,"students":[{"student":"Unknown","paid":997},{"student":"Unknown","paid":997},{"student":"Maria Nova","paid":997}]},{"course":"Docker","revenue":994,"students":[{"student":"Guilherme","paid":497},{"student":"StrId","paid":497}]}]
-114,115c107,108
+> [{"course":"Clean Architecture","revenue":1994,"students":[{"student":"Unknown","paid":997},{"student":"Guilherme","paid":997}]},{"course":"Docker","revenue":1491,"students":[{"student":"Guilherme","paid":497},{"student":"Maria","paid":497},{"student":"Str","paid":497}]}]
+124c115,116
 < status: 000
-< [{"course":"Docker","revenue":1491,"students":[{"student":"StrId","paid":497},{"student":"SemSenha","paid":497},{"student":"Guilherme","paid":497}]},{"course":"Clean Architecture","revenue":3988,"students":[{"student":"Maria","paid":997},{"student":"Unknown","paid":997},{"student":"Unknown","paid":997},{"student":"Sem Arroba","paid":997}]}]
 ---
 > status: 400
 > Bad Request
-117,119c110,112
-< ### GET /api/admin/financial-report  X-Admin-Token: qualquer
+125a118
+> processo vivo após card numérico: sim
+127,128d119
+< processo vivo após card numérico: NAO (servidor caiu)
+< 
+130c121,122
 < status: 000
-< [{"course":"Docker","revenue":1491,"students":[{"student":"StrId","paid":497},{"student":"SemSenha","paid":497},{"student":"Guilherme","paid":497}]},{"course":"Clean Architecture","revenue":3988,"students":[{"student":"Maria","paid":997},{"student":"Unknown","paid":997},{"student":"Unknown","paid":997},{"student":"Sem Arroba","paid":997}]}]
 ---
-> ### GET /api/admin/financial-report  X-Admin-Token: tok-teste
-> status: 200
-> [{"course":"Clean Architecture","revenue":2991,"students":[{"student":"Unknown","paid":997},{"student":"Unknown","paid":997},{"student":"Maria Nova","paid":997}]},{"course":"Docker","revenue":994,"students":[{"student":"Guilherme","paid":497},{"student":"StrId","paid":497}]}]
-121c114
-< processo morto no fim
+> status: 400
+> Bad Request
+132,133c124
+< 
+< processo vivo após pwd numérico: NAO (servidor caiu)
 ---
-> processo vivo no fim
+> processo vivo após pwd numérico: sim
 ```
 
-| Diferença | Esperada? | Mudança intencional do plano |
+| Diferença (linhas do diff) | Esperada? | Mudança intencional do plano |
 |---|---|---|
-| GET relatório sem token: 200 → 403 `Acesso negado` (antes e depois dos checkouts) | sim | [segurança] relatório exige `X-Admin-Token` |
-| GET relatório com token (seed): corpo idêntico ao baseline (só o texto do header muda na linha de cabeçalho) | sim | prova da rota protegida |
-| POST `{`: página HTML com stack trace → 400 `Bad Request` | sim | [segurança + entrada inválida] |
-| POST `eml: "sem-arroba"`: 200 → 400 `Bad Request` | sim | [entrada inválida] |
-| POST `c_id: "abc"`: 404 `Curso não encontrado` → 400 `Bad Request` | sim | [entrada inválida] |
-| POST `c_id: "2"`: continua 200; `enrollment_id` 6 → 5 | sim | consequência de "sem-arroba" não gerar mais matrícula (ID sequencial) |
-| POST sem `pwd` (usuário novo): 200 → 400 `Bad Request` | sim | [entrada inválida] |
-| DELETE sem token (`abc` e `1`): 200 → 403 `Acesso negado` | sim | [segurança] |
-| DELETE `abc` com token: 200 → 400; DELETE `9999` com token: 200 → 404 `Usuário não encontrado` | sim | [entrada inválida] |
-| DELETE `1` com token: 200 e mesma mensagem | sim | prova da rota protegida |
-| POST `card: 4111` (número): processo morria (status 000) → 400 `Bad Request`; GET seguinte 000 → 200; "processo morto" → "processo vivo" | sim | [entrada inválida] |
-| Relatório após os checkouts: faltam "Sem Arroba" e "SemSenha"; aparece "Maria Nova" em vez de "Maria"; totais menores | sim | consequência de rejeitar entradas inválidas e de a recusa de pagamento não criar mais o usuário ([entrada inválida]) |
-| Relatório: ordem dos cursos e dos alunos | **não estava no plano** | No original a ordem dependia de corrida entre callbacks: dois GET idênticos seguidos devolveram os alunos em ordens diferentes (`Guilherme,StrId,SemSenha` e `Guilherme,SemSenha,StrId`). Agora é determinística (cursos sem matrículas primeiro, depois por id do curso; alunos por id da matrícula). Não altera campos nem valores, mas é diferença não prevista e fica registrada. |
+| `GET /api/admin/financial-report` sem token e com token errado: 200 → 403 `Acesso negado` (2–3, 6–7) | sim | [segurança] rotas admin exigem `X-Admin-Token` (AP-SEC-05) |
+| `POST /api/checkout` com `{`: HTML com stack trace → `Bad Request` (status 400 igual) (47) | sim | [segurança] AP-SEC-06 |
+| `c_id: "abc"`: 404 `Curso não encontrado` → 400 `Bad Request` (63–64) | sim | [entrada inválida] `c_id` não inteiro positivo |
+| `eml: "invalido"`: 200 → 400 `Bad Request` (71–72) | sim | [entrada inválida] formato de e-mail |
+| e-mail novo sem `pwd`: 200 → 400 `Bad Request` (75–76) | sim | [entrada inválida] usuário novo exige `pwd` (e-mail existente sem `pwd` segue 200: sem diff na chamada 2 do checkout) |
+| Relatório (80, 108): "Maria Recusada" → "Maria"; "Inv" e "SemPwd" ausentes (receita Docker 2485 → 1491 = −2×497); ordem dos cursos/alunos | sim | [entrada inválida] recusa não grava usuário; as duas matrículas somem porque seus checkouts agora são rejeitados (linhas 71–76). A ordem do original é não determinística (Docker primeiro nesta captura, Clean Architecture primeiro em outra; alunos em ordens diferentes entre os dois relatórios da mesma execução); passou a ser determinística (cursos sem matrícula primeiro, depois por id; alunos por id da matrícula) |
+| `DELETE /api/users/1` sem token e com token errado: 200 → 403 (83–84, 87–88) | sim | [segurança] AP-SEC-05 |
+| `DELETE /api/users/999` com token: 200 → 404 `Usuário não encontrado` (95–96) | sim | [entrada inválida] id inexistente |
+| `DELETE /api/users/abc` com token: 200 → 400 `Bad Request` (99–100) | sim | [entrada inválida] id não numérico |
+| segundo `DELETE /api/users/1` com token: 200 → 404 (103–104) | sim | [entrada inválida] id inexistente |
+| `card` numérico e `pwd` numérico: conexão derrubada (status 000, servidor morto) → 400 `Bad Request`, servidor vivo (124–133) | sim | [entrada inválida] tipo errado (AP-QUAL-02 CRITICAL) |
+
+Sem diferença (comportamento preservado): checkout de sucesso (`enrollment_id` 2), checkout de e-mail existente sem `pwd` (200), pagamento recusado, campo obrigatório ausente, `{}`, corpo vazio, `c_id` 999, `c_id: "2"`, `DELETE /api/users/1` com token (mensagem original palavra por palavra), relatório com `'Unknown'` após a exclusão, `GET /` (404 padrão do Express). Nenhuma regressão encontrada.
 
 ## Rotas protegidas
-| Rota | Sem token | Com token |
-|---|---|---|
-| GET /api/admin/financial-report | 403 `Acesso negado` | 200, corpo igual ao baseline (seed) |
-| DELETE /api/users/abc | 403 `Acesso negado` | 400 `Bad Request` |
-| DELETE /api/users/9999 | (mesma proteção, 403) | 404 `Usuário não encontrado` |
-| DELETE /api/users/1 | 403 `Acesso negado` | 200 `Usuário deletado, mas as matrículas e pagamentos ficaram sujos no banco.` |
+| Rota | Sem token | Token errado | Com token |
+|---|---|---|---|
+| `GET /api/admin/financial-report` | 403 `Acesso negado` | 403 `Acesso negado` | 200 JSON (relatório) |
+| `DELETE /api/users/1` | 403 `Acesso negado` | 403 `Acesso negado` | 200 `Usuário deletado, mas as matrículas e pagamentos ficaram sujos no banco.` |
 
-Sem `ADMIN_TOKEN` configurado as rotas respondem 403 mesmo com header (`src/middlewares/adminAuth.js` exige `adminToken !== ''`).
+Trechos de `reports/after-responses.txt`:
 
-## Log do app refatorado (7 cobranças)
 ```
-[INFO] Frankenstein LMS rodando na porta 5050...
-[INFO] Processando cartão final 4444 (gateway sem chave)
-[INFO] Processando cartão final 4444 (gateway sem chave)
-[INFO] Processando cartão final 4444 (gateway sem chave)
-[INFO] Processando cartão final 4444 (gateway sem chave)
-[INFO] Processando cartão final 4444 (gateway sem chave)
-[INFO] Processando cartão final 4111 (gateway sem chave)
-[INFO] Processando cartão final 4111 (gateway sem chave)
-```
-Só os 4 últimos dígitos do cartão aparecem; a chave do gateway e o ADMIN_TOKEN nunca são escritos.
+### GET /api/admin/financial-report  
+status: 403
+Acesso negado
 
-## Hash de senha (RF-08)
-```
-$ node proofs.js  (script de verificação, comparando com a badCrypto original de original-src)
-seed armazenado: scrypt$bbea5013d7ce2...
-seed verify("123"): {"valid":true,"needsRehash":false}
-seed verify("errada"): {"valid":false,"needsRehash":false}
-legado texto puro verify("123","123"): {"valid":true,"needsRehash":true}
-legado badCrypto("senhaforte")="c2c2c2c2c2" -> {"valid":true,"needsRehash":true}
-legado badCrypto("abc")="YWYWYWYWYW" -> {"valid":true,"needsRehash":true}
-legado badCrypto("x")="eAeAeAeAeA" -> {"valid":true,"needsRehash":true}
-legado badCrypto("123456")="MTMTMTMTMT" -> {"valid":true,"needsRehash":true}
-legado badCrypto("")="" -> {"valid":true,"needsRehash":true}
-legado com senha errada: {"valid":false,"needsRehash":false}
-sal distinto por hash: true
+### GET /api/admin/financial-report  [hdr: X-Admin-Token]
+status: 403
+Acesso negado
+
+### GET /api/admin/financial-report  [hdr: X-Admin-Token]
+status: 200
+[{"course":"Docker","revenue":0,"students":[]},{"course":"Clean Architecture","revenue":997,"students":[{"student":"Leonan","paid":997}]}]
+
+
+### DELETE /api/users/1  [hdr: X-Admin-Token]
+status: 200
+Usuário deletado, mas as matrículas e pagamentos ficaram sujos no banco.
+
+### DELETE /api/users/999  [hdr: X-Admin-Token]
+status: 404
+Usuário não encontrado
+
+### DELETE /api/users/abc  [hdr: X-Admin-Token]
+status: 400
+Bad Request
+
+### DELETE /api/users/1  [hdr: X-Admin-Token]
+status: 404
+Usuário não encontrado
 ```
 
-## Concorrência e transação
+## Segredos e senha
+Log do servidor (contagem de linhas com número de cartão completo, `pk_live` ou a chave de teste):
 ```
-$ bash concurrency.sh  (20 POST /api/checkout simultâneos com usuários novos)
-  20 200      (20 respostas 200)
-      20      (20 enrollment_id distintos)
-      21      (21 alunos no relatório: seed + 20)
+original:    linhas do log com cartão completo ou chave: 8
+refatorado:  linhas do log com cartão completo ou chave: 0
+--- original (reports/.tmp/boot-orig-main.log):
+Processando cartão 4111222233334444 na chave pk_live_1234567890abcdef
+Processando cartão 4111222233334444 na chave pk_live_1234567890abcdef
+--- refatorado (reports/.tmp/boot-new-main.log):
+[INFO] Processando cartão ****4444
+[INFO] Processando cartão ****4444
 ```
-A rejeição por falta de pwd acontece dentro da transação (rollback): "SemSenha" não aparece no relatório, e o checkout recusado não deixa usuário ("Maria" ausente, "Maria Nova" presente).
+Hash do seed (`node reports/.tmp/seedcheck.js`, monta o banco com `src/db/schema.js`):
+```
+formato gravado: scrypt$<sal>$<hash>
+senha 123 confere: true
+senha errada confere: false
+texto puro no banco: false
+seed contagens: {"c":2,"e":1,"p":1}
+```
+
+Concorrência (`bash reports/.tmp/concurrency.sh`: 8 checkouts simultâneos, transação serializada):
+```
+200 200 200 200 200 200 200 200 
+[{"course":"Clean Architecture","revenue":997,"students":[{"student":"Leonan","paid":997}]},{"course":"Docker","revenue":3976,"students":[{"student":"U1","paid":497},{"student":"U3","paid":497},{"student":"U2","paid":497},{"student":"U6","paid":497},{"student":"U4","paid":497},{"student":"U5","paid":497},{"student":"U7","paid":497},{"student":"U8","paid":497}]}]
+```
 
 ## Reverificação do catálogo
-```
-Arquivos: 29
-     654 total
-$ grep -nE (pk_live|senha_super|dbPass|dbUser|smtpUser|password\s*[:=]\s*["'][^"']+["'])  (escopo: src/**/*.js)
-src/db/schema.js:3:const SEED_USER = { name: 'Leonan', email: 'leonan@fullcycle.com.br', password: '123' };
-
-$ grep -nE (run|get|all|exec)\(\s*[`"].*(\$\{|"\s*\+)  (escopo: src/**/*.js)
-(nenhuma ocorrência)
-
-$ grep -nE console\.(log|error|warn)  (escopo: src/**/*.js)
-(nenhuma ocorrência)
-
-$ grep -nE globalCache|totalRevenue|badCrypto|logAndCache  (escopo: src/**/*.js)
-src/services/passwordHasher.js:7:// Formato legado do projeto original ("badCrypto"): os 2 primeiros caracteres do
-src/services/passwordHasher.js:25:    // (texto puro e badCrypto); quem chamar deve regravar com hash() quando needsRehash.
-
-$ grep -nE new sqlite3|new Buffer|body-parser|url\.parse|createCipher\(  (escopo: src/**/*.js)
-src/db/connection.js:6:    const driver = new sqlite3.Database(filename);
-
-$ grep -nE \|\| "|\|\| '1  (escopo: src/**/*.js)
-(nenhuma ocorrência)
-
-$ grep -nE "PAID"|'PAID'|"DENIED"|'DENIED'|startsWith\(  (escopo: src/**/*.js)
-src/config/constants.js:2:    PAID: 'PAID',
-src/config/constants.js:3:    DENIED: 'DENIED',
-src/services/passwordHasher.js:27:        if (typeof stored === 'string' && stored.startsWith(`${SCHEME}$`)) {
-src/services/paymentGateway.js:14:        return cardNumber.startsWith(APPROVED_CARD_PREFIX) ? PAYMENT_STATUS.PAID : PAYMENT_STATUS.DENIED;
-
-$ grep -nE forEach\(.*(await|db\.)  (escopo: src/**/*.js)
-(nenhuma ocorrência)
-
-$ grep -nE let (u|e|p|cid|cc) =  (escopo: src/**/*.js)
-(nenhuma ocorrência)
-
-$ grep -nE catch \(e\)|catch\(e\)  (escopo: src/**/*.js)
-(nenhuma ocorrência)
+Comando: `bash reports/.tmp/rescan.sh` (grep dos sinais de todas as severidades sobre `src/`). Saída real:
 
 ```
+
+$ grep -rnE 'pk_live|pk_test|senha_super|dbPass|dbUser|smtpUser' src   # AP-SEC-01 segredos
+(nenhuma ocorrência)
+
+$ grep -rnE '\.(run|get|all)\([^)]*(\$\{|["'] *\+)' src   # AP-SEC-02 SQL concatenado
+(nenhuma ocorrência)
+
+$ grep -rnE 'createHash\(.(md5|sha1)|badCrypto|base64' src   # AP-SEC-03 hash fraco
+(nenhuma ocorrência)
+
+$ grep -rnE 'console\.(log|info|warn|error)' src   # AP-SEC-04/AP-QUAL-04 console.*
+src/config/logger.js:9:        const sink = levelName === 'error' ? console.error : console.log;
+src/app.js:60:    console.error('Falha ao iniciar a aplicação:', err);
+
+$ grep -rnE '^(let|var) |globalCache|totalRevenue|logAndCache' src   # AP-ARCH-03 globais mutáveis
+(nenhuma ocorrência)
+
+$ grep -rnE 'new Buffer\(|body-parser|url\.parse|createCipher\(' src   # AP-DEPR-01 deprecated
+(nenhuma ocorrência)
+
+$ grep -rnE 'debug *[:=] *true|NODE_ENV' src   # AP-SEC-06 debug
+(nenhuma ocorrência)
+
+$ grep -rnE 'for *\(|forEach|while *\(' src   # AP-PERF-01 laço com query
+src/services/financialReportService.js:21:        rows.forEach((row) => {
+
+$ grep -rnE 'startsWith\(.4.\)|active = 1|123456' src   # AP-QUAL-05 magic
+(nenhuma ocorrência)
+
+$ grep -rnE "adminRequired|errorHandler" src/app.js src/routes   # auth e handler presentes
+src/app.js:20:const { createErrorHandler } = require('./middlewares/errorHandler');
+src/app.js:50:        adminRequired: createAdminAuth({ adminToken: config.adminToken }),
+src/app.js:52:    app.use(createErrorHandler({ logger }));
+src/routes/userRoutes.js:6:function createUserRoutes({ userController, adminRequired }) {
+src/routes/userRoutes.js:8:    router.delete('/users/:id', adminRequired, validate(validateUserId, 'params'), asyncHandler(userController.remove));
+src/routes/adminRoutes.js:4:function createAdminRoutes({ reportController, adminRequired }) {
+src/routes/adminRoutes.js:6:    router.get('/admin/financial-report', adminRequired, asyncHandler(reportController.financial));
+
+$ wc -l (fontes)
+     637 total
+      30
+```
+
 Linhas remanescentes e justificativa:
-- `src/db/schema.js:3` — `password: '123'` é a senha de demonstração documentada do usuário seed (preservada por regra); gravada com scrypt.
-- `src/services/passwordHasher.js:7,25` — "badCrypto" só em comentários; o formato legado precisa ser reconhecido para migrar hashes antigos (RF-08).
-- `src/db/connection.js:6` — única criação de conexão, na camada `db`, chamada uma vez no composition root (`src/app.js`) e injetada; conexão única é necessária para `:memory:`.
-- `src/config/constants.js:2-3`, `src/services/paymentGateway.js:14` — `'PAID'`/`'DENIED'` só como definição da constante; `startsWith` usa `APPROVED_CARD_PREFIX`.
-- `src/services/passwordHasher.js:27` — `startsWith` do prefixo `scrypt$` (formato do hash), não é regra de negócio.
-- AP-DEPR-01: nenhuma API deprecated no código novo.
-- Not addressed (plano): órfãos ao excluir usuário, e-mail existente reaproveitando a conta, compra duplicada.
+- `src/config/logger.js:9`: é o próprio logger (RF-12), único ponto que escreve no console, com nível controlado por `LOG_LEVEL`.
+- `src/app.js:60`: erro fatal de boot, antes de o logger existir no escopo do `catch`; imprime só o erro, sem dados de requisição.
+- `src/services/financialReportService.js:21`: `forEach` em memória sobre o resultado de **uma** query (sem query dentro do laço): não é N+1.
+- Nenhuma API deprecated (AP-DEPR-01), SQL concatenado, segredo, hash fraco, estado global ou magic number remanescente.
+
+## Findings × resultado
+| Finding | Resultado |
+|---|---|
+| AP-SEC-01 segredos hardcoded | Resolvido (`src/config/index.js`, só `process.env`) |
+| AP-SEC-04 cartão/chave em log | Resolvido (`****4444`, chave nunca logada) |
+| AP-SEC-05 rotas admin abertas | Resolvido (`adminRequired`, 403 sem token) |
+| AP-QUAL-02 CRITICAL (tipos derrubam o processo) | Resolvido (400, processo vivo) |
+| AP-SEC-03 hash fraco/texto puro | Resolvido (scrypt + sal, seed `123` confere) |
+| AP-ARCH-01 God Class | Resolvido (30 arquivos em camadas, `AppManager.js` e `utils.js` removidos) |
+| AP-SEC-06 stack trace | Resolvido (`errorHandler`) |
+| AP-SEC-07 sem autenticação de base | Parcial: rotas admin protegidas; checkout de e-mail existente sem conferir senha fica em "Not addressed" (RF-16 nível 2) |
+| AP-ARCH-02/03/04, AP-PERF-01, AP-ARCH-05, AP-QUAL-01 | Resolvidos (as falhas de banco no curso/auditoria/DELETE mantêm a resposta original, agora logadas — "Not addressed") |
+| AP-QUAL-02 MEDIUM | Parcial: (a)(b)(c) e DELETE resolvidos; matrícula duplicada e registros órfãos ficam em "Not addressed" |
+| AP-QUAL-04/05/06/07 | Resolvidos |
 
 ## Limpeza
-- Servidores encerrados (trap EXIT em cada script); portas 3000, 5050 e 5051 livres: sim
-- Dados restaurados: não aplicável (banco em memória, nenhum arquivo de dados)
-- reports/.tmp removido: sim
+- Servidores encerrados: todos os iniciados pela validação (baseline, refatorado, 2 boots de tipos errados, concorrência), cada um com `trap` de encerramento; nenhum processo `node .../src/app.js` restante. Portas 5050, 5051 e 5052 livres: sim. A porta 3000 segue com o `ssh` do usuário (não tocado).
+- Dados restaurados: sim (banco em memória, não há arquivo de dados).
+- `reports/.tmp` removido: sim. `node_modules/` (criado por `npm ci`) foi mantido; não está no escopo da skill e pode ser apagado a qualquer momento.
+- Desvio de protocolo: um `git status --short` (somente leitura, sem efeito) foi executado por engano durante a atualização do README. Nenhum comando de escrita do git foi executado.
 
+```
 ================================
 PHASE 3: REFACTORING COMPLETE
 ================================
 ## New Project Structure
 src/
-├── app.js                  # composition root
-├── config/                 # index.js (env), constants.js
-├── db/                     # connection.js (Promises + transações), schema.js (schema + seed)
-├── models/                 # user, course, enrollment, payment, auditLog
-├── services/               # checkout, report, user, passwordHasher, paymentGateway
-├── controllers/            # checkout, report, user
-├── routes/                 # index, checkoutRoutes, adminRoutes, userRoutes
-├── validators/             # checkoutValidator, idValidator
-├── middlewares/            # adminAuth, appError, asyncHandler, errorHandler
-└── utils/                  # logger
-.env.example
+├── app.js
+├── config/        (index.js, constants.js, logger.js)
+├── db/            (connection.js, schema.js)
+├── models/        (user, course, enrollment, payment, auditLog)
+├── services/      (checkout, financialReport, user, passwordHasher, paymentGateway)
+├── controllers/   (checkout, report, user)
+├── routes/        (index, checkout, admin, user)
+├── validators/    (checkout, user)
+├── middlewares/   (adminAuth, validate, asyncHandler, errorHandler)
+└── exceptions/    (AppError.js)
 
 ## Validation
-  ✓ Application boots without errors (npm start)
-  ✓ All endpoints respond (3/3)
+  ✓ Application boots without errors (node src/app.js / npm start, PORT=5051)
+  ✓ All endpoints respond (3/3 rotas, mais 27 chamadas de borda)
   ✓ No catalog anti-patterns remaining
-  ✗ Pendente de propósito (Not addressed): órfãos ao excluir usuário, e-mail existente reaproveitando a conta, compra duplicada
-  ✗ Ordem do relatório não é idêntica ao original (o original era não determinístico); agora é determinística
+  ✗ AP-SEC-07 parcial: checkout de e-mail existente sem conferir senha (RF-16 nível 2, exige mudança de contrato)
+  ✗ Matrícula duplicada, registros órfãos após DELETE e respostas de falha de banco originais ficam em "Not addressed" (ver plano)
 
 ## Behavior changes
-- [segurança] GET /api/admin/financial-report e DELETE /api/users/:id exigem X-Admin-Token = ADMIN_TOKEN (sem token configurado: 403)
-- [segurança] cartão completo e chave do gateway não vão mais para o log; senhas com scrypt + sal
-- [segurança + entrada inválida] JSON malformado → 400 "Bad Request" (sem stack trace)
-- [entrada inválida] card não string, eml sem @, c_id inválido, usuário novo sem pwd → 400 "Bad Request"
-- [entrada inválida] pagamento recusado não cria mais o usuário
-- [entrada inválida] DELETE com id não numérico → 400; id inexistente → 404 "Usuário não encontrado"
-- Ordem do relatório agora determinística (diferença não prevista no plano)
+- [segurança] GET /api/admin/financial-report e DELETE /api/users/:id exigem X-Admin-Token (ADMIN_TOKEN); sem token/errado → 403 "Acesso negado"
+- [segurança] JSON malformado → 400 "Bad Request" em texto (sem stack trace)
+- [segurança] Log sem número completo do cartão nem chave do gateway; senhas com scrypt + sal (seed continua "123")
+- [entrada inválida] Tipos errados no checkout (card/usr/eml/pwd não string; c_id não inteiro positivo) → 400 "Bad Request" (antes derrubava o servidor ou dava 404)
+- [entrada inválida] eml sem formato texto@texto → 400; usuário novo sem pwd → 400
+- [entrada inválida] Pagamento recusado não grava mais o usuário novo (escritas em transação)
+- [entrada inválida] DELETE com id inexistente → 404 "Usuário não encontrado"; id não numérico → 400 "Bad Request"
+- Ordem do relatório agora determinística (a do original variava entre execuções)
 ================================
+```

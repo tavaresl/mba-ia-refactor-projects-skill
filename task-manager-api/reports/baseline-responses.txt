@@ -4,33 +4,45 @@ status: 200
 
 ### GET /health 
 status: 200
-{"status":"ok","timestamp":"2026-10-23 18:54:08.657884"}
+{"status":"ok","timestamp":"2026-10-28 19:18:41.275892"}
 
 ### GET /tasks 
 status: 200
-[{"category_id":1,"category_name":"Backend","created_at":"2026-10-23 21:54:08.054754","description":"Adicionar autentica\u00e7\u00e3o real com JWT","due_date":"2026-10-20 21:54:08.053592","id":1,"overdue":true,"priority":1,"status":"pending","tags":[],"title":"Implementar autentica\u00e7\u00e3o JWT","updated_at":"2026-10-23 21:54:08.054754","user_id":1,"user_name":"Jo\u00e3o Silva"},{"category_id":2,"category_name":"Frontend","created_at":"2026-10-23 21:54:08.054755","description":"Tela de login responsiva","due_date":"2026-10-28 21:54:08.053798","id":2,"overdue":false,"priority":2,"status":"in_progress","tags":[],"title":"Criar tela de login","updated_at":"2026-10-23 21:54:08.054755","user_id":2,"user_name":"Maria Santos"},{"category_id":3,"category_name":"DevOps","created_at":"2026-10-23 21:54:08.054755","description":"Pipeline com GitHub Actions","due_date":null,"id":3,"overdue":false,"priority":2,"status":"done","tags":["devops","ci","github"],"title":"Configurar CI/CD","updated_at":"2026-10-23 21:54:08.054755","user_id":3,"user_name":"Pedro Oliveira"},{"category_id":4,"category_name":"Bug","created_at":"2026-10-23 21:54:08.054756","description":"Filtro n\u00e3o funciona com caracteres especiais","due_date":"2026-10-22 21:54:08.054114","id":4,"overdue":true,"priority":1,"status":"pending","tags":[],"title":"Corrigir bug no filtro de busca","updated_at":"2026-10-23 21:54:08.054756","user_id":1,"user_name":"Jo\u00e3o Silva"},{"category_id":1,"category_name":"Backend","created_at":"2026-10-23 21:54:08.054756","description":"Endpoints retornam todos os registros","due_date":"2026-11-02 21:54:08.054117","id":5,"overdue":false,"priority":3,"status":"pending","tags":[],"title":"Adicionar pagina\u00e7\u00e3o na API","updated_at":"2026-10-23 21:54:08.054756","user_id":1,"user_name":"Jo\u00e3o Silva"},{"category_id":1,"category_name":"Backend","created_at":"2026-10-23 21:54:08.054756","description":"Cobertura m\u00ednima de 80%","due_date":null,"id":6,"overdue":false,"priority":2,"status":"pending","tags":[],"title":"Escrever testes unit\u00e1rios","updated_at":"2026-10-23 21:54:08.054757","user_id":2,"user_name":"Maria Santos"},{"category_id":1,"category_name":"Backend","created_at":"2026-10-23 21:54:08.054757","description":"Gerar documenta\u00e7\u00e3o autom\u00e1tica","due_date":null,"id":7,"overdue":false,"priority":4,"status":"cancelled","tags":[],"title":"Documentar API com Swagger","updated_at":"2026-10-23 21:54:08.054757","user_id":3,"user_name":"Pedro Oliveira"},{"category_id":1,"category_name":"Backend","created_at":"2026-10-23 21:54:08.054757","description":"Melhorar organiza\u00e7\u00e3o dos models","due_date":null,"id":8,"overdue":false,"priority":3,"status":"in_progress","tags":["refactor","tech-debt"],"title":"Refatorar models","updated_at":"2026-10-23 21:54:08.054757","user_id":2,"user_name":"Maria Santos"},{"category_id":3,"category_name":"DevOps","created_at":"2026-10-23 21:54:08.054757","description":"Prometheus + Grafana","due_date":"2026-11-12 21:54:08.054119","id":9,"overdue":false,"priority":4,"status":"pending","tags":[],"title":"Configurar monitoramento","updated_at":"2026-10-23 21:54:08.054758","user_id":3,"user_name":"Pedro Oliveira"},{"category_id":1,"category_name":"Backend","created_at":"2026-10-23 21:54:08.054758","description":"Usar marshmallow ou pydantic","due_date":null,"id":10,"overdue":false,"priority":3,"status":"pending","tags":["improvement","validation"],"title":"Melhorar valida\u00e7\u00f5es de input","updated_at":"2026-10-23 21:54:08.054758","user_id":1,"user_name":"Jo\u00e3o Silva"}]
+[{"category_id":1,"category_name":"Backend","created_at":"2026-10-28 22:18:40.656906","description":"Adicionar autentica\u00e7\u00e3o real com JWT","due_date":"2026-10-25 22:18:40.655821","id":1,"overdue":true,"priority":1,"status":"pending","tags":[],"title":"Implementar autentica\u00e7\u00e3o JWT","updated_at":"2026-10-28 22:18:40.656906","user_id":1,"user_name":"Jo\u00e3o Silva"},{"category_id":2,"category_name":"Frontend","created_at":"2026-10-28 22:18:40.656907","description":"Tela de login responsiva","due_date":"2026-11-02 22:18:40.656032","id":2,"overdue":false,"priority":2,"status":"in_progress","tags":[],"title":"Criar tela de login","updated_at":"2026-10-28 22:18:40.656907","user_id":2,"user_name":"Maria Santos"},{"category_id":3,"category_name":"DevOps","created_at":"2026-10-28 22:18:40.656907","description":"Pipeline com GitHub Actions","due_date":null,"id":3,"overdue":false,"priority":2,"status":"done","tags":["devops","ci","github"],"title":"Configurar CI/CD","updated_at":"2026-10-28 22:18:40.656907","user_id":3,"user_name":"Pedro Oliveira"},{"category_id":4,"category_name":"Bug","created_at":"2026-10-28 22:18:40.656907","description":"Filtro n\u00e3o funciona com caracteres especiais","due_date":"2026-10-27 22:18:40.656279","id":4,"overdue":true,"priority":1,"status":"pending","tags":[],"title":"Corrigir bug no filtro de busca","updated_at":"2026-10-28 22:18:40.656908","user_id":1,"user_name":"Jo\u00e3o Silva"},{"category_id":1,"category_name":"Backend","created_at":"2026-10-28 22:18:40.656908","description":"Endpoints retornam todos os registros","due_date":"2026-11-07 22:18:40.656282","id":5,"overdue":false,"priority":3,"status":"pending","tags":[],"title":"Adicionar pagina\u00e7\u00e3o na API","updated_at":"2026-10-28 22:18:40.656908","user_id":1,"user_name":"Jo\u00e3o Silva"},{"category_id":1,"category_name":"Backend","created_at":"2026-10-28 22:18:40.656908","description":"Cobertura m\u00ednima de 80%","due_date":null,"id":6,"overdue":false,"priority":2,"status":"pending","tags":[],"title":"Escrever testes unit\u00e1rios","updated_at":"2026-10-28 22:18:40.656908","user_id":2,"user_name":"Maria Santos"},{"category_id":1,"category_name":"Backend","created_at":"2026-10-28 22:18:40.656908","description":"Gerar documenta\u00e7\u00e3o autom\u00e1tica","due_date":null,"id":7,"overdue":false,"priority":4,"status":"cancelled","tags":[],"title":"Documentar API com Swagger","updated_at":"2026-10-28 22:18:40.656909","user_id":3,"user_name":"Pedro Oliveira"},{"category_id":1,"category_name":"Backend","created_at":"2026-10-28 22:18:40.656909","description":"Melhorar organiza\u00e7\u00e3o dos models","due_date":null,"id":8,"overdue":false,"priority":3,"status":"in_progress","tags":["refactor","tech-debt"],"title":"Refatorar models","updated_at":"2026-10-28 22:18:40.656909","user_id":2,"user_name":"Maria Santos"},{"category_id":3,"category_name":"DevOps","created_at":"2026-10-28 22:18:40.656909","description":"Prometheus + Grafana","due_date":"2026-11-17 22:18:40.656284","id":9,"overdue":false,"priority":4,"status":"pending","tags":[],"title":"Configurar monitoramento","updated_at":"2026-10-28 22:18:40.656909","user_id":3,"user_name":"Pedro Oliveira"},{"category_id":1,"category_name":"Backend","created_at":"2026-10-28 22:18:40.656909","description":"Usar marshmallow ou pydantic","due_date":null,"id":10,"overdue":false,"priority":3,"status":"pending","tags":["improvement","validation"],"title":"Melhorar valida\u00e7\u00f5es de input","updated_at":"2026-10-28 22:18:40.656910","user_id":1,"user_name":"Jo\u00e3o Silva"}]
 
 ### GET /tasks/1 
 status: 200
-{"category_id":1,"created_at":"2026-10-23 21:54:08.054754","description":"Adicionar autentica\u00e7\u00e3o real com JWT","due_date":"2026-10-20 21:54:08.053592","id":1,"overdue":true,"priority":1,"status":"pending","tags":[],"title":"Implementar autentica\u00e7\u00e3o JWT","updated_at":"2026-10-23 21:54:08.054754","user_id":1}
+{"category_id":1,"created_at":"2026-10-28 22:18:40.656906","description":"Adicionar autentica\u00e7\u00e3o real com JWT","due_date":"2026-10-25 22:18:40.655821","id":1,"overdue":true,"priority":1,"status":"pending","tags":[],"title":"Implementar autentica\u00e7\u00e3o JWT","updated_at":"2026-10-28 22:18:40.656906","user_id":1}
 
-### GET /tasks/999 
+### GET /tasks/9999 
 status: 404
 {"error":"Task n\u00e3o encontrada"}
 
-### GET /tasks/search?q=API 
+### GET /tasks/search 
 status: 200
-[{"category_id":1,"created_at":"2026-10-23 21:54:08.054756","description":"Endpoints retornam todos os registros","due_date":"2026-11-02 21:54:08.054117","id":5,"priority":3,"status":"pending","tags":[],"title":"Adicionar pagina\u00e7\u00e3o na API","updated_at":"2026-10-23 21:54:08.054756","user_id":1},{"category_id":1,"created_at":"2026-10-23 21:54:08.054757","description":"Gerar documenta\u00e7\u00e3o autom\u00e1tica","due_date":null,"id":7,"priority":4,"status":"cancelled","tags":[],"title":"Documentar API com Swagger","updated_at":"2026-10-23 21:54:08.054757","user_id":3}]
+[{"category_id":1,"created_at":"2026-10-28 22:18:40.656906","description":"Adicionar autentica\u00e7\u00e3o real com JWT","due_date":"2026-10-25 22:18:40.655821","id":1,"priority":1,"status":"pending","tags":[],"title":"Implementar autentica\u00e7\u00e3o JWT","updated_at":"2026-10-28 22:18:40.656906","user_id":1},{"category_id":2,"created_at":"2026-10-28 22:18:40.656907","description":"Tela de login responsiva","due_date":"2026-11-02 22:18:40.656032","id":2,"priority":2,"status":"in_progress","tags":[],"title":"Criar tela de login","updated_at":"2026-10-28 22:18:40.656907","user_id":2},{"category_id":3,"created_at":"2026-10-28 22:18:40.656907","description":"Pipeline com GitHub Actions","due_date":null,"id":3,"priority":2,"status":"done","tags":["devops","ci","github"],"title":"Configurar CI/CD","updated_at":"2026-10-28 22:18:40.656907","user_id":3},{"category_id":4,"created_at":"2026-10-28 22:18:40.656907","description":"Filtro n\u00e3o funciona com caracteres especiais","due_date":"2026-10-27 22:18:40.656279","id":4,"priority":1,"status":"pending","tags":[],"title":"Corrigir bug no filtro de busca","updated_at":"2026-10-28 22:18:40.656908","user_id":1},{"category_id":1,"created_at":"2026-10-28 22:18:40.656908","description":"Endpoints retornam todos os registros","due_date":"2026-11-07 22:18:40.656282","id":5,"priority":3,"status":"pending","tags":[],"title":"Adicionar pagina\u00e7\u00e3o na API","updated_at":"2026-10-28 22:18:40.656908","user_id":1},{"category_id":1,"created_at":"2026-10-28 22:18:40.656908","description":"Cobertura m\u00ednima de 80%","due_date":null,"id":6,"priority":2,"status":"pending","tags":[],"title":"Escrever testes unit\u00e1rios","updated_at":"2026-10-28 22:18:40.656908","user_id":2},{"category_id":1,"created_at":"2026-10-28 22:18:40.656908","description":"Gerar documenta\u00e7\u00e3o autom\u00e1tica","due_date":null,"id":7,"priority":4,"status":"cancelled","tags":[],"title":"Documentar API com Swagger","updated_at":"2026-10-28 22:18:40.656909","user_id":3},{"category_id":1,"created_at":"2026-10-28 22:18:40.656909","description":"Melhorar organiza\u00e7\u00e3o dos models","due_date":null,"id":8,"priority":3,"status":"in_progress","tags":["refactor","tech-debt"],"title":"Refatorar models","updated_at":"2026-10-28 22:18:40.656909","user_id":2},{"category_id":3,"created_at":"2026-10-28 22:18:40.656909","description":"Prometheus + Grafana","due_date":"2026-11-17 22:18:40.656284","id":9,"priority":4,"status":"pending","tags":[],"title":"Configurar monitoramento","updated_at":"2026-10-28 22:18:40.656909","user_id":3},{"category_id":1,"created_at":"2026-10-28 22:18:40.656909","description":"Usar marshmallow ou pydantic","due_date":null,"id":10,"priority":3,"status":"pending","tags":["improvement","validation"],"title":"Melhorar valida\u00e7\u00f5es de input","updated_at":"2026-10-28 22:18:40.656910","user_id":1}]
+
+### GET /tasks/search?q=bug 
+status: 200
+[{"category_id":4,"created_at":"2026-10-28 22:18:40.656907","description":"Filtro n\u00e3o funciona com caracteres especiais","due_date":"2026-10-27 22:18:40.656279","id":4,"priority":1,"status":"pending","tags":[],"title":"Corrigir bug no filtro de busca","updated_at":"2026-10-28 22:18:40.656908","user_id":1}]
 
 ### GET /tasks/search?status=pending&priority=1 
 status: 200
-[{"category_id":1,"created_at":"2026-10-23 21:54:08.054754","description":"Adicionar autentica\u00e7\u00e3o real com JWT","due_date":"2026-10-20 21:54:08.053592","id":1,"priority":1,"status":"pending","tags":[],"title":"Implementar autentica\u00e7\u00e3o JWT","updated_at":"2026-10-23 21:54:08.054754","user_id":1},{"category_id":4,"created_at":"2026-10-23 21:54:08.054756","description":"Filtro n\u00e3o funciona com caracteres especiais","due_date":"2026-10-22 21:54:08.054114","id":4,"priority":1,"status":"pending","tags":[],"title":"Corrigir bug no filtro de busca","updated_at":"2026-10-23 21:54:08.054756","user_id":1}]
+[{"category_id":1,"created_at":"2026-10-28 22:18:40.656906","description":"Adicionar autentica\u00e7\u00e3o real com JWT","due_date":"2026-10-25 22:18:40.655821","id":1,"priority":1,"status":"pending","tags":[],"title":"Implementar autentica\u00e7\u00e3o JWT","updated_at":"2026-10-28 22:18:40.656906","user_id":1},{"category_id":4,"created_at":"2026-10-28 22:18:40.656907","description":"Filtro n\u00e3o funciona com caracteres especiais","due_date":"2026-10-27 22:18:40.656279","id":4,"priority":1,"status":"pending","tags":[],"title":"Corrigir bug no filtro de busca","updated_at":"2026-10-28 22:18:40.656908","user_id":1}]
 
-### GET /tasks/search?user_id=1 
+### GET /tasks/search?user_id=2 
 status: 200
-[{"category_id":1,"created_at":"2026-10-23 21:54:08.054754","description":"Adicionar autentica\u00e7\u00e3o real com JWT","due_date":"2026-10-20 21:54:08.053592","id":1,"priority":1,"status":"pending","tags":[],"title":"Implementar autentica\u00e7\u00e3o JWT","updated_at":"2026-10-23 21:54:08.054754","user_id":1},{"category_id":4,"created_at":"2026-10-23 21:54:08.054756","description":"Filtro n\u00e3o funciona com caracteres especiais","due_date":"2026-10-22 21:54:08.054114","id":4,"priority":1,"status":"pending","tags":[],"title":"Corrigir bug no filtro de busca","updated_at":"2026-10-23 21:54:08.054756","user_id":1},{"category_id":1,"created_at":"2026-10-23 21:54:08.054756","description":"Endpoints retornam todos os registros","due_date":"2026-11-02 21:54:08.054117","id":5,"priority":3,"status":"pending","tags":[],"title":"Adicionar pagina\u00e7\u00e3o na API","updated_at":"2026-10-23 21:54:08.054756","user_id":1},{"category_id":1,"created_at":"2026-10-23 21:54:08.054758","description":"Usar marshmallow ou pydantic","due_date":null,"id":10,"priority":3,"status":"pending","tags":["improvement","validation"],"title":"Melhorar valida\u00e7\u00f5es de input","updated_at":"2026-10-23 21:54:08.054758","user_id":1}]
+[{"category_id":2,"created_at":"2026-10-28 22:18:40.656907","description":"Tela de login responsiva","due_date":"2026-11-02 22:18:40.656032","id":2,"priority":2,"status":"in_progress","tags":[],"title":"Criar tela de login","updated_at":"2026-10-28 22:18:40.656907","user_id":2},{"category_id":1,"created_at":"2026-10-28 22:18:40.656908","description":"Cobertura m\u00ednima de 80%","due_date":null,"id":6,"priority":2,"status":"pending","tags":[],"title":"Escrever testes unit\u00e1rios","updated_at":"2026-10-28 22:18:40.656908","user_id":2},{"category_id":1,"created_at":"2026-10-28 22:18:40.656909","description":"Melhorar organiza\u00e7\u00e3o dos models","due_date":null,"id":8,"priority":3,"status":"in_progress","tags":["refactor","tech-debt"],"title":"Refatorar models","updated_at":"2026-10-28 22:18:40.656909","user_id":2}]
 
 ### GET /tasks/search?priority=abc 
+status: 500
+<!doctype html>
+<html lang=en>
+<title>500 Internal Server Error</title>
+<h1>Internal Server Error</h1>
+<p>The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.</p>
+
+### GET /tasks/search?user_id=abc 
 status: 500
 <!doctype html>
 <html lang=en>
@@ -44,43 +56,99 @@ status: 200
 
 ### GET /users 
 status: 200
-[{"active":true,"created_at":"2026-10-23 21:54:08.050493","email":"joao@email.com","id":1,"name":"Jo\u00e3o Silva","role":"admin","task_count":4},{"active":true,"created_at":"2026-10-23 21:54:08.050496","email":"maria@email.com","id":2,"name":"Maria Santos","role":"user","task_count":3},{"active":true,"created_at":"2026-10-23 21:54:08.050497","email":"pedro@email.com","id":3,"name":"Pedro Oliveira","role":"manager","task_count":3}]
+[{"active":true,"created_at":"2026-10-28 22:18:40.652935","email":"joao@email.com","id":1,"name":"Jo\u00e3o Silva","role":"admin","task_count":4},{"active":true,"created_at":"2026-10-28 22:18:40.652939","email":"maria@email.com","id":2,"name":"Maria Santos","role":"user","task_count":3},{"active":true,"created_at":"2026-10-28 22:18:40.652941","email":"pedro@email.com","id":3,"name":"Pedro Oliveira","role":"manager","task_count":3}]
 
 ### GET /users/1 
 status: 200
-{"active":true,"created_at":"2026-10-23 21:54:08.050493","email":"joao@email.com","id":1,"name":"Jo\u00e3o Silva","password":"81dc9bdb52d04dc20036dbd8313ed055","role":"admin","tasks":[{"category_id":1,"created_at":"2026-10-23 21:54:08.054754","description":"Adicionar autentica\u00e7\u00e3o real com JWT","due_date":"2026-10-20 21:54:08.053592","id":1,"priority":1,"status":"pending","tags":[],"title":"Implementar autentica\u00e7\u00e3o JWT","updated_at":"2026-10-23 21:54:08.054754","user_id":1},{"category_id":4,"created_at":"2026-10-23 21:54:08.054756","description":"Filtro n\u00e3o funciona com caracteres especiais","due_date":"2026-10-22 21:54:08.054114","id":4,"priority":1,"status":"pending","tags":[],"title":"Corrigir bug no filtro de busca","updated_at":"2026-10-23 21:54:08.054756","user_id":1},{"category_id":1,"created_at":"2026-10-23 21:54:08.054756","description":"Endpoints retornam todos os registros","due_date":"2026-11-02 21:54:08.054117","id":5,"priority":3,"status":"pending","tags":[],"title":"Adicionar pagina\u00e7\u00e3o na API","updated_at":"2026-10-23 21:54:08.054756","user_id":1},{"category_id":1,"created_at":"2026-10-23 21:54:08.054758","description":"Usar marshmallow ou pydantic","due_date":null,"id":10,"priority":3,"status":"pending","tags":["improvement","validation"],"title":"Melhorar valida\u00e7\u00f5es de input","updated_at":"2026-10-23 21:54:08.054758","user_id":1}]}
+{"active":true,"created_at":"2026-10-28 22:18:40.652935","email":"joao@email.com","id":1,"name":"Jo\u00e3o Silva","password":"81dc9bdb52d04dc20036dbd8313ed055","role":"admin","tasks":[{"category_id":1,"created_at":"2026-10-28 22:18:40.656906","description":"Adicionar autentica\u00e7\u00e3o real com JWT","due_date":"2026-10-25 22:18:40.655821","id":1,"priority":1,"status":"pending","tags":[],"title":"Implementar autentica\u00e7\u00e3o JWT","updated_at":"2026-10-28 22:18:40.656906","user_id":1},{"category_id":4,"created_at":"2026-10-28 22:18:40.656907","description":"Filtro n\u00e3o funciona com caracteres especiais","due_date":"2026-10-27 22:18:40.656279","id":4,"priority":1,"status":"pending","tags":[],"title":"Corrigir bug no filtro de busca","updated_at":"2026-10-28 22:18:40.656908","user_id":1},{"category_id":1,"created_at":"2026-10-28 22:18:40.656908","description":"Endpoints retornam todos os registros","due_date":"2026-11-07 22:18:40.656282","id":5,"priority":3,"status":"pending","tags":[],"title":"Adicionar pagina\u00e7\u00e3o na API","updated_at":"2026-10-28 22:18:40.656908","user_id":1},{"category_id":1,"created_at":"2026-10-28 22:18:40.656909","description":"Usar marshmallow ou pydantic","due_date":null,"id":10,"priority":3,"status":"pending","tags":["improvement","validation"],"title":"Melhorar valida\u00e7\u00f5es de input","updated_at":"2026-10-28 22:18:40.656910","user_id":1}]}
 
-### GET /users/999 
+### GET /users/9999 
 status: 404
 {"error":"Usu\u00e1rio n\u00e3o encontrado"}
 
 ### GET /users/1/tasks 
 status: 200
-[{"created_at":"2026-10-23 21:54:08.054754","description":"Adicionar autentica\u00e7\u00e3o real com JWT","due_date":"2026-10-20 21:54:08.053592","id":1,"overdue":true,"priority":1,"status":"pending","title":"Implementar autentica\u00e7\u00e3o JWT"},{"created_at":"2026-10-23 21:54:08.054756","description":"Filtro n\u00e3o funciona com caracteres especiais","due_date":"2026-10-22 21:54:08.054114","id":4,"overdue":true,"priority":1,"status":"pending","title":"Corrigir bug no filtro de busca"},{"created_at":"2026-10-23 21:54:08.054756","description":"Endpoints retornam todos os registros","due_date":"2026-11-02 21:54:08.054117","id":5,"overdue":false,"priority":3,"status":"pending","title":"Adicionar pagina\u00e7\u00e3o na API"},{"created_at":"2026-10-23 21:54:08.054758","description":"Usar marshmallow ou pydantic","due_date":null,"id":10,"overdue":false,"priority":3,"status":"pending","title":"Melhorar valida\u00e7\u00f5es de input"}]
+[{"created_at":"2026-10-28 22:18:40.656906","description":"Adicionar autentica\u00e7\u00e3o real com JWT","due_date":"2026-10-25 22:18:40.655821","id":1,"overdue":true,"priority":1,"status":"pending","title":"Implementar autentica\u00e7\u00e3o JWT"},{"created_at":"2026-10-28 22:18:40.656907","description":"Filtro n\u00e3o funciona com caracteres especiais","due_date":"2026-10-27 22:18:40.656279","id":4,"overdue":true,"priority":1,"status":"pending","title":"Corrigir bug no filtro de busca"},{"created_at":"2026-10-28 22:18:40.656908","description":"Endpoints retornam todos os registros","due_date":"2026-11-07 22:18:40.656282","id":5,"overdue":false,"priority":3,"status":"pending","title":"Adicionar pagina\u00e7\u00e3o na API"},{"created_at":"2026-10-28 22:18:40.656909","description":"Usar marshmallow ou pydantic","due_date":null,"id":10,"overdue":false,"priority":3,"status":"pending","title":"Melhorar valida\u00e7\u00f5es de input"}]
 
-### GET /users/999/tasks 
+### GET /users/9999/tasks 
 status: 404
 {"error":"Usu\u00e1rio n\u00e3o encontrado"}
 
 ### GET /reports/summary 
 status: 200
-{"generated_at":"2026-10-23 21:54:08.829145","overdue":{"count":2,"tasks":[{"days_overdue":3,"due_date":"2026-10-20 21:54:08.053592","id":1,"title":"Implementar autentica\u00e7\u00e3o JWT"},{"days_overdue":1,"due_date":"2026-10-22 21:54:08.054114","id":4,"title":"Corrigir bug no filtro de busca"}]},"overview":{"total_categories":4,"total_tasks":10,"total_users":3},"recent_activity":{"tasks_completed_last_7_days":1,"tasks_created_last_7_days":10},"tasks_by_priority":{"critical":2,"high":3,"low":2,"medium":3,"minimal":0},"tasks_by_status":{"cancelled":1,"done":1,"in_progress":2,"pending":6},"user_productivity":[{"completed_tasks":0,"completion_rate":0.0,"total_tasks":4,"user_id":1,"user_name":"Jo\u00e3o Silva"},{"completed_tasks":0,"completion_rate":0.0,"total_tasks":3,"user_id":2,"user_name":"Maria Santos"},{"completed_tasks":1,"completion_rate":33.33,"total_tasks":3,"user_id":3,"user_name":"Pedro Oliveira"}]}
+{"generated_at":"2026-10-28 22:18:41.463589","overdue":{"count":2,"tasks":[{"days_overdue":3,"due_date":"2026-10-25 22:18:40.655821","id":1,"title":"Implementar autentica\u00e7\u00e3o JWT"},{"days_overdue":1,"due_date":"2026-10-27 22:18:40.656279","id":4,"title":"Corrigir bug no filtro de busca"}]},"overview":{"total_categories":4,"total_tasks":10,"total_users":3},"recent_activity":{"tasks_completed_last_7_days":1,"tasks_created_last_7_days":10},"tasks_by_priority":{"critical":2,"high":3,"low":2,"medium":3,"minimal":0},"tasks_by_status":{"cancelled":1,"done":1,"in_progress":2,"pending":6},"user_productivity":[{"completed_tasks":0,"completion_rate":0.0,"total_tasks":4,"user_id":1,"user_name":"Jo\u00e3o Silva"},{"completed_tasks":0,"completion_rate":0.0,"total_tasks":3,"user_id":2,"user_name":"Maria Santos"},{"completed_tasks":1,"completion_rate":33.33,"total_tasks":3,"user_id":3,"user_name":"Pedro Oliveira"}]}
 
 ### GET /reports/user/1 
 status: 200
 {"statistics":{"cancelled":0,"completion_rate":0.0,"done":0,"high_priority":2,"in_progress":0,"overdue":2,"pending":4,"total_tasks":4},"user":{"email":"joao@email.com","id":1,"name":"Jo\u00e3o Silva"}}
 
-### GET /reports/user/999 
+### GET /reports/user/9999 
 status: 404
 {"error":"Usu\u00e1rio n\u00e3o encontrado"}
 
 ### GET /categories 
 status: 200
-[{"color":"#3498db","created_at":"2026-10-23 21:54:08.052056","description":"Tarefas de backend","id":1,"name":"Backend","task_count":6},{"color":"#2ecc71","created_at":"2026-10-23 21:54:08.052056","description":"Tarefas de frontend","id":2,"name":"Frontend","task_count":1},{"color":"#e74c3c","created_at":"2026-10-23 21:54:08.052057","description":"Tarefas de infraestrutura","id":3,"name":"DevOps","task_count":2},{"color":"#e67e22","created_at":"2026-10-23 21:54:08.052057","description":"Corre\u00e7\u00e3o de bugs","id":4,"name":"Bug","task_count":1}]
+[{"color":"#3498db","created_at":"2026-10-28 22:18:40.654091","description":"Tarefas de backend","id":1,"name":"Backend","task_count":6},{"color":"#2ecc71","created_at":"2026-10-28 22:18:40.654092","description":"Tarefas de frontend","id":2,"name":"Frontend","task_count":1},{"color":"#e74c3c","created_at":"2026-10-28 22:18:40.654093","description":"Tarefas de infraestrutura","id":3,"name":"DevOps","task_count":2},{"color":"#e67e22","created_at":"2026-10-28 22:18:40.654093","description":"Corre\u00e7\u00e3o de bugs","id":4,"name":"Bug","task_count":1}]
 
-### POST /tasks {"title":"Task de teste","description":"d","priority":2,"user_id":1,"category_id":1,"due_date":"2030-01-01","tags":["a","b"]}
+### GET /nao-existe 
+status: 404
+<!doctype html>
+<html lang=en>
+<title>404 Not Found</title>
+<h1>Not Found</h1>
+<p>The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.</p>
+
+### DELETE / 
+status: 405
+<!doctype html>
+<html lang=en>
+<title>405 Method Not Allowed</title>
+<h1>Method Not Allowed</h1>
+<p>The method is not allowed for the requested URL.</p>
+
+### POST /login {"email":"joao@email.com","password":"1234"}
+status: 200
+{"message":"Login realizado com sucesso","token":"fake-jwt-token-1","user":{"active":true,"created_at":"2026-10-28 22:18:40.652935","email":"joao@email.com","id":1,"name":"Jo\u00e3o Silva","password":"81dc9bdb52d04dc20036dbd8313ed055","role":"admin"}}
+
+### POST /login {"email":"maria@email.com","password":"abcd"}
+status: 200
+{"message":"Login realizado com sucesso","token":"fake-jwt-token-2","user":{"active":true,"created_at":"2026-10-28 22:18:40.652939","email":"maria@email.com","id":2,"name":"Maria Santos","password":"e2fc714c4727ee9395f324cd2e7f331f","role":"user"}}
+
+### POST /login {"email":"pedro@email.com","password":"pass"}
+status: 200
+{"message":"Login realizado com sucesso","token":"fake-jwt-token-3","user":{"active":true,"created_at":"2026-10-28 22:18:40.652941","email":"pedro@email.com","id":3,"name":"Pedro Oliveira","password":"1a1dc91c907325c69271ddf0c944bc72","role":"manager"}}
+
+### POST /login {"email":"joao@email.com","password":"errada"}
+status: 401
+{"error":"Credenciais inv\u00e1lidas"}
+
+### POST /login {"email":"x@y.com","password":"1234"}
+status: 401
+{"error":"Credenciais inv\u00e1lidas"}
+
+### POST /login {"email":"joao@email.com"}
+status: 400
+{"error":"Email e senha s\u00e3o obrigat\u00f3rios"}
+
+### POST /login {
+status: 400
+<!doctype html>
+<html lang=en>
+<title>400 Bad Request</title>
+<h1>Bad Request</h1>
+<p>The browser (or proxy) sent a request that this server could not understand.</p>
+
+### POST /login {"email":"joao@email.com","password":123}
+status: 500
+<!doctype html>
+<html lang=en>
+<title>500 Internal Server Error</title>
+<h1>Internal Server Error</h1>
+<p>The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.</p>
+
+### POST /tasks {"title":"Task de teste","description":"d","priority":2,"status":"pending","user_id":1,"category_id":1,"due_date":"2030-01-01","tags":["a","b"]}
 status: 201
-{"category_id":1,"created_at":"2026-10-23 21:54:08.874200","description":"d","due_date":"2030-01-01 00:00:00","id":11,"priority":2,"status":"pending","tags":["a","b"],"title":"Task de teste","updated_at":"2026-10-23 21:54:08.874202","user_id":1}
+{"category_id":1,"created_at":"2026-10-28 22:18:41.617249","description":"d","due_date":"2030-01-01 00:00:00","id":11,"priority":2,"status":"pending","tags":["a","b"],"title":"Task de teste","updated_at":"2026-10-28 22:18:41.617251","user_id":1}
 
 ### POST /tasks {"description":"sem titulo"}
 status: 400
@@ -94,29 +162,53 @@ status: 400
 <h1>Bad Request</h1>
 <p>The browser (or proxy) sent a request that this server could not understand.</p>
 
-### POST /tasks [1,2]
+### POST /tasks [1]
 status: 500
 <!doctype html>
 <html lang=en>
 <title>500 Internal Server Error</title>
 <h1>Internal Server Error</h1>
 <p>The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.</p>
-
-### POST /tasks null
-status: 400
-{"error":"Dados inv\u00e1lidos"}
 
 ### POST /tasks {"title":"ab"}
 status: 400
 {"error":"T\u00edtulo muito curto"}
 
-### POST /tasks {"title":"abcd","priority":"3"}
+### POST /tasks {"title":"abcd","status":"xx"}
+status: 400
+{"error":"Status inv\u00e1lido"}
+
+### POST /tasks {"title":"abcd","priority":9}
+status: 400
+{"error":"Prioridade deve ser entre 1 e 5"}
+
+### POST /tasks {"title":"abcd","user_id":9999}
+status: 404
+{"error":"Usu\u00e1rio n\u00e3o encontrado"}
+
+### POST /tasks {"title":"abcd","category_id":9999}
+status: 404
+{"error":"Categoria n\u00e3o encontrada"}
+
+### POST /tasks {"title":"abcd","due_date":"01/01/2030"}
+status: 400
+{"error":"Formato de data inv\u00e1lido. Use YYYY-MM-DD"}
+
+### POST /tasks {"title":"abcd","priority":"5"}
 status: 500
 <!doctype html>
 <html lang=en>
 <title>500 Internal Server Error</title>
 <h1>Internal Server Error</h1>
 <p>The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.</p>
+
+### POST /tasks {"title":"abcd","priority":2.5}
+status: 201
+{"category_id":null,"created_at":"2026-10-28 22:18:41.735572","description":"","due_date":null,"id":12,"priority":2.5,"status":"pending","tags":[],"title":"abcd","updated_at":"2026-10-28 22:18:41.735574","user_id":null}
+
+### POST /tasks {"title":"abcd","user_id":0}
+status: 201
+{"category_id":null,"created_at":"2026-10-28 22:18:41.746495","description":"","due_date":null,"id":13,"priority":3,"status":"pending","tags":[],"title":"abcd","updated_at":"2026-10-28 22:18:41.746496","user_id":0}
 
 ### POST /tasks {"title":123}
 status: 500
@@ -126,49 +218,25 @@ status: 500
 <h1>Internal Server Error</h1>
 <p>The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.</p>
 
-### POST /tasks {"title":"abcd","tags":[1,2]}
-status: 500
+### POST /tasks (sem content-type) {"title":"abcd"}
+status: 415
 <!doctype html>
 <html lang=en>
-<title>500 Internal Server Error</title>
-<h1>Internal Server Error</h1>
-<p>The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.</p>
-
-### POST /tasks {"title":"abcd","tags":5}
-status: 201
-{"category_id":null,"created_at":"2026-10-23 21:54:08.973899","description":"","due_date":null,"id":12,"priority":3,"status":"pending","tags":["5"],"title":"abcd","updated_at":"2026-10-23 21:54:08.973901","user_id":null}
-
-### POST /tasks {"title":"abcd","priority":9}
-status: 400
-{"error":"Prioridade deve ser entre 1 e 5"}
-
-### POST /tasks {"title":"abcd","status":"x"}
-status: 400
-{"error":"Status inv\u00e1lido"}
-
-### POST /tasks {"title":"abcd","user_id":999}
-status: 404
-{"error":"Usu\u00e1rio n\u00e3o encontrado"}
-
-### POST /tasks {"title":"abcd","category_id":999}
-status: 404
-{"error":"Categoria n\u00e3o encontrada"}
-
-### POST /tasks {"title":"abcd","due_date":"01/02/2030"}
-status: 400
-{"error":"Formato de data inv\u00e1lido. Use YYYY-MM-DD"}
-
-### GET /tasks/11 
-status: 200
-{"category_id":1,"created_at":"2026-10-23 21:54:08.874200","description":"d","due_date":"2030-01-01 00:00:00","id":11,"overdue":false,"priority":2,"status":"pending","tags":["a","b"],"title":"Task de teste","updated_at":"2026-10-23 21:54:08.874202","user_id":1}
+<title>415 Unsupported Media Type</title>
+<h1>Unsupported Media Type</h1>
+<p>Did not attempt to load JSON data because the request Content-Type was not &#39;application/json&#39;.</p>
 
 ### PUT /tasks/11 {"title":"Titulo novo","status":"done","priority":1,"tags":"x,y","due_date":null,"user_id":2,"category_id":2,"description":"nova"}
 status: 200
-{"category_id":2,"created_at":"2026-10-23 21:54:08.874200","description":"nova","due_date":null,"id":11,"priority":1,"status":"done","tags":["x","y"],"title":"Titulo novo","updated_at":"2026-10-23 21:54:09.051382","user_id":2}
+{"category_id":2,"created_at":"2026-10-28 22:18:41.617249","description":"nova","due_date":null,"id":11,"priority":1,"status":"done","tags":["x","y"],"title":"Titulo novo","updated_at":"2026-10-28 22:18:41.779797","user_id":2}
 
-### PUT /tasks/999 {"title":"abcd"}
+### PUT /tasks/9999 {"title":"abcd"}
 status: 404
 {"error":"Task n\u00e3o encontrada"}
+
+### PUT /tasks/11 {}
+status: 400
+{"error":"Dados inv\u00e1lidos"}
 
 ### PUT /tasks/11 {
 status: 400
@@ -178,31 +246,11 @@ status: 400
 <h1>Bad Request</h1>
 <p>The browser (or proxy) sent a request that this server could not understand.</p>
 
-### PUT /tasks/11 {}
-status: 400
-{"error":"Dados inv\u00e1lidos"}
-
-### PUT /tasks/11 {"priority":null}
-status: 500
-<!doctype html>
-<html lang=en>
-<title>500 Internal Server Error</title>
-<h1>Internal Server Error</h1>
-<p>The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.</p>
-
-### PUT /tasks/11 {"title":null}
-status: 500
-<!doctype html>
-<html lang=en>
-<title>500 Internal Server Error</title>
-<h1>Internal Server Error</h1>
-<p>The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.</p>
-
 ### PUT /tasks/11 {"title":"ab"}
 status: 400
 {"error":"T\u00edtulo muito curto"}
 
-### PUT /tasks/11 {"status":"x"}
+### PUT /tasks/11 {"status":"zz"}
 status: 400
 {"error":"Status inv\u00e1lido"}
 
@@ -210,43 +258,79 @@ status: 400
 status: 400
 {"error":"Prioridade deve ser entre 1 e 5"}
 
-### PUT /tasks/11 {"user_id":999}
+### PUT /tasks/11 {"priority":"2"}
+status: 500
+<!doctype html>
+<html lang=en>
+<title>500 Internal Server Error</title>
+<h1>Internal Server Error</h1>
+<p>The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.</p>
+
+### PUT /tasks/11 {"user_id":9999}
 status: 404
 {"error":"Usu\u00e1rio n\u00e3o encontrado"}
 
-### PUT /tasks/11 {"due_date":"zzz"}
+### PUT /tasks/11 {"category_id":9999}
+status: 404
+{"error":"Categoria n\u00e3o encontrada"}
+
+### PUT /tasks/11 {"due_date":"xx"}
 status: 400
 {"error":"Formato de data inv\u00e1lido"}
 
-### POST /users {"name":"Teste","email":"teste@email.com","password":"abcd1","role":"manager"}
+### PUT /tasks/11 [1]
+status: 200
+{"category_id":2,"created_at":"2026-10-28 22:18:41.617249","description":"nova","due_date":null,"id":11,"priority":1,"status":"done","tags":["x","y"],"title":"Titulo novo","updated_at":"2026-10-28 22:18:41.893094","user_id":2}
+
+### GET /tasks/11 
+status: 200
+{"category_id":2,"created_at":"2026-10-28 22:18:41.617249","description":"nova","due_date":null,"id":11,"overdue":false,"priority":1,"status":"done","tags":["x","y"],"title":"Titulo novo","updated_at":"2026-10-28 22:18:41.893094","user_id":2}
+
+### POST /users {"name":"Novo","email":"novo@x.com","password":"abcd1"}
 status: 201
-{"active":true,"created_at":"2026-10-23 21:54:09.187755","email":"teste@email.com","id":4,"name":"Teste","password":"c7d9eb0d2f54f8c1177976cf2e6ee6d5","role":"manager"}
+{"active":true,"created_at":"2026-10-28 22:18:41.913913","email":"novo@x.com","id":4,"name":"Novo","password":"c7d9eb0d2f54f8c1177976cf2e6ee6d5","role":"user"}
 
-### POST /users {"email":"a@b.com","password":"1234"}
-status: 400
-{"error":"Nome \u00e9 obrigat\u00f3rio"}
+### POST /users {"name":"Anon Admin","email":"anon@x.com","password":"abcd1","role":"admin"}
+status: 201
+{"active":true,"created_at":"2026-10-28 22:18:41.928254","email":"anon@x.com","id":5,"name":"Anon Admin","password":"c7d9eb0d2f54f8c1177976cf2e6ee6d5","role":"admin"}
 
-### POST /users {"name":"X","password":"1234"}
-status: 400
-{"error":"Email \u00e9 obrigat\u00f3rio"}
+### POST /users {"name":"Wrong Tok","email":"wt@x.com","password":"abcd1","role":"admin"}
+status: 201
+{"active":true,"created_at":"2026-10-28 22:18:41.940101","email":"wt@x.com","id":6,"name":"Wrong Tok","password":"c7d9eb0d2f54f8c1177976cf2e6ee6d5","role":"admin"}
 
-### POST /users {"name":"X","email":"x@x.com"}
-status: 400
-{"error":"Senha \u00e9 obrigat\u00f3ria"}
+### POST /users {"name":"Com Token","email":"ct@x.com","password":"abcd1","role":"manager"}
+status: 201
+{"active":true,"created_at":"2026-10-28 22:18:41.951060","email":"ct@x.com","id":7,"name":"Com Token","password":"c7d9eb0d2f54f8c1177976cf2e6ee6d5","role":"manager"}
 
-### POST /users {"name":"X","email":"invalido","password":"1234"}
-status: 400
-{"error":"Email inv\u00e1lido"}
+### POST /users {"name":"User Role","email":"ur@x.com","password":"abcd1","role":"user"}
+status: 201
+{"active":true,"created_at":"2026-10-28 22:18:41.962435","email":"ur@x.com","id":8,"name":"User Role","password":"c7d9eb0d2f54f8c1177976cf2e6ee6d5","role":"user"}
 
-### POST /users {"name":"X","email":"x@x.com","password":"12"}
-status: 400
-{"error":"Senha deve ter no m\u00ednimo 4 caracteres"}
-
-### POST /users {"name":"X","email":"teste@email.com","password":"1234"}
+### POST /users {"name":"Dup","email":"novo@x.com","password":"abcd1"}
 status: 409
 {"error":"Email j\u00e1 cadastrado"}
 
-### POST /users {"name":"X","email":"x@x.com","password":"1234","role":"boss"}
+### POST /users {"email":"a@x.com","password":"abcd1"}
+status: 400
+{"error":"Nome \u00e9 obrigat\u00f3rio"}
+
+### POST /users {"name":"A","password":"abcd1"}
+status: 400
+{"error":"Email \u00e9 obrigat\u00f3rio"}
+
+### POST /users {"name":"A","email":"a@x.com"}
+status: 400
+{"error":"Senha \u00e9 obrigat\u00f3ria"}
+
+### POST /users {"name":"A","email":"invalido","password":"abcd1"}
+status: 400
+{"error":"Email inv\u00e1lido"}
+
+### POST /users {"name":"A","email":"a@x.com","password":"123"}
+status: 400
+{"error":"Senha deve ter no m\u00ednimo 4 caracteres"}
+
+### POST /users {"name":"A","email":"a@x.com","password":"abcd1","role":"root"}
 status: 400
 {"error":"Role inv\u00e1lido"}
 
@@ -266,7 +350,7 @@ status: 500
 <h1>Internal Server Error</h1>
 <p>The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.</p>
 
-### POST /users {"name":"X","email":"x@x.com","password":12345}
+### POST /users {"name":"A","email":123,"password":"abcd1"}
 status: 500
 <!doctype html>
 <html lang=en>
@@ -274,17 +358,49 @@ status: 500
 <h1>Internal Server Error</h1>
 <p>The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.</p>
 
-### GET /users/4 
+### PUT /users/4 {"name":"Novo Nome","email":"novo2@x.com","password":"zzzz1","active":true}
 status: 200
-{"active":true,"created_at":"2026-10-23 21:54:09.187755","email":"teste@email.com","id":4,"name":"Teste","password":"c7d9eb0d2f54f8c1177976cf2e6ee6d5","role":"manager","tasks":[]}
+{"active":true,"created_at":"2026-10-28 22:18:41.913913","email":"novo2@x.com","id":4,"name":"Novo Nome","password":"16407f0d74781e8bdc8b4acba52f7f88","role":"user"}
 
-### PUT /users/4 {"name":"Teste 2","email":"teste2@email.com","password":"novasenha","role":"user","active":true}
+### PUT /users/4 {"role":"admin"}
 status: 200
-{"active":true,"created_at":"2026-10-23 21:54:09.187755","email":"teste2@email.com","id":4,"name":"Teste 2","password":"3806a526e2c7af2ec712718c3de4d4a5","role":"user"}
+{"active":true,"created_at":"2026-10-28 22:18:41.913913","email":"novo2@x.com","id":4,"name":"Novo Nome","password":"16407f0d74781e8bdc8b4acba52f7f88","role":"admin"}
 
-### PUT /users/999 {"name":"a"}
-status: 404
-{"error":"Usu\u00e1rio n\u00e3o encontrado"}
+### PUT /users/4 {"role":"user"}
+status: 200
+{"active":true,"created_at":"2026-10-28 22:18:41.913913","email":"novo2@x.com","id":4,"name":"Novo Nome","password":"16407f0d74781e8bdc8b4acba52f7f88","role":"user"}
+
+### PUT /users/4 {"role":"manager"}
+status: 200
+{"active":true,"created_at":"2026-10-28 22:18:41.913913","email":"novo2@x.com","id":4,"name":"Novo Nome","password":"16407f0d74781e8bdc8b4acba52f7f88","role":"manager"}
+
+### PUT /users/4 {"role":"root"}
+status: 400
+{"error":"Role inv\u00e1lido"}
+
+### PUT /users/4 {"email":"joao@email.com"}
+status: 409
+{"error":"Email j\u00e1 cadastrado"}
+
+### PUT /users/4 {"email":"invalido"}
+status: 400
+{"error":"Email inv\u00e1lido"}
+
+### PUT /users/4 {"password":"1"}
+status: 400
+{"error":"Senha muito curta"}
+
+### PUT /users/4 {"name":""}
+status: 200
+{"active":true,"created_at":"2026-10-28 22:18:41.913913","email":"novo2@x.com","id":4,"name":"","password":"16407f0d74781e8bdc8b4acba52f7f88","role":"manager"}
+
+### PUT /users/4 {"active":"x"}
+status: 500
+{"error":"Erro ao atualizar"}
+
+### PUT /users/4 {}
+status: 400
+{"error":"Dados inv\u00e1lidos"}
 
 ### PUT /users/4 {
 status: 400
@@ -294,89 +410,29 @@ status: 400
 <h1>Bad Request</h1>
 <p>The browser (or proxy) sent a request that this server could not understand.</p>
 
-### PUT /users/4 {"email":"invalido"}
-status: 400
-{"error":"Email inv\u00e1lido"}
+### PUT /users/9999 {"name":"x"}
+status: 404
+{"error":"Usu\u00e1rio n\u00e3o encontrado"}
 
-### PUT /users/4 {"email":"joao@email.com"}
-status: 409
-{"error":"Email j\u00e1 cadastrado"}
-
-### PUT /users/4 {"password":"1"}
-status: 400
-{"error":"Senha muito curta"}
-
-### PUT /users/4 {"role":"boss"}
-status: 400
-{"error":"Role inv\u00e1lido"}
-
-### PUT /users/4 {"name":null}
-status: 500
-{"error":"Erro ao atualizar"}
-
-### PUT /users/4 {"name":""}
+### POST /login {"email":"novo2@x.com","password":"zzzz1"}
 status: 200
-{"active":true,"created_at":"2026-10-23 21:54:09.187755","email":"teste2@email.com","id":4,"name":"","password":"3806a526e2c7af2ec712718c3de4d4a5","role":"user"}
-
-### PUT /users/4 {"active":"abc"}
-status: 500
-{"error":"Erro ao atualizar"}
-
-### POST /login {"email":"joao@email.com","password":"1234"}
-status: 200
-{"message":"Login realizado com sucesso","token":"fake-jwt-token-1","user":{"active":true,"created_at":"2026-10-23 21:54:08.050493","email":"joao@email.com","id":1,"name":"Jo\u00e3o Silva","password":"81dc9bdb52d04dc20036dbd8313ed055","role":"admin"}}
-
-### POST /login {"email":"maria@email.com","password":"abcd"}
-status: 200
-{"message":"Login realizado com sucesso","token":"fake-jwt-token-2","user":{"active":true,"created_at":"2026-10-23 21:54:08.050496","email":"maria@email.com","id":2,"name":"Maria Santos","password":"e2fc714c4727ee9395f324cd2e7f331f","role":"user"}}
-
-### POST /login {"email":"pedro@email.com","password":"pass"}
-status: 200
-{"message":"Login realizado com sucesso","token":"fake-jwt-token-3","user":{"active":true,"created_at":"2026-10-23 21:54:08.050497","email":"pedro@email.com","id":3,"name":"Pedro Oliveira","password":"1a1dc91c907325c69271ddf0c944bc72","role":"manager"}}
-
-### POST /login {"email":"teste2@email.com","password":"novasenha"}
-status: 200
-{"message":"Login realizado com sucesso","token":"fake-jwt-token-4","user":{"active":true,"created_at":"2026-10-23 21:54:09.187755","email":"teste2@email.com","id":4,"name":"","password":"3806a526e2c7af2ec712718c3de4d4a5","role":"user"}}
-
-### POST /login {"email":"joao@email.com","password":"errada"}
-status: 401
-{"error":"Credenciais inv\u00e1lidas"}
-
-### POST /login {"email":"naoexiste@email.com","password":"1234"}
-status: 401
-{"error":"Credenciais inv\u00e1lidas"}
-
-### POST /login {"email":"joao@email.com"}
-status: 400
-{"error":"Email e senha s\u00e3o obrigat\u00f3rios"}
-
-### POST /login {
-status: 400
-<!doctype html>
-<html lang=en>
-<title>400 Bad Request</title>
-<h1>Bad Request</h1>
-<p>The browser (or proxy) sent a request that this server could not understand.</p>
-
-### POST /login {"email":"joao@email.com","password":1234}
-status: 500
-<!doctype html>
-<html lang=en>
-<title>500 Internal Server Error</title>
-<h1>Internal Server Error</h1>
-<p>The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.</p>
+{"message":"Login realizado com sucesso","token":"fake-jwt-token-4","user":{"active":true,"created_at":"2026-10-28 22:18:41.913913","email":"novo2@x.com","id":4,"name":"","password":"16407f0d74781e8bdc8b4acba52f7f88","role":"manager"}}
 
 ### PUT /users/4 {"active":false}
 status: 200
-{"active":false,"created_at":"2026-10-23 21:54:09.187755","email":"teste2@email.com","id":4,"name":"","password":"3806a526e2c7af2ec712718c3de4d4a5","role":"user"}
+{"active":false,"created_at":"2026-10-28 22:18:41.913913","email":"novo2@x.com","id":4,"name":"","password":"16407f0d74781e8bdc8b4acba52f7f88","role":"manager"}
 
-### POST /login {"email":"teste2@email.com","password":"novasenha"}
+### POST /login {"email":"novo2@x.com","password":"zzzz1"}
 status: 403
 {"error":"Usu\u00e1rio inativo"}
 
-### POST /categories {"name":"Cat teste","description":"d","color":"#123456"}
+### GET /users/4 
+status: 200
+{"active":false,"created_at":"2026-10-28 22:18:41.913913","email":"novo2@x.com","id":4,"name":"","password":"16407f0d74781e8bdc8b4acba52f7f88","role":"manager","tasks":[]}
+
+### POST /categories {"name":"Cat Teste","description":"d","color":"#123456"}
 status: 201
-{"color":"#123456","created_at":"2026-10-23 21:54:09.585853","description":"d","id":5,"name":"Cat teste"}
+{"color":"#123456","created_at":"2026-10-28 22:18:42.251717","description":"d","id":5,"name":"Cat Teste"}
 
 ### POST /categories {"description":"sem nome"}
 status: 400
@@ -398,25 +454,17 @@ status: 500
 <h1>Internal Server Error</h1>
 <p>The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.</p>
 
-### GET /categories 
+### POST /categories {"name":"abc","color":{}}
+status: 500
+{"error":"Erro ao criar categoria"}
+
+### PUT /categories/5 {"name":"Cat Nova","description":"dd","color":"#654321"}
 status: 200
-[{"color":"#3498db","created_at":"2026-10-23 21:54:08.052056","description":"Tarefas de backend","id":1,"name":"Backend","task_count":6},{"color":"#2ecc71","created_at":"2026-10-23 21:54:08.052056","description":"Tarefas de frontend","id":2,"name":"Frontend","task_count":2},{"color":"#e74c3c","created_at":"2026-10-23 21:54:08.052057","description":"Tarefas de infraestrutura","id":3,"name":"DevOps","task_count":2},{"color":"#e67e22","created_at":"2026-10-23 21:54:08.052057","description":"Corre\u00e7\u00e3o de bugs","id":4,"name":"Bug","task_count":1},{"color":"#123456","created_at":"2026-10-23 21:54:09.585853","description":"d","id":5,"name":"Cat teste","task_count":0}]
+{"color":"#654321","created_at":"2026-10-28 22:18:42.251717","description":"dd","id":5,"name":"Cat Nova"}
 
-### PUT /categories/5 {"name":"Cat nova","description":"x","color":"#654321"}
+### PUT /categories/5 {}
 status: 200
-{"color":"#654321","created_at":"2026-10-23 21:54:09.585853","description":"x","id":5,"name":"Cat nova"}
-
-### PUT /categories/999 {"name":"a"}
-status: 404
-{"error":"Categoria n\u00e3o encontrada"}
-
-### PUT /categories/5 {
-status: 400
-<!doctype html>
-<html lang=en>
-<title>400 Bad Request</title>
-<h1>Bad Request</h1>
-<p>The browser (or proxy) sent a request that this server could not understand.</p>
+{"color":"#654321","created_at":"2026-10-28 22:18:42.251717","description":"dd","id":5,"name":"Cat Nova"}
 
 ### PUT /categories/5 null
 status: 500
@@ -426,51 +474,67 @@ status: 500
 <h1>Internal Server Error</h1>
 <p>The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.</p>
 
-### PUT /categories/5 {"name":null}
-status: 500
-{"error":"Erro ao atualizar"}
+### PUT /categories/5 {
+status: 400
+<!doctype html>
+<html lang=en>
+<title>400 Bad Request</title>
+<h1>Bad Request</h1>
+<p>The browser (or proxy) sent a request that this server could not understand.</p>
 
-### PUT /categories/5 {}
+### PUT /categories/5 {"name":""}
 status: 200
-{"color":"#654321","created_at":"2026-10-23 21:54:09.585853","description":"x","id":5,"name":"Cat nova"}
+{"color":"#654321","created_at":"2026-10-28 22:18:42.251717","description":"dd","id":5,"name":""}
 
-### GET /reports/summary 
-status: 200
-{"generated_at":"2026-10-23 21:54:09.718208","overdue":{"count":2,"tasks":[{"days_overdue":3,"due_date":"2026-10-20 21:54:08.053592","id":1,"title":"Implementar autentica\u00e7\u00e3o JWT"},{"days_overdue":1,"due_date":"2026-10-22 21:54:08.054114","id":4,"title":"Corrigir bug no filtro de busca"}]},"overview":{"total_categories":5,"total_tasks":12,"total_users":4},"recent_activity":{"tasks_completed_last_7_days":2,"tasks_created_last_7_days":12},"tasks_by_priority":{"critical":3,"high":3,"low":2,"medium":4,"minimal":0},"tasks_by_status":{"cancelled":1,"done":2,"in_progress":2,"pending":7},"user_productivity":[{"completed_tasks":0,"completion_rate":0.0,"total_tasks":4,"user_id":1,"user_name":"Jo\u00e3o Silva"},{"completed_tasks":1,"completion_rate":25.0,"total_tasks":4,"user_id":2,"user_name":"Maria Santos"},{"completed_tasks":1,"completion_rate":33.33,"total_tasks":3,"user_id":3,"user_name":"Pedro Oliveira"},{"completed_tasks":0,"completion_rate":0,"total_tasks":0,"user_id":4,"user_name":""}]}
+### PUT /categories/9999 {"name":"x"}
+status: 404
+{"error":"Categoria n\u00e3o encontrada"}
 
-### GET /reports/user/2 
+### GET /categories 
 status: 200
-{"statistics":{"cancelled":0,"completion_rate":25.0,"done":1,"high_priority":3,"in_progress":2,"overdue":0,"pending":1,"total_tasks":4},"user":{"email":"maria@email.com","id":2,"name":"Maria Santos"}}
+[{"color":"#3498db","created_at":"2026-10-28 22:18:40.654091","description":"Tarefas de backend","id":1,"name":"Backend","task_count":6},{"color":"#2ecc71","created_at":"2026-10-28 22:18:40.654092","description":"Tarefas de frontend","id":2,"name":"Frontend","task_count":2},{"color":"#e74c3c","created_at":"2026-10-28 22:18:40.654093","description":"Tarefas de infraestrutura","id":3,"name":"DevOps","task_count":2},{"color":"#e67e22","created_at":"2026-10-28 22:18:40.654093","description":"Corre\u00e7\u00e3o de bugs","id":4,"name":"Bug","task_count":1},{"color":"#654321","created_at":"2026-10-28 22:18:42.251717","description":"dd","id":5,"name":"","task_count":0}]
 
-### GET /tasks/stats 
-status: 200
-{"cancelled":1,"completion_rate":16.67,"done":2,"in_progress":2,"overdue":2,"pending":7,"total":12}
+### POST /tasks {"title":"Task do novo usuario","user_id":4,"category_id":5}
+status: 201
+{"category_id":5,"created_at":"2026-10-28 22:18:42.390914","description":"","due_date":null,"id":14,"priority":3,"status":"pending","tags":[],"title":"Task do novo usuario","updated_at":"2026-10-28 22:18:42.390916","user_id":4}
 
 ### DELETE /tasks/11 
 status: 200
 {"message":"Task deletada com sucesso"}
 
-### DELETE /tasks/999 
+### DELETE /tasks/9999 
 status: 404
 {"error":"Task n\u00e3o encontrada"}
-
-### DELETE /users/4 
-status: 200
-{"message":"Usu\u00e1rio deletado com sucesso"}
-
-### DELETE /users/999 
-status: 404
-{"error":"Usu\u00e1rio n\u00e3o encontrado"}
 
 ### DELETE /categories/5 
 status: 200
 {"message":"Categoria deletada"}
 
-### DELETE /categories/999 
+### DELETE /categories/9999 
 status: 404
 {"error":"Categoria n\u00e3o encontrada"}
 
-### GET /tasks 
+### GET /tasks/14 
 status: 200
-[{"category_id":1,"category_name":"Backend","created_at":"2026-10-23 21:54:08.054754","description":"Adicionar autentica\u00e7\u00e3o real com JWT","due_date":"2026-10-20 21:54:08.053592","id":1,"overdue":true,"priority":1,"status":"pending","tags":[],"title":"Implementar autentica\u00e7\u00e3o JWT","updated_at":"2026-10-23 21:54:08.054754","user_id":1,"user_name":"Jo\u00e3o Silva"},{"category_id":2,"category_name":"Frontend","created_at":"2026-10-23 21:54:08.054755","description":"Tela de login responsiva","due_date":"2026-10-28 21:54:08.053798","id":2,"overdue":false,"priority":2,"status":"in_progress","tags":[],"title":"Criar tela de login","updated_at":"2026-10-23 21:54:08.054755","user_id":2,"user_name":"Maria Santos"},{"category_id":3,"category_name":"DevOps","created_at":"2026-10-23 21:54:08.054755","description":"Pipeline com GitHub Actions","due_date":null,"id":3,"overdue":false,"priority":2,"status":"done","tags":["devops","ci","github"],"title":"Configurar CI/CD","updated_at":"2026-10-23 21:54:08.054755","user_id":3,"user_name":"Pedro Oliveira"},{"category_id":4,"category_name":"Bug","created_at":"2026-10-23 21:54:08.054756","description":"Filtro n\u00e3o funciona com caracteres especiais","due_date":"2026-10-22 21:54:08.054114","id":4,"overdue":true,"priority":1,"status":"pending","tags":[],"title":"Corrigir bug no filtro de busca","updated_at":"2026-10-23 21:54:08.054756","user_id":1,"user_name":"Jo\u00e3o Silva"},{"category_id":1,"category_name":"Backend","created_at":"2026-10-23 21:54:08.054756","description":"Endpoints retornam todos os registros","due_date":"2026-11-02 21:54:08.054117","id":5,"overdue":false,"priority":3,"status":"pending","tags":[],"title":"Adicionar pagina\u00e7\u00e3o na API","updated_at":"2026-10-23 21:54:08.054756","user_id":1,"user_name":"Jo\u00e3o Silva"},{"category_id":1,"category_name":"Backend","created_at":"2026-10-23 21:54:08.054756","description":"Cobertura m\u00ednima de 80%","due_date":null,"id":6,"overdue":false,"priority":2,"status":"pending","tags":[],"title":"Escrever testes unit\u00e1rios","updated_at":"2026-10-23 21:54:08.054757","user_id":2,"user_name":"Maria Santos"},{"category_id":1,"category_name":"Backend","created_at":"2026-10-23 21:54:08.054757","description":"Gerar documenta\u00e7\u00e3o autom\u00e1tica","due_date":null,"id":7,"overdue":false,"priority":4,"status":"cancelled","tags":[],"title":"Documentar API com Swagger","updated_at":"2026-10-23 21:54:08.054757","user_id":3,"user_name":"Pedro Oliveira"},{"category_id":1,"category_name":"Backend","created_at":"2026-10-23 21:54:08.054757","description":"Melhorar organiza\u00e7\u00e3o dos models","due_date":null,"id":8,"overdue":false,"priority":3,"status":"in_progress","tags":["refactor","tech-debt"],"title":"Refatorar models","updated_at":"2026-10-23 21:54:08.054757","user_id":2,"user_name":"Maria Santos"},{"category_id":3,"category_name":"DevOps","created_at":"2026-10-23 21:54:08.054757","description":"Prometheus + Grafana","due_date":"2026-11-12 21:54:08.054119","id":9,"overdue":false,"priority":4,"status":"pending","tags":[],"title":"Configurar monitoramento","updated_at":"2026-10-23 21:54:08.054758","user_id":3,"user_name":"Pedro Oliveira"},{"category_id":1,"category_name":"Backend","created_at":"2026-10-23 21:54:08.054758","description":"Usar marshmallow ou pydantic","due_date":null,"id":10,"overdue":false,"priority":3,"status":"pending","tags":["improvement","validation"],"title":"Melhorar valida\u00e7\u00f5es de input","updated_at":"2026-10-23 21:54:08.054758","user_id":1,"user_name":"Jo\u00e3o Silva"},{"category_id":null,"category_name":null,"created_at":"2026-10-23 21:54:08.973899","description":"","due_date":null,"id":12,"overdue":false,"priority":3,"status":"pending","tags":["5"],"title":"abcd","updated_at":"2026-10-23 21:54:08.973901","user_id":null,"user_name":null}]
+{"category_id":null,"created_at":"2026-10-28 22:18:42.390914","description":"","due_date":null,"id":14,"overdue":false,"priority":3,"status":"pending","tags":[],"title":"Task do novo usuario","updated_at":"2026-10-28 22:18:42.428990","user_id":4}
+
+### DELETE /users/4 
+status: 200
+{"message":"Usu\u00e1rio deletado com sucesso"}
+
+### DELETE /users/9999 
+status: 404
+{"error":"Usu\u00e1rio n\u00e3o encontrado"}
+
+### GET /tasks/14 
+status: 404
+{"error":"Task n\u00e3o encontrada"}
+
+### GET /tasks/stats 
+status: 200
+{"cancelled":1,"completion_rate":8.33,"done":1,"in_progress":2,"overdue":2,"pending":8,"total":12}
+
+### GET /reports/summary 
+status: 200
+{"generated_at":"2026-10-28 22:18:42.520421","overdue":{"count":2,"tasks":[{"days_overdue":3,"due_date":"2026-10-25 22:18:40.655821","id":1,"title":"Implementar autentica\u00e7\u00e3o JWT"},{"days_overdue":1,"due_date":"2026-10-27 22:18:40.656279","id":4,"title":"Corrigir bug no filtro de busca"}]},"overview":{"total_categories":4,"total_tasks":12,"total_users":7},"recent_activity":{"tasks_completed_last_7_days":1,"tasks_created_last_7_days":12},"tasks_by_priority":{"critical":2,"high":3,"low":2,"medium":4,"minimal":0},"tasks_by_status":{"cancelled":1,"done":1,"in_progress":2,"pending":8},"user_productivity":[{"completed_tasks":0,"completion_rate":0.0,"total_tasks":4,"user_id":1,"user_name":"Jo\u00e3o Silva"},{"completed_tasks":0,"completion_rate":0.0,"total_tasks":3,"user_id":2,"user_name":"Maria Santos"},{"completed_tasks":1,"completion_rate":33.33,"total_tasks":3,"user_id":3,"user_name":"Pedro Oliveira"},{"completed_tasks":0,"completion_rate":0,"total_tasks":0,"user_id":5,"user_name":"Anon Admin"},{"completed_tasks":0,"completion_rate":0,"total_tasks":0,"user_id":6,"user_name":"Wrong Tok"},{"completed_tasks":0,"completion_rate":0,"total_tasks":0,"user_id":7,"user_name":"Com Token"},{"completed_tasks":0,"completion_rate":0,"total_tasks":0,"user_id":8,"user_name":"User Role"}]}
 

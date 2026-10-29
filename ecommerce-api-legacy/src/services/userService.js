@@ -1,16 +1,21 @@
-const AppError = require('../middlewares/appError');
+const AppError = require('../exceptions/AppError');
+const { MESSAGES } = require('../config/constants');
 
-class UserService {
-    constructor({ db, userModel }) {
-        this.db = db;
-        this.userModel = userModel;
+function createUserService({ userModel, logger }) {
+    async function remove(id) {
+        let changes = 1;
+        try {
+            changes = await userModel.deleteById(id);
+        } catch (err) {
+            // O original respondia sucesso mesmo com erro de banco (mantido, mas agora logado).
+            logger.error(`Falha ao deletar usuário ${id}: ${err.message}`);
+        }
+        if (changes === 0) throw new AppError(404, MESSAGES.USER_NOT_FOUND);
+        logger.info(`Usuário ${id} deletado`);
+        return MESSAGES.USER_DELETED;
     }
 
-    // Remove apenas o usuário; matrículas e pagamentos são preservados (histórico financeiro).
-    async deleteUser(id) {
-        const removed = await this.db.transaction((tx) => this.userModel.deleteById(id, tx));
-        if (removed === 0) throw new AppError(404, 'Usuário não encontrado');
-    }
+    return { remove };
 }
 
-module.exports = UserService;
+module.exports = { createUserService };

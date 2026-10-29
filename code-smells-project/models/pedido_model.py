@@ -1,101 +1,81 @@
-"""Acesso a dados de pedidos e itens (SQL parametrizado, sem N+1)."""
-from config import constants
-from db.connection import get_db
-
-PEDIDOS_TODOS_SQL = "SELECT * FROM pedidos ORDER BY id"
-PEDIDOS_USUARIO_SQL = "SELECT * FROM pedidos WHERE usuario_id = ? ORDER BY id"
-
-ITENS_TODOS_SQL = """
-    SELECT i.pedido_id, i.produto_id, i.quantidade, i.preco_unitario, pr.nome AS produto_nome
-    FROM itens_pedido i
-    LEFT JOIN produtos pr ON pr.id = i.produto_id
-    ORDER BY i.pedido_id, i.id
-"""
-ITENS_USUARIO_SQL = """
-    SELECT i.pedido_id, i.produto_id, i.quantidade, i.preco_unitario, pr.nome AS produto_nome
-    FROM itens_pedido i
-    JOIN pedidos p ON p.id = i.pedido_id
-    LEFT JOIN produtos pr ON pr.id = i.produto_id
-    WHERE p.usuario_id = ?
-    ORDER BY i.pedido_id, i.id
-"""
-
-RELATORIO_SQL = """
-    SELECT
-        COUNT(*) AS total_pedidos,
-        COALESCE(SUM(total), 0) AS faturamento,
-        COALESCE(SUM(CASE WHEN status = 'pendente' THEN 1 ELSE 0 END), 0) AS pendentes,
-        COALESCE(SUM(CASE WHEN status = 'aprovado' THEN 1 ELSE 0 END), 0) AS aprovados,
-        COALESCE(SUM(CASE WHEN status = 'cancelado' THEN 1 ELSE 0 END), 0) AS cancelados
-    FROM pedidos
-"""
+"""Acesso a dados de pedidos e itens."""
+from config.constants import (
+    NOME_PRODUTO_DESCONHECIDO, STATUS_APROVADO, STATUS_CANCELADO, STATUS_PENDENTE,
+)
 
 
-def _montar(pedidos_rows, itens_rows):
-    pedidos = []
-    por_id = {}
-    for row in pedidos_rows:
-        pedido = {
-            "id": row["id"],
-            "usuario_id": row["usuario_id"],
-            "status": row["status"],
-            "total": row["total"],
-            "criado_em": row["criado_em"],
-            "itens": [],
-        }
-        por_id[row["id"]] = pedido
-        pedidos.append(pedido)
-    for item in itens_rows:
-        pedido = por_id.get(item["pedido_id"])
-        if pedido is not None:
-            pedido["itens"].append({
-                "produto_id": item["produto_id"],
-                "produto_nome": item["produto_nome"] if item["produto_nome"] is not None else "Desconhecido",
-                "quantidade": item["quantidade"],
-                "preco_unitario": item["preco_unitario"],
-            })
-    return pedidos
-
-
-def listar_todos():
-    db = get_db()
-    return _montar(db.execute(PEDIDOS_TODOS_SQL).fetchall(), db.execute(ITENS_TODOS_SQL).fetchall())
-
-
-def listar_por_usuario(usuario_id):
-    db = get_db()
-    return _montar(
-        db.execute(PEDIDOS_USUARIO_SQL, (usuario_id,)).fetchall(),
-        db.execute(ITENS_USUARIO_SQL, (usuario_id,)).fetchall(),
-    )
-
-
-def criar(usuario_id, total):
-    cursor = get_db().execute(
+def criar(conn, usuario_id, total):
+    cursor = conn.execute(
         "INSERT INTO pedidos (usuario_id, status, total) VALUES (?, ?, ?)",
-        (usuario_id, constants.STATUS_PENDENTE, total),
+        (usuario_id, STATUS_PENDENTE, total),
     )
     return cursor.lastrowid
 
 
-def inserir_item(pedido_id, produto_id, quantidade, preco_unitario):
-    get_db().execute(
+def inserir_item(conn, pedido_id, produto_id, quantidade, preco_unitario):
+    conn.execute(
         "INSERT INTO itens_pedido (pedido_id, produto_id, quantidade, preco_unitario) VALUES (?, ?, ?, ?)",
         (pedido_id, produto_id, quantidade, preco_unitario),
     )
 
 
-def existe(pedido_id):
-    return get_db().execute("SELECT 1 FROM pedidos WHERE id = ?", (pedido_id,)).fetchone() is not None
+def atualizar_status(conn, pedido_id, novo_status):
+    """Retorna quantos pedidos foram atualizados (0 = não existe)."""
+    return conn.execute(
+        "UPDATE pedidos SET status = ? WHERE id = ?", (novo_status, pedido_id)
+    ).rowcount
 
 
-def atualizar_status(pedido_id, novo_status):
-    get_db().execute("UPDATE pedidos SET status = ? WHERE id = ?", (novo_status, pedido_id))
+def listar(conn, usuario_id=None):
+    """Pedidos com itens em uma única query (sem N+1), na ordem de inserção."""
+    sql = """
+        SELECT p.id AS pedido_id, p.usuario_id, p.status, p.total, p.criado_em,
+               i.id AS item_id, i.produto_id, i.quantidade, i.preco_unitario,
+               pr.nome AS produto_nome
+        FROM pedidos p
+        LEFT JOIN itens_pedido i ON i.pedido_id = p.id
+        LEFT JOIN produtos pr ON pr.id = i.produto_id
+    """
+    parametros = []
+    if usuario_id is not None:
+        sql += " WHERE p.usuario_id = ?"
+        parametros.append(usuario_id)
+    sql += " ORDER BY p.id, i.id"
+
+    pedidos = {}
+    for linha in conn.execute(sql, parametros).fetchall():
+        pedido = pedidos.setdefault(linha["pedido_id"], {
+            "id": linha["pedido_id"],
+            "usuario_id": linha["usuario_id"],
+            "status": linha["status"],
+            "total": linha["total"],
+            "criado_em": linha["criado_em"],
+            "itens": [],
+        })
+        if linha["item_id"] is not None:
+            pedido["itens"].append({
+                "produto_id": linha["produto_id"],
+                "produto_nome": linha["produto_nome"] or NOME_PRODUTO_DESCONHECIDO,
+                "quantidade": linha["quantidade"],
+                "preco_unitario": linha["preco_unitario"],
+            })
+    return list(pedidos.values())
 
 
-def totais_para_relatorio():
-    return get_db().execute(RELATORIO_SQL).fetchone()
+def resumo_vendas(conn):
+    linha = conn.execute(
+        """
+        SELECT COUNT(*) AS total_pedidos,
+               SUM(total) AS faturamento,
+               COALESCE(SUM(CASE WHEN status = ? THEN 1 ELSE 0 END), 0) AS pendentes,
+               COALESCE(SUM(CASE WHEN status = ? THEN 1 ELSE 0 END), 0) AS aprovados,
+               COALESCE(SUM(CASE WHEN status = ? THEN 1 ELSE 0 END), 0) AS cancelados
+        FROM pedidos
+        """,
+        (STATUS_PENDENTE, STATUS_APROVADO, STATUS_CANCELADO),
+    ).fetchone()
+    return dict(linha)
 
 
-def contar():
-    return get_db().execute("SELECT COUNT(*) FROM pedidos").fetchone()[0]
+def contar(conn):
+    return conn.execute("SELECT COUNT(*) FROM pedidos").fetchone()[0]

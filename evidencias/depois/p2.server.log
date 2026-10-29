@@ -1,9 +1,9 @@
 $ npm start
-
-> desafio-arquitetura-ia-boilerplate@1.0.0 start
-> node src/app.js
-
-[INFO] Frankenstein LMS rodando na porta 3000...
-[INFO] Processando cartão final 4444 (gateway sem chave)
-[INFO] Processando cartão final 4444 (gateway sem chave)
-[INFO] Processando cartão final 3333 (gateway sem chave)
+npm notice run desafio-arquitetura-ia-boilerplate@1.0.0 start
+npm notice run node src/app.js
+[INFO] Frankenstein LMS rodando na porta 3001...
+[INFO] Processando cartão ****4444
+[INFO] Checkout concluído: curso 2, usuário 2
+[INFO] Processando cartão ****4444
+[INFO] Processando cartão ****3333
+[INFO] Checkout concluído: curso 2, usuário 1

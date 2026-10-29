@@ -1,33 +1,27 @@
-class EnrollmentModel {
-    constructor(db) {
-        this.db = db;
-    }
+function createEnrollmentModel(db) {
+    return {
+        async create({ userId, courseId }, executor = db) {
+            const { lastID } = await executor.run(
+                'INSERT INTO enrollments (user_id, course_id) VALUES (?, ?)',
+                [userId, courseId],
+            );
+            return lastID;
+        },
 
-    async create({ userId, courseId }, executor = this.db) {
-        const { lastID } = await executor.run(
-            'INSERT INTO enrollments (user_id, course_id) VALUES (?, ?)',
-            [userId, courseId],
-        );
-        return lastID;
-    }
-
-    // Uma única query traz matrícula + aluno + pagamento (evita N+1).
-    // O pagamento é o primeiro (menor id) de cada matrícula.
-    findReportRows() {
-        return this.db.all(`
+        // Uma única query para o relatório (matrícula + aluno + primeiro pagamento).
+        listForFinancialReport: () => db.all(`
             SELECT e.id AS enrollment_id,
                    e.course_id AS course_id,
-                   u.name AS user_name,
-                   p.amount AS amount,
-                   p.status AS status
-            FROM enrollments e
-            LEFT JOIN users u ON u.id = e.user_id
-            LEFT JOIN payments p ON p.id = (
-                SELECT MIN(id) FROM payments WHERE enrollment_id = e.id
-            )
-            ORDER BY e.id
-        `);
-    }
+                   u.id AS user_id,
+                   u.name AS student_name,
+                   p.amount AS payment_amount,
+                   p.status AS payment_status
+              FROM enrollments e
+              LEFT JOIN users u ON u.id = e.user_id
+              LEFT JOIN payments p ON p.id = (SELECT MIN(id) FROM payments WHERE enrollment_id = e.id)
+             ORDER BY e.id
+        `),
+    };
 }
 
-module.exports = EnrollmentModel;
+module.exports = { createEnrollmentModel };
